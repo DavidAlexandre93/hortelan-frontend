@@ -1,5 +1,6 @@
 // routes
 import Router from './routes';
+import { Analytics } from '@vercel/analytics/react';
 // theme
 import ThemeProvider from './theme';
 // components
@@ -14,6 +15,7 @@ export default function App() {
       <ScrollToTop />
       <BaseOptionChartStyle />
       <Router />
+      <Analytics />
     </ThemeProvider>
   );
 }
