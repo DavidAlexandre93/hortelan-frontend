@@ -9,7 +9,7 @@
 
 > Versus admin dashboard with upgraded features, functional components, featuring widgets, activity charts, data tables and paginations, user page, product page, blog, login, register and more.
 
-### ✨ [Live Demo](https://versusboardv2.netlify.app)
+### ✨ [Live Demo](https://hortelan-frontend.vercel.app/dashboard/app)
 
 ## Support is contiguous 
 
