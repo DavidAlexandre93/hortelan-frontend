@@ -101,7 +101,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
             </Typography>
           </Box>
 
-          <Button href="https://vinyldavyl.netlify.app" target="_blank" variant="contained">
+          <Button href="https://www.davidalexandrefernandes.com.br" target="_blank" variant="contained">
             Contact us
           </Button>
         </Stack>

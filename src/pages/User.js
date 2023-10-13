@@ -7,7 +7,6 @@ import {
   Card,
   Table,
   Stack,
-  Avatar,
   Button,
   Checkbox,
   TableRow,
@@ -18,6 +17,12 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
+import { YardTwoTone, RemoveRedEyeTwoTone } from '@mui/icons-material';
+import { styled } from '@mui/material/styles';
+import Switch from '@mui/material/Switch';
+import RestoreIcon from '@mui/icons-material/Restore';
+import Slider from '@mui/material/Slider';
+import { withStyles } from '@mui/styles';
 // components
 import Page from '../components/Page';
 import Label from '../components/Label';
@@ -31,15 +36,23 @@ import USERLIST from '../_mock/user';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Name', alignRight: false },
-  { id: 'company', label: 'Company', alignRight: false },
-  { id: 'role', label: 'Role', alignRight: false },
-  { id: 'isVerified', label: 'Verified', alignRight: false },
-  { id: 'status', label: 'Status', alignRight: false },
+  { id: 'name', label: 'Name Garden', alignRight: false },
+  { id: 'company', label: 'Logs', alignRight: false },
+  { id: 'role', label: 'Automatic Watering', alignRight: false },
+  { id: 'isVerified', label: 'Watch Live', alignRight: false },
+  { id: 'status', label: 'Status Garden', alignRight: false },
+  { id: 'Soil moisture', label: 'Select humidity', alignRight: false },
   { id: '' },
 ];
 
 // ----------------------------------------------------------------------
+
+
+const CustomTableCell = withStyles((theme) => ({
+  root: {
+    width: '400px',
+  },
+}))(TableCell);
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -132,15 +145,80 @@ export default function User() {
 
   const isUserNotFound = filteredUsers.length === 0;
 
+  const AntSwitch = styled(Switch)(({ theme }) => ({
+    width: 28,
+    height: 16,
+    padding: 0,
+    display: 'flex',
+    '&:active': {
+      '& .MuiSwitch-thumb': {
+        width: 15,
+      },
+      '& .MuiSwitch-switchBase.Mui-checked': {
+        transform: 'translateX(9px)',
+      },
+    },
+    '& .MuiSwitch-switchBase': {
+      padding: 2,
+      '&.Mui-checked': {
+        transform: 'translateX(12px)',
+        color: '#fff',
+        '& + .MuiSwitch-track': {
+          opacity: 1,
+          backgroundColor: theme.palette.mode === 'dark' ? '#177ddc' : '#1890ff',
+        },
+      },
+    },
+    '& .MuiSwitch-thumb': {
+      boxShadow: '0 2px 4px 0 rgb(0 35 11 / 20%)',
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      transition: theme.transitions.create(['width'], {
+        duration: 200,
+      }),
+    },
+    '& .MuiSwitch-track': {
+      borderRadius: 16 / 2,
+      opacity: 1,
+      backgroundColor:
+        theme.palette.mode === 'dark' ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.25)',
+      boxSizing: 'border-box',
+    },
+  }));
+  
+  const marks = [
+    {
+      value: 10,
+      label: '10%',
+    },
+    {
+      value: 20,
+      label: '20%',
+    },
+    {
+      value: 30,
+      label: '30%',
+    },
+    {
+      value: 90,
+      label: '90%',
+    },
+  ];
+  
+  function valuetext(value) {
+    return `${value}%`;
+  }
+
   return (
     <Page title="User">
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            User
+            Garden registration
           </Typography>
           <Button variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-            New User
+            New Garden
           </Button>
         </Stack>
 
@@ -178,20 +256,40 @@ export default function User() {
                         </TableCell>
                         <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
+                            <YardTwoTone alt={name} src={avatarUrl} />
                             <Typography variant="subtitle2" noWrap>
                               {name}
                             </Typography>
                           </Stack>
                         </TableCell>
-                        <TableCell align="left">{company}</TableCell>
-                        <TableCell align="left">{role}</TableCell>
-                        <TableCell align="left">{isVerified ? 'Yes' : 'No'}</TableCell>
                         <TableCell align="left">
-                          <Label variant="ghost" color={(status === 'banned' && 'error') || 'success'}>
+                          <RestoreIcon label='Logs' />
+                        </TableCell>
+                        <TableCell align="left">
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <Typography>Off</Typography>
+                              <AntSwitch defaultChecked inputProps={{ 'aria-label': 'ant design' }} />
+                            <Typography>On</Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell align="left">
+                          <RemoveRedEyeTwoTone />
+                        </TableCell>
+                        <TableCell align="left">
+                          <Label variant="ghost" color={(status === 'Inactive' && 'error') || 'success'}>
                             {sentenceCase(status)}
                           </Label>
                         </TableCell>
+                        <CustomTableCell >
+                          <Slider
+                            aria-label="Always visible"
+                            defaultValue={80}
+                            getAriaValueText={valuetext}
+                            step={10}
+                            marks={marks}
+                            valueLabelDisplay="on"
+                          />
+                        </CustomTableCell>
 
                         <TableCell align="right">
                           <UserMoreMenu />
