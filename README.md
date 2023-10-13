@@ -11,13 +11,6 @@
 
 ### ✨ [Live Demo](https://versusboardv2.netlify.app)
 
-## Author
-
-👤 **Vinyl Davyl**
-
-- Website: https://vinyldavyl.netlify.app
-- Twitter: [@Vinylchi](https://twitter.com/Vinylchi)
-
 ## Support is contiguous 
 
 Leave a ⭐️ If this project got you going!
