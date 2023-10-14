@@ -21,7 +21,7 @@ export default function Logo({ disabledLink = false, sx }) {
   const PRIMARY_DARK = theme.palette.primary.dark;
 
   
-  const logo = <Box component="img" src="/static/nav-logo.svg" sx={{ width: 40, height: 40, ...sx }} />
+  const logo = <Box component="img" src="/static/hortelan-logo.jpeg" sx={{ width: 40, height: 40, ...sx }} />
 
   // OR
   // const logo = (
