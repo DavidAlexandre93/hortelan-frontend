@@ -39,6 +39,7 @@
     ]
   },
   "dependencies": {
+    "@alwaysmeticulous/recorder-loader": "^2.79.0",
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
     "@faker-js/faker": "^7.3.0",

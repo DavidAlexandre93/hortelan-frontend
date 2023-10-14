@@ -9,10 +9,30 @@ import { HelmetProvider } from 'react-helmet-async';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import reportWebVitals from './reportWebVitals';
+import { tryLoadAndStartRecorder } from '@alwaysmeticulous/recorder-loader'
 
 // ----------------------------------------------------------------------
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
+async function startApp() {
+    // Record all sessions on localhost, staging stacks and preview URLs
+    if (!isProduction()) {
+      // Start the Meticulous recorder before you initialise your app.
+      // Note: all errors are caught and logged, so no need to surround with try/catch
+      await tryLoadAndStartRecorder({
+        projectId: '9RzrB10MByJLLtuC4PyNAlrQtV4yPeDdiOG0Wflo',
+        isProduction: false,
+      });
+    }
+}
+
+function isProduction() {
+    // TODO: Update me with your production hostname
+    return window.location.hostname.indexOf("https://hortelan-frontend.vercel.app/dashboard/app") > -1;
+}
+
+startApp();
 
 root.render(
   <HelmetProvider>
