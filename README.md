@@ -1,4 +1,4 @@
-# Hortelan-V2 👋
+# HORTELAN-V2 👋
 
 <p>
   <img alt="Version" src="https://img.shields.io/badge/version-2.0.0-blue.svg?cacheSeconds=2592000" />
@@ -7,7 +7,7 @@
   </a>
 </p>
 
-> Versus admin dashboard with upgraded features, functional components, featuring widgets, activity charts, data tables and paginations, user page, product page, blog, login, register and more.
+> Automated and monitored smart garden
 
 ### ✨ [Live Demo](https://hortelan-frontend.vercel.app/dashboard/app)
 
@@ -24,8 +24,10 @@ Leave a ⭐️ If this project got you going!
 First, run the development server:
 
 ```bash
+npm install
 npm run dev
 # or
+yarn
 yarn dev
 ```
 
