@@ -37,7 +37,7 @@ const navConfig = [
     icon: getIcon('eva:person-add-fill'),
   },
   {
-    title: 'Not found',
+    title: 'Page for Error Usage',
     path: '/404',
     icon: getIcon('eva:alert-triangle-fill'),
   },

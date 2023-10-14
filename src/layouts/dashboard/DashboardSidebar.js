@@ -94,10 +94,10 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
 
           <Box sx={{ textAlign: 'center' }}>
             <Typography gutterBottom variant="h6">
-              Have some Questions?
+              Have some Questions or Problems?
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Reach out to us
+              Ask your questions here through our chatbot, we recommend documentation or support requests
             </Typography>
           </Box>
 
