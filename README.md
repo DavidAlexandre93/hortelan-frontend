@@ -1,4 +1,4 @@
-# HORTELAN-V2 👋
+# HORTELAN-V2 ⭐️
 
 <p>
   <img alt="Version" src="https://img.shields.io/badge/version-2.0.0-blue.svg?cacheSeconds=2592000" />
