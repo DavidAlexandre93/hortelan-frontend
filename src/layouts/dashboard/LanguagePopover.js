@@ -11,18 +11,24 @@ const LANGS = [
   {
     value: 'en',
     label: 'English',
-    icon: '/static/icons/eua.jpg',
+    icon: '/static/icons/eua.svg',
   },
   {
     value: 'ng',
     label: 'Español',
-    icon: '/static/icons/espanha.jpg',
+    icon: '/static/icons/espanha.svg',
   },
   {
     value: 'de',
     label: 'Português BR',
-    icon: '/static/icons/brasil.jpg',
+    icon: '/static/icons/brasil.svg',
   },
+  {
+    value: 'de',
+    label: 'French',
+    icon: '/static/icons/franca.svg',
+  },
+
 ];
 
 // ----------------------------------------------------------------------
@@ -56,7 +62,6 @@ export default function LanguagePopover() {
        <img
         src={LANGS[0].icon}
         alt={LANGS[0].label}
-        style={{ borderRadius: '50%', width: '45px', height: '45px' }}
         />
 
       </IconButton>

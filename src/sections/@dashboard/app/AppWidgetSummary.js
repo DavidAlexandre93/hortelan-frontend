@@ -30,7 +30,7 @@ AppWidgetSummary.propTypes = {
   sx: PropTypes.object,
 };
 
-export default function AppWidgetSummary({ title, total, icon, color = 'primary', sx, ...other }) {
+export default function AppWidgetSummary({ title, total, icon1, icon2, color = 'primary', sx, ...other }) {
   return (
     <Card
       sx={{
@@ -53,7 +53,8 @@ export default function AppWidgetSummary({ title, total, icon, color = 'primary'
             )} 100%)`,
         }}
       >
-        <Iconify icon={icon} width={24} height={24} />
+        <Iconify icon={icon1} width={24} height={24} />
+        <Iconify icon={icon2} width={24} height={24} />
       </IconWrapperStyle>
 
       <Typography variant="h3">{fShortenNumber(total)}</Typography>

@@ -47,7 +47,6 @@ const TABLE_HEAD = [
 
 // ----------------------------------------------------------------------
 
-
 const CustomTableCell = withStyles((theme) => ({
   root: {
     width: '400px',
