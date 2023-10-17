@@ -6,14 +6,15 @@
   "private": false,
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "react-scripts build && yarn sentry:sourcemaps",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint --ext .js,.jsx ./src",
     "lint:fix": "eslint --fix --ext .js,.jsx ./src",
     "clear-all": "rm -rf build node_modules",
     "re-start": "rm -rf build node_modules && yarn install && yarn start",
-    "re-build": "rm -rf build node_modules && yarn install && yarn build"
+    "re-build": "rm -rf build node_modules && yarn install && yarn build",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org hortelan --project hortelan-frontend ./ && sentry-cli sourcemaps upload --org hortelan --project hortelan-frontend ./"
   },
   "eslintConfig": {
     "extends": [
