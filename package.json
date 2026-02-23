@@ -4,6 +4,7 @@
   "licence": "MIT",
   "version": "1.5.0",
   "scripts": {
+    "install": "yarn install --frozen-lockfile",
     "start": "react-scripts start",
     "build": "react-scripts build && yarn sentry:sourcemaps",
     "test": "react-scripts test",
