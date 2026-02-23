@@ -95,6 +95,57 @@ const eventTypeOptions = [
   { value: 'colheita', label: 'Colheita' },
 ];
 
+const sensorWidgets = [
+  {
+    title: 'Sensor de umidade do solo',
+    total: 68,
+    icon1: 'carbon:soil-moisture-field',
+    color: 'primary',
+  },
+  {
+    title: 'Sensor de temperatura ambiente',
+    total: 24,
+    icon1: 'mdi:temperature-celsius',
+    color: 'info',
+  },
+  {
+    title: 'Sensor de umidade do ar',
+    total: 57,
+    icon1: 'mdi:water-percent',
+    color: 'warning',
+  },
+  {
+    title: 'Sensor de luminosidade',
+    total: 410,
+    icon1: 'ph:sun',
+    color: 'error',
+  },
+  {
+    title: 'Sensor de pH',
+    total: 6.4,
+    icon1: 'material-symbols:water-ph',
+    color: 'success',
+  },
+  {
+    title: 'Sensor de EC / condutividade (fase avançada)',
+    total: 1.8,
+    icon1: 'mdi:chart-timeline-variant',
+    color: 'secondary',
+  },
+  {
+    title: 'Sensor de nível de água / reservatório',
+    total: 72,
+    icon1: 'icon-park:water-level',
+    color: 'primary',
+  },
+  {
+    title: 'Sensor de fluxo (fase avançada)',
+    total: 14,
+    icon1: 'mdi:waves-arrow-right',
+    color: 'info',
+  },
+];
+
 export default function DashboardApp() {
   const theme = useTheme();
   const [region, setRegion] = useState('Sudeste');
@@ -714,21 +765,11 @@ export default function DashboardApp() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Soil moisture" total={20} icon1={'carbon:soil-moisture-field'} />
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Temperature and relative humidity" total={25} color="info" icon1={'mdi:temperature'} icon2={'mdi:humidity-outline'} />
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="pH" total={7} color="success" icon1={'material-symbols:water-ph'} />
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Lux" total={400} color="error" icon1={'ph:sun'} />
-          </Grid>
+          {sensorWidgets.map((sensor) => (
+            <Grid key={sensor.title} item xs={12} sm={6} md={3}>
+              <AppWidgetSummary title={sensor.title} total={sensor.total} color={sensor.color} icon1={sensor.icon1} />
+            </Grid>
+          ))}
 
           <Grid item xs={12} md={6} lg={8}>
             <AppWebsiteVisits
@@ -809,14 +850,23 @@ export default function DashboardApp() {
 
           <Grid item xs={12} md={6} lg={4}>
             <AppCurrentSubject
-              title="Current Gardens active"
-              chartLabels={['Temperature °C/°F', 'Umidity %', 'Lúmen lux', 'pH', 'Battery', 'Reservoir']}
-              chartData={[
-                { name: 'Garden01', data: [80, 50, 30, 40, 100, 20] },
-                { name: 'Garden02', data: [20, 50, 40, 80, 70, 80] },
-                { name: 'Garden03', data: [44, 76, 78, 13, 43, 10] },
+              title="Sensores ativos por cultivo"
+              chartLabels={[
+                'Umidade do solo',
+                'Temperatura ambiente',
+                'Umidade do ar',
+                'Luminosidade',
+                'pH',
+                'EC / condutividade',
+                'Nível de reservatório',
+                'Fluxo',
               ]}
-              chartColors={[...Array(6)].map(() => theme.palette.text.secondary)}
+              chartData={[
+                { name: 'Estufa A', data: [82, 71, 65, 78, 73, 52, 69, 48] },
+                { name: 'Estufa B', data: [74, 67, 61, 70, 69, 45, 72, 41] },
+                { name: 'Hidroponia', data: [88, 69, 72, 66, 76, 81, 77, 64] },
+              ]}
+              chartColors={[...Array(8)].map(() => theme.palette.text.secondary)}
             />
           </Grid>
 
