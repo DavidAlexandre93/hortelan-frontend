@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import SensorsIcon from '@mui/icons-material/Sensors';
 import RouterIcon from '@mui/icons-material/Router';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
@@ -11,7 +12,11 @@ import {
   CardContent,
   Chip,
   Container,
+  FormControl,
   Grid,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
@@ -190,6 +195,123 @@ export default function StatusPage() {
   const totalDevices = greenhouseAreas.reduce((acc, area) => acc + area.devices.length, 0);
   const totalAlerts = greenhouseAreas.reduce((acc, area) => acc + area.alerts.length, 0);
   const totalPlants = greenhouseAreas.reduce((acc, area) => acc + area.plants.length, 0);
+const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
+  dateStyle: 'short',
+  timeStyle: 'medium',
+});
+
+const randomNumberInRange = (min, max, decimalPlaces = 1) => {
+  const multiplier = 10 ** decimalPlaces;
+  return Math.round((Math.random() * (max - min) + min) * multiplier) / multiplier;
+};
+
+const getMeasurementLabel = (device, measurement) => {
+  if (device.type === 'sensor') {
+    switch (measurement.metric) {
+      case 'soilMoisture':
+        return `Umidade do solo: ${measurement.value}%`;
+      case 'temperature':
+        return `Temperatura: ${measurement.value}°C`;
+      case 'ph':
+        return `pH: ${measurement.value}`;
+      default:
+        return `Leitura: ${measurement.value}`;
+    }
+  }
+
+  return measurement.online ? 'Dispositivo online' : 'Dispositivo offline';
+};
+
+const buildInitialMeasurements = () =>
+  greenhouseAreas.reduce((acc, area) => {
+    area.devices.forEach((device) => {
+      if (device.type === 'sensor') {
+        let metric = 'soilMoisture';
+        let value = randomNumberInRange(35, 80);
+
+        if (device.name.toLowerCase().includes('temperatura') || device.name.toLowerCase().includes('clima')) {
+          metric = 'temperature';
+          value = randomNumberInRange(19, 35);
+        }
+
+        if (device.name.toLowerCase().includes('ph')) {
+          metric = 'ph';
+          value = randomNumberInRange(5.5, 7.4, 2);
+        }
+
+        acc[device.id] = {
+          metric,
+          value,
+          updatedAt: new Date().toISOString(),
+        };
+      } else {
+        acc[device.id] = {
+          metric: 'status',
+          online: true,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+    });
+
+    return acc;
+  }, {});
+
+const getUpdatedMeasurement = (previousMeasurement) => {
+  if (previousMeasurement.metric === 'temperature') {
+    const nextValue = Math.max(12, Math.min(42, previousMeasurement.value + randomNumberInRange(-1.5, 1.5)));
+    return { ...previousMeasurement, value: Number(nextValue.toFixed(1)), updatedAt: new Date().toISOString() };
+  }
+
+  if (previousMeasurement.metric === 'ph') {
+    const nextValue = Math.max(4.8, Math.min(8.5, previousMeasurement.value + randomNumberInRange(-0.12, 0.12, 2)));
+    return { ...previousMeasurement, value: Number(nextValue.toFixed(2)), updatedAt: new Date().toISOString() };
+  }
+
+  if (previousMeasurement.metric === 'soilMoisture') {
+    const nextValue = Math.max(10, Math.min(95, previousMeasurement.value + randomNumberInRange(-2.4, 2.4)));
+    return { ...previousMeasurement, value: Number(nextValue.toFixed(1)), updatedAt: new Date().toISOString() };
+  }
+
+  const toggledOnline = Math.random() > 0.95 ? !previousMeasurement.online : previousMeasurement.online;
+  return { ...previousMeasurement, online: toggledOnline, updatedAt: new Date().toISOString() };
+};
+
+export default function StatusPage() {
+  const [measurementsByDevice, setMeasurementsByDevice] = useState(() => buildInitialMeasurements());
+  const [lastRefreshAt, setLastRefreshAt] = useState(new Date().toISOString());
+  const [viewMode, setViewMode] = useState('area');
+  const [selectedArea, setSelectedArea] = useState('all');
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMeasurementsByDevice((previous) => {
+        const updated = Object.fromEntries(
+          Object.entries(previous).map(([deviceId, measurement]) => [deviceId, getUpdatedMeasurement(measurement)])
+        );
+
+        return updated;
+      });
+
+      setLastRefreshAt(new Date().toISOString());
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const filteredAreas = useMemo(() => {
+    if (selectedArea === 'all') {
+      return greenhouseAreas;
+    }
+
+    return greenhouseAreas.filter((area) => area.id === selectedArea);
+  }, [selectedArea]);
+
+  const totalDevices = greenhouseAreas.reduce((acc, area) => acc + area.devices.length, 0);
+  const totalAlerts = greenhouseAreas.reduce((acc, area) => acc + area.alerts.length, 0);
+  const totalSensors = greenhouseAreas.reduce(
+    (acc, area) => acc + area.devices.filter((device) => device.type === 'sensor').length,
+    0
+  );
 
   return (
     <Page title="Status por Área">
@@ -200,7 +322,60 @@ export default function StatusPage() {
             <Typography color="text.secondary">
               Visualização espacial com posicionamento de sensores/dispositivos e status em tempo real por área.
             </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Atualização automática a cada 6s • Última atualização: {dateTimeFormatter.format(new Date(lastRefreshAt))}
+            </Typography>
           </Stack>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="view-mode-label">Visualização</InputLabel>
+                <Select
+                  labelId="view-mode-label"
+                  value={viewMode}
+                  label="Visualização"
+                  onChange={(event) => setViewMode(event.target.value)}
+                >
+                  <MenuItem value="area">Por área</MenuItem>
+                  <MenuItem value="sensor">Por sensor</MenuItem>
+                  <MenuItem value="device">Por dispositivo</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="area-filter-label">Filtrar área</InputLabel>
+                <Select
+                  labelId="area-filter-label"
+                  value={selectedArea}
+                  label="Filtrar área"
+                  onChange={(event) => setSelectedArea(event.target.value)}
+                >
+                  <MenuItem value="all">Todas as áreas</MenuItem>
+                  {greenhouseAreas.map((area) => (
+                    <MenuItem key={area.id} value={area.id}>
+                      {area.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Card variant="outlined" sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography variant="caption" color="text.secondary">
+                    Leitura em quase tempo real
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {viewMode === 'area' && 'Layout com todos os pontos e última medição por item.'}
+                    {viewMode === 'sensor' && `Exibindo ${totalSensors} sensores com timestamps das medições.`}
+                    {viewMode === 'device' && `Exibindo ${totalDevices - totalSensors} dispositivos com status atualizado.`}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
 
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
@@ -262,8 +437,23 @@ export default function StatusPage() {
           </Stack>
 
           <Grid container spacing={3}>
-            {greenhouseAreas.map((area) => {
+            {filteredAreas.map((area) => {
               const config = areaStatusConfig[area.status];
+              const scopedDevices = area.devices.filter((device) => {
+                if (viewMode === 'sensor') {
+                  return device.type === 'sensor';
+                }
+
+                if (viewMode === 'device') {
+                  return device.type === 'device';
+                }
+
+                return true;
+              });
+
+              if (scopedDevices.length === 0) {
+                return null;
+              }
 
               return (
                 <Grid item key={area.id} xs={area.size.xs} md={area.size.md}>
@@ -302,8 +492,9 @@ export default function StatusPage() {
                           overflow: 'hidden',
                         }}
                       >
-                        {area.devices.map((device) => {
+                        {scopedDevices.map((device) => {
                           const isSensor = device.type === 'sensor';
+                          const measurement = measurementsByDevice[device.id];
 
                           return (
                             <Box
@@ -319,7 +510,7 @@ export default function StatusPage() {
                                 size="small"
                                 icon={isSensor ? <SensorsIcon fontSize="small" /> : <RouterIcon fontSize="small" />}
                                 label={device.id}
-                                color={isSensor ? 'primary' : 'default'}
+                                color={isSensor ? 'primary' : measurement?.online ? 'success' : 'error'}
                                 variant={isSensor ? 'filled' : 'outlined'}
                               />
                             </Box>
@@ -328,11 +519,16 @@ export default function StatusPage() {
                       </Box>
 
                       <Stack spacing={1} sx={{ mt: 2 }}>
-                        {area.devices.map((device) => (
-                          <Typography key={`${area.id}-${device.id}`} variant="body2" color="text.secondary">
-                            • {device.id} — {device.name}
-                          </Typography>
-                        ))}
+                        {scopedDevices.map((device) => {
+                          const measurement = measurementsByDevice[device.id];
+
+                          return (
+                            <Typography key={`${area.id}-${device.id}`} variant="body2" color="text.secondary">
+                              • {device.id} — {device.name} • {measurement ? getMeasurementLabel(device, measurement) : 'Sem leitura'} •{' '}
+                              {measurement ? dateTimeFormatter.format(new Date(measurement.updatedAt)) : '-'}
+                            </Typography>
+                          );
+                        })}
                       </Stack>
 
                       {area.alerts.length > 0 && (
