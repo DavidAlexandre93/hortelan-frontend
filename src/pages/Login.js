@@ -92,7 +92,10 @@ export default function Login() {
               Sign in to Hortelan
             </Typography>
 
-            <Typography sx={{ color: 'text.secondary', mb: 5 }}>Enter your details below.</Typography>
+            <Typography sx={{ color: 'text.secondary', mb: 1 }}>Enter your details below.</Typography>
+            <Typography sx={{ color: 'text.secondary', mb: 5 }}>
+              Mock admin access: <strong>davidfernandes</strong> / <strong>admin</strong>.
+            </Typography>
 
             <AuthSocial />
 

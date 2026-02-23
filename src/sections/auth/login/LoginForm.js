@@ -11,6 +11,12 @@ import { LoadingButton } from '@mui/lab';
 import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFTextField, RHFCheckbox } from '../../../components/hook-form';
 
+const MOCK_ADMIN_USER = {
+  username: 'davidfernandes',
+  password: 'admin',
+  role: 'administrator',
+};
+
 // ----------------------------------------------------------------------
 
 export default function LoginForm() {
@@ -19,13 +25,13 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
 
   const LoginSchema = Yup.object().shape({
-    email: Yup.string().email('Email must be a valid email address').required('Email is required'),
+    email: Yup.string().required('Username is required'),
     password: Yup.string().required('Password is required'),
   });
 
   const defaultValues = {
-    email: '',
-    password: '',
+    email: MOCK_ADMIN_USER.username,
+    password: MOCK_ADMIN_USER.password,
     remember: true,
   };
 
@@ -36,17 +42,29 @@ export default function LoginForm() {
 
   const {
     handleSubmit,
+    setError,
     formState: { isSubmitting },
   } = methods;
 
-  const onSubmit = async () => {
-    navigate('/dashboard', { replace: true });
+  const onSubmit = async ({ email, password }) => {
+    const isValidAdmin = email === MOCK_ADMIN_USER.username && password === MOCK_ADMIN_USER.password;
+
+    if (!isValidAdmin) {
+      setError('password', {
+        type: 'manual',
+        message: 'Invalid credentials. Use davidfernandes / admin.',
+      });
+      return;
+    }
+
+    localStorage.setItem('hortelan-auth', JSON.stringify(MOCK_ADMIN_USER));
+    navigate('/dashboard/app', { replace: true });
   };
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
-        <RHFTextField name="email" label="Email address" />
+        <RHFTextField name="email" label="Username" />
 
         <RHFTextField
           name="password"
