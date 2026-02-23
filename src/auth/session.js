@@ -43,6 +43,15 @@ const USERS = [
       },
     ],
     cultivationLevel: 'intermediario',
+    gardens: [
+      {
+        id: 'garden-admin-1',
+        name: 'Horta da varanda',
+        gardenType: 'vaso',
+        location: 'São Paulo/SP - Vila Mariana',
+        photoURL: '',
+      },
+    ],
   },
 ];
 
@@ -71,6 +80,13 @@ const buildSafeUser = (user) => ({
     addressLine: address.addressLine,
   })),
   cultivationLevel: user.cultivationLevel || 'iniciante',
+  gardens: (user.gardens || []).map((garden, index) => ({
+    id: garden.id || `garden-${Date.now()}-${index}`,
+    name: garden.name || `Horta ${index + 1}`,
+    gardenType: garden.gardenType || 'solo',
+    location: garden.location || '',
+    photoURL: garden.photoURL || '',
+  })),
 });
 
 const INITIAL_PASSWORD_HISTORY = [
@@ -444,13 +460,7 @@ export const getAuthenticatedUser = () => {
     return null;
   }
 
-  return {
-    id: user.id,
-    email: user.email,
-    role: user.role,
-    name: user.name,
-    isActive: user.isActive !== false,
-  };
+  return buildSafeUser(user);
 };
 
 export const getUserConsents = () => {
@@ -526,10 +536,6 @@ export const requestAccountDeletion = ({ reason }) => {
 };
 
 export const deactivateCurrentAccount = ({ reason }) => {
-  return buildSafeUser(user);
-};
-
-export const updateAuthenticatedUserProfile = (payload) => {
   const user = getAuthenticatedUser();
 
   if (!user) {
@@ -582,6 +588,25 @@ export const exportCurrentUserData = () => {
     trustedDevices: getTrustedDevicesStore().filter((device) => device.userId === fullUser.id),
     passwordHistory: getPasswordHistory().filter((entry) => entry.userId === fullUser.id),
     accountDeletionRequest: getAccountDeletionRequestsStore().find((request) => request.userId === fullUser.id) || null,
+    profile: {
+      bio: fullUser.bio || '',
+      preferences: fullUser.preferences || null,
+      notifications: fullUser.notifications || null,
+      savedAddresses: fullUser.savedAddresses || [],
+      cultivationLevel: fullUser.cultivationLevel || null,
+      gardens: fullUser.gardens || [],
+    },
+  };
+};
+
+export const updateAuthenticatedUserProfile = (payload) => {
+  const user = getAuthenticatedUser();
+
+  if (!user) {
+    return { error: 'Usuário não autenticado.' };
+  }
+
+  const users = getUsers();
   const currentUser = users.find((item) => item.id === user.id);
 
   if (!currentUser) {
@@ -611,6 +636,13 @@ export const exportCurrentUserData = () => {
       addressLine: address.addressLine?.trim() || '',
     })),
     cultivationLevel: payload.cultivationLevel || currentUser.cultivationLevel || 'iniciante',
+    gardens: (payload.gardens || []).map((garden, index) => ({
+      id: garden.id || `garden-${Date.now()}-${index}`,
+      name: garden.name?.trim() || `Horta ${index + 1}`,
+      gardenType: garden.gardenType || 'solo',
+      location: garden.location?.trim() || '',
+      photoURL: garden.photoURL?.trim() || '',
+    })),
   };
 
   const updatedUsers = users.map((item) => (item.id === currentUser.id ? nextUser : item));

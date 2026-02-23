@@ -107,6 +107,14 @@ export function AuthProvider({ children }) {
 
   const updateConsents = useCallback((nextConsents) => {
     const result = updateUserConsents(nextConsents);
+
+    if (!result.error) {
+      refreshAuthState();
+    }
+
+    return result;
+  }, [refreshAuthState]);
+
   const updateProfile = useCallback((payload) => {
     const result = updateAuthenticatedUserProfile(payload);
 

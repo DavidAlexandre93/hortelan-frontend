@@ -39,6 +39,23 @@ const TIMEZONE_OPTIONS = [
   { value: 'UTC', label: 'UTC (GMT+0)' },
 ];
 
+const GARDEN_TYPE_OPTIONS = [
+  { value: 'solo', label: 'Solo' },
+  { value: 'vaso', label: 'Vaso' },
+  { value: 'vertical', label: 'Vertical' },
+  { value: 'hidroponia', label: 'Hidroponia' },
+  { value: 'indoor', label: 'Indoor' },
+  { value: 'estufa', label: 'Estufa' },
+];
+
+const createEmptyGarden = () => ({
+  id: `garden-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  name: '',
+  gardenType: 'solo',
+  location: '',
+  photoURL: '',
+});
+
 export default function ProfileSettings() {
   const { user, updateProfile } = useAuth();
 
@@ -60,6 +77,7 @@ export default function ProfileSettings() {
     },
     savedAddresses: user?.savedAddresses?.length ? user.savedAddresses : [{ id: `address-${Date.now()}`, label: '', addressLine: '' }],
     cultivationLevel: user?.cultivationLevel || 'iniciante',
+    gardens: user?.gardens?.length ? user.gardens : [createEmptyGarden()],
   }));
   const [feedback, setFeedback] = useState(null);
 
@@ -269,6 +287,118 @@ export default function ProfileSettings() {
 
           <Card sx={{ p: 3 }}>
             <Stack spacing={2}>
+              <Typography variant="h6">Hortas do usuário</Typography>
+
+              {form.gardens.map((garden, index) => (
+                <Box key={garden.id}>
+                  <Stack spacing={2}>
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
+                      <TextField
+                        fullWidth
+                        label="Nome da horta"
+                        placeholder="Horta da varanda"
+                        value={garden.name}
+                        onChange={(event) => {
+                          const nextGardens = [...form.gardens];
+                          nextGardens[index] = { ...garden, name: event.target.value };
+                          setField('gardens', nextGardens);
+                        }}
+                      />
+                      <FormControl fullWidth>
+                        <InputLabel id={`garden-type-${garden.id}`}>Tipo da horta</InputLabel>
+                        <Select
+                          labelId={`garden-type-${garden.id}`}
+                          label="Tipo da horta"
+                          value={garden.gardenType}
+                          onChange={(event) => {
+                            const nextGardens = [...form.gardens];
+                            nextGardens[index] = { ...garden, gardenType: event.target.value };
+                            setField('gardens', nextGardens);
+                          }}
+                        >
+                          {GARDEN_TYPE_OPTIONS.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Stack>
+
+                    <TextField
+                      fullWidth
+                      label="Localização"
+                      placeholder="Cidade, bairro ou coordenada"
+                      value={garden.location}
+                      onChange={(event) => {
+                        const nextGardens = [...form.gardens];
+                        nextGardens[index] = { ...garden, location: event.target.value };
+                        setField('gardens', nextGardens);
+                      }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label="Foto da horta (URL)"
+                      placeholder="https://..."
+                      value={garden.photoURL}
+                      onChange={(event) => {
+                        const nextGardens = [...form.gardens];
+                        nextGardens[index] = { ...garden, photoURL: event.target.value };
+                        setField('gardens', nextGardens);
+                      }}
+                    />
+
+                    {garden.photoURL && (
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Pré-visualização
+                        </Typography>
+                        <Box
+                          component="img"
+                          src={garden.photoURL}
+                          alt={garden.name || `Horta ${index + 1}`}
+                          sx={{ width: 120, height: 120, borderRadius: 1, objectFit: 'cover', mt: 1 }}
+                        />
+                      </Box>
+                    )}
+
+                    <Stack direction="row" justifyContent="flex-end">
+                      <Button
+                        color="error"
+                        startIcon={<Iconify icon="eva:trash-2-outline" />}
+                        onClick={() => {
+                          if (form.gardens.length === 1) {
+                            return;
+                          }
+
+                          setField(
+                            'gardens',
+                            form.gardens.filter((item) => item.id !== garden.id)
+                          );
+                        }}
+                      >
+                        Remover horta
+                      </Button>
+                    </Stack>
+                  </Stack>
+
+                  {index < form.gardens.length - 1 && <Divider sx={{ mt: 2 }} />}
+                </Box>
+              ))}
+
+              <Button
+                variant="outlined"
+                startIcon={<Iconify icon="eva:plus-outline" />}
+                onClick={() => setField('gardens', [...form.gardens, createEmptyGarden()])}
+              >
+                Adicionar horta
+              </Button>
+            </Stack>
+          </Card>
+
+          <Card sx={{ p: 3 }}>
+            <Stack spacing={2}>
               <Typography variant="h6">Dados de cultivo</Typography>
               <FormControl fullWidth>
                 <InputLabel id="cultivation-level-label">Nível de cultivo</InputLabel>
@@ -295,6 +425,12 @@ export default function ProfileSettings() {
                 const normalized = {
                   ...form,
                   savedAddresses: form.savedAddresses.filter((item) => item.label.trim() || item.addressLine.trim()),
+                  gardens: form.gardens
+                    .filter((item) => item.name.trim() || item.location.trim() || item.photoURL.trim())
+                    .map((item) => ({
+                      ...item,
+                      name: item.name.trim() || 'Horta sem nome',
+                    })),
                 };
 
                 const result = updateProfile(normalized);
