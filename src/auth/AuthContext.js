@@ -12,6 +12,7 @@ import {
   logoutCurrentSession,
   logoutOtherSessions,
   revokeTrustedDevice,
+  updateAuthenticatedUserProfile,
   updateTwoFactorSettings,
 } from './session';
 
@@ -94,6 +95,16 @@ export function AuthProvider({ children }) {
     refreshAuthState();
   }, [refreshAuthState]);
 
+  const updateProfile = useCallback((payload) => {
+    const result = updateAuthenticatedUserProfile(payload);
+
+    if (!result.error) {
+      refreshAuthState();
+    }
+
+    return result;
+  }, [refreshAuthState]);
+
   const value = useMemo(
     () => ({
       user,
@@ -108,6 +119,7 @@ export function AuthProvider({ children }) {
       logoutOthers,
       update2FASettings,
       removeTrustedDevice,
+      updateProfile,
       refreshAuthState,
     }),
     [
@@ -122,6 +134,7 @@ export function AuthProvider({ children }) {
       logoutOthers,
       update2FASettings,
       removeTrustedDevice,
+      updateProfile,
       refreshAuthState,
     ]
   );
