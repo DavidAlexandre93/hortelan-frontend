@@ -3,10 +3,6 @@
   "author": "vinyl",
   "licence": "MIT",
   "version": "1.5.0",
-  "private": false,
-  "engines": {
-    "node": "24.x"
-  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build && yarn sentry:sourcemaps",
@@ -89,9 +85,17 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react": "^7.30.1",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "prettier": "^2.7.1"
+    "prettier": "^2.7.1",
+    "@babel/plugin-syntax-flow": "^7.27.1",
+    "@babel/plugin-transform-react-jsx": "^7.27.1",
+    "typescript": "^5.9.2"
   },
   "overrides": {
     "@svgr/webpack": "^6.2.1"
-  }
+  },
+  "engines": {
+    "node": "24.x",
+    "yarn": "1.x"
+  },
+  "packageManager": "yarn@1.22.22"
 }
