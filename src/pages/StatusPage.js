@@ -135,6 +135,12 @@ const streamTemplates = [
   { type: 'actuator', severity: 'success', text: 'Ação de atuador confirmada' },
 ];
 
+const statusPriority = { healthy: 1, attention: 2, critical: 3 };
+
+const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
+  dateStyle: 'short',
+  timeStyle: 'medium',
+});
 const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'medium' });
 
 function buildInitialAlerts() {
@@ -217,6 +223,7 @@ export default function StatusPage() {
   },
 ];
 
+
 const randomNumberInRange = (min, max, decimalPlaces = 1) => {
   const multiplier = 10 ** decimalPlaces;
   return Math.round((Math.random() * (max - min) + min) * multiplier) / multiplier;
@@ -259,6 +266,31 @@ const getUpdatedMeasurement = (previousMeasurement) => {
   return { ...previousMeasurement, online: toggledOnline, updatedAt: new Date().toISOString() };
 };
 
+function getSensorStatus(readings) {
+  if (!readings) return null;
+
+  const isCritical = readings.moisture < 25 || readings.temperature > 37 || readings.conductivity > 2.5;
+  if (isCritical) return 'critical';
+
+  const isAttention = readings.moisture < 40 || readings.temperature > 31 || readings.conductivity < 1;
+  if (isAttention) return 'attention';
+
+  return 'healthy';
+}
+
+function getPlantSensorAlerts(readings) {
+  if (!readings) return [];
+
+  const sensorAlerts = [];
+
+  if (readings.moisture < 40) sensorAlerts.push(`Umidade de solo baixa (${readings.moisture}%)`);
+  if (readings.temperature > 31) sensorAlerts.push(`Temperatura acima da faixa ideal (${readings.temperature}°C)`);
+  if (readings.conductivity < 1 || readings.conductivity > 2.5) {
+    sensorAlerts.push(`Condutividade fora da faixa recomendada (${readings.conductivity} mS/cm)`);
+  }
+
+  return sensorAlerts;
+}
 const getPlantSensorIncidents = (plant, area) => {
   if (!plant.sensorReadings) return [];
 
@@ -427,6 +459,7 @@ export default function StatusPage() {
     }),
     [prioritizedIncidents]
   );
+  const totalPlants = greenhouseAreas.reduce((acc, area) => acc + area.plants.length, 0);
 
   const visibleIncidents = useMemo(() => {
     if (alertTypeFilter === 'all') return prioritizedIncidents;
@@ -600,6 +633,12 @@ export default function StatusPage() {
             </Grid>
           </Grid>
 
+            {filteredAreas.map((area) => {
+              const config = areaStatusConfig[area.status];
+              const scopedDevices = area.devices.filter((device) => {
+                if (viewMode === 'sensor') {
+                  return device.type === 'sensor';
+                }
           <Card>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2 }}>
@@ -769,6 +808,163 @@ export default function StatusPage() {
                           );
                         })}
                       </Box>
+
+                      <Stack spacing={1} sx={{ mt: 2 }}>
+                        {area.devices.map((device) => {
+                          const connectionConfig = connectionStateConfig[device.connectionStatus];
+                          const signalConfig = device.signalQuality ? signalQualityConfig[device.signalQuality] : null;
+                          const isWireless = device.batteryLevel !== null;
+
+                          return (
+                            <Card key={`${area.id}-${device.id}`} variant="outlined" sx={{ bgcolor: 'background.default' }}>
+                              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                                <Stack spacing={1}>
+                                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                                    <Typography variant="subtitle2">
+                                      {device.id} — {device.name}
+                                    </Typography>
+                                    <Chip
+                                      size="small"
+                                      label={connectionConfig.label}
+                                      color={connectionConfig.color}
+                                      variant={device.connectionStatus === 'online' ? 'filled' : 'outlined'}
+                                    />
+                                  </Stack>
+
+                                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                                    <Chip size="small" label={`Último contato: ${device.lastContact}`} variant="outlined" />
+
+                                    {signalConfig && (
+                                      <Chip
+                                        size="small"
+                                        icon={<SignalCellularAltRoundedIcon fontSize="small" />}
+                                        label={`Sinal: ${signalConfig.label}`}
+                                        color={signalConfig.color}
+                                        variant="outlined"
+                                      />
+                                    )}
+
+                                    <Chip
+                                      size="small"
+                                      icon={
+                                        isWireless ? (
+                                          <Battery4BarRoundedIcon fontSize="small" />
+                                        ) : (
+                                          <UsbRoundedIcon fontSize="small" />
+                                        )
+                                      }
+                                      label={isWireless ? `Bateria: ${device.batteryLevel}%` : 'Sem fio: não'}
+                                      color={isWireless ? 'primary' : 'default'}
+                                      variant="outlined"
+                                    />
+
+                                    <Chip
+                                      size="small"
+                                      icon={<MemoryRoundedIcon fontSize="small" />}
+                                      label={`Firmware: ${device.firmware}`}
+                                      variant="outlined"
+                                    />
+                                  </Stack>
+                                </Stack>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                        {scopedDevices.map((device) => {
+                          const measurement = measurementsByDevice[device.id];
+
+                          return (
+                            <Typography key={`${area.id}-${device.id}`} variant="body2" color="text.secondary">
+                              • {device.id} — {device.name} • {measurement ? getMeasurementLabel(device, measurement) : 'Sem leitura'} •{' '}
+                              {measurement ? dateTimeFormatter.format(new Date(measurement.updatedAt)) : '-'}
+                            </Typography>
+                          );
+                        })}
+                      </Stack>
+
+                      {area.alerts.length > 0 && (
+                        <Stack spacing={1} sx={{ mt: 2 }}>
+                          {area.alerts.map((alertText) => (
+                            <Alert key={`${area.id}-${alertText}`} severity={area.status === 'critical' ? 'error' : 'warning'}>
+                              {alertText}
+                            </Alert>
+                          ))}
+                        </Stack>
+                      )}
+
+                      <Stack spacing={2} sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2">Status das plantas</Typography>
+                        {area.plants.map((plant) => {
+                          const manualStatus = manualPlantStatus[plant.id] || plant.manualStatus;
+                          const sensorStatus = getSensorStatus(plant.sensorReadings);
+                          const finalStatus =
+                            sensorStatus && statusPriority[sensorStatus] > statusPriority[manualStatus]
+                              ? sensorStatus
+                              : manualStatus;
+                          const plantAlerts = [...getPlantSensorAlerts(plant.sensorReadings), ...plant.alerts];
+
+                          return (
+                            <Card key={plant.id} variant="outlined" sx={{ borderColor: 'divider' }}>
+                              <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                                <Stack spacing={1.2}>
+                                  <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                      {plant.name}
+                                    </Typography>
+                                    <Chip
+                                      size="small"
+                                      color={manualStatusConfig[finalStatus].color}
+                                      label={`Condição atual: ${manualStatusConfig[finalStatus].label}`}
+                                    />
+                                  </Stack>
+
+                                  <ToggleButtonGroup
+                                    exclusive
+                                    size="small"
+                                    value={manualStatus}
+                                    onChange={(_, nextValue) => {
+                                      if (!nextValue) return;
+                                      setManualPlantStatus((prev) => ({ ...prev, [plant.id]: nextValue }));
+                                    }}
+                                  >
+                                    {Object.entries(manualStatusConfig).map(([status, config]) => (
+                                      <ToggleButton key={`${plant.id}-${status}`} value={status}>
+                                        {config.label}
+                                      </ToggleButton>
+                                    ))}
+                                  </ToggleButtonGroup>
+
+                                  {plant.sensorReadings ? (
+                                    <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                                      <Chip size="small" variant="outlined" label={`Umidade: ${plant.sensorReadings.moisture}%`} />
+                                      <Chip size="small" variant="outlined" label={`Temperatura: ${plant.sensorReadings.temperature}°C`} />
+                                      <Chip
+                                        size="small"
+                                        variant="outlined"
+                                        label={`Condutividade: ${plant.sensorReadings.conductivity} mS/cm`}
+                                      />
+                                    </Stack>
+                                  ) : (
+                                    <Typography variant="caption" color="text.secondary">
+                                      Sem telemetria recente para esta planta.
+                                    </Typography>
+                                  )}
+
+                                  {plantAlerts.length > 0 && (
+                                    <Stack spacing={0.8}>
+                                      {plantAlerts.map((plantAlert) => (
+                                        <Alert key={`${plant.id}-${plantAlert}`} severity={finalStatus === 'critical' ? 'error' : 'warning'}>
+                                          {plantAlert}
+                                        </Alert>
+                                      ))}
+                                    </Stack>
+                                  )}
+                                </Stack>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </Stack>
                     </CardContent>
                   </Card>
                 </Grid>
