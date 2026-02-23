@@ -4,6 +4,7 @@ import 'simplebar/src/simplebar.css';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
+import * as Sentry from "@sentry/react";
 
 //
 import App from './App';
@@ -14,6 +15,18 @@ import { tryLoadAndStartRecorder } from '@alwaysmeticulous/recorder-loader'
 // ----------------------------------------------------------------------
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
+
+const ERROR_REDIRECT_URL = 'https://hortelan.vercel.app/404';
+
+function redirectToErrorPage() {
+  if (window.location.href !== ERROR_REDIRECT_URL) {
+    window.location.replace(ERROR_REDIRECT_URL);
+  }
+}
+
+window.addEventListener('error', redirectToErrorPage);
+window.addEventListener('unhandledrejection', redirectToErrorPage);
 
 async function startApp() {
     // Record all sessions on localhost, staging stacks and preview URLs
@@ -33,6 +46,22 @@ function isProduction() {
 }
 
 startApp();
+
+Sentry.init({
+  dsn: "https://f7d0115af398cb54893ae4664e744519@o4506036623114240.ingest.sentry.io/4506036634976256",
+  integrations: [
+    new Sentry.BrowserTracing({
+      // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
+      tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
+    }),
+    new Sentry.Replay(),
+  ],
+  // Performance Monitoring
+  tracesSampleRate: 1.0, // Capture 100% of the transactions
+  // Session Replay
+  replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
+  replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
+});
 
 root.render(
   <HelmetProvider>

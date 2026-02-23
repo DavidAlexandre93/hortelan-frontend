@@ -21,6 +21,17 @@ const navConfig = [
     path: '/dashboard/products',
     icon: getIcon('eva:shopping-bag-fill'),
   },
+
+  {
+    title: 'onboarding',
+    path: '/dashboard/onboarding',
+    icon: getIcon('eva:navigation-2-fill'),
+  },
+  {
+    title: 'hortelan 360',
+    path: '/dashboard/hortelan-360',
+    icon: getIcon('eva:layers-fill'),
+  },
   {
     title: 'community',
     path: '/dashboard/blog',
@@ -37,9 +48,9 @@ const navConfig = [
     icon: getIcon('eva:person-add-fill'),
   },
   {
-    title: 'Page for Error Usage',
-    path: '/404',
-    icon: getIcon('eva:alert-triangle-fill'),
+    title: 'status page',
+    path: '/dashboard/status',
+    icon: getIcon('eva:activity-fill'),
   },
 ];
 
