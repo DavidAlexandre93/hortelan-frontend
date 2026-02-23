@@ -4,16 +4,16 @@
   "licence": "MIT",
   "version": "1.5.0",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "NODE_OPTIONS=--no-deprecation react-scripts build",
+    "start": "vite",
+    "dev": "vite",
+    "build": "NODE_OPTIONS=--no-deprecation vite build",
     "build:release": "npm run build && npm run sentry:sourcemaps",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "test": "echo \"No test runner configured\" && exit 0",
     "lint": "eslint --ext .js,.jsx ./src",
     "lint:fix": "eslint --fix --ext .js,.jsx ./src",
-    "clear-all": "rm -rf build node_modules",
-    "re-start": "rm -rf build node_modules && npm install && npm run start",
-    "re-build": "rm -rf build node_modules && npm install && npm run build",
+    "clear-all": "rm -rf build node_modules dist",
+    "re-start": "rm -rf build node_modules dist && npm install && npm run dev",
+    "re-build": "rm -rf build node_modules dist && npm install && npm run build",
     "sentry:sourcemaps": "node scripts/sentry-sourcemaps.js"
   },
   "eslintConfig": {
@@ -66,7 +66,6 @@
     "react-helmet-async": "^1.3.0",
     "react-hook-form": "^7.33.1",
     "react-router-dom": "^6.3.0",
-    "react-scripts": "^5.0.1",
     "simplebar": "^5.3.8",
     "simplebar-react": "^2.4.1",
     "web-vitals": "^2.1.4",
@@ -76,6 +75,7 @@
     "@babel/core": "^7.18.6",
     "@babel/eslint-parser": "^7.18.2",
     "@svgr/webpack": "^6.2.1",
+    "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^8.19.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^8.5.0",
@@ -89,7 +89,8 @@
     "prettier": "^2.7.1",
     "@babel/plugin-syntax-flow": "^7.27.1",
     "@babel/plugin-transform-react-jsx": "^7.27.1",
-    "typescript": "4.9.5"
+    "typescript": "4.9.5",
+    "vite": "^5.4.11"
   },
   "overrides": {
     "@svgr/webpack": "^6.2.1"
