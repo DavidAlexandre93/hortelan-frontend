@@ -14,7 +14,9 @@
     "clear-all": "rm -rf build node_modules dist",
     "re-start": "rm -rf build node_modules dist && npm install && npm run dev",
     "re-build": "rm -rf build node_modules dist && npm install && npm run build",
-    "sentry:sourcemaps": "node scripts/sentry-sourcemaps.js"
+    "sentry:sourcemaps": "node scripts/sentry-sourcemaps.js",
+    "build:ssr": "npm run build && vite build --ssr src/entry-server.js --outDir build-ssr",
+    "serve:ssr": "node server/ssr-server.mjs"
   },
   "babel": {
     "presets": [

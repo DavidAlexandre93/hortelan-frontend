@@ -23,6 +23,7 @@ import {
 // components
 import Page from '../components/Page';
 import Iconify from '../components/Iconify';
+import BlockchainPanel from '../components/BlockchainPanel';
 // sections
 import {
   AppTasks,
@@ -395,6 +396,10 @@ export default function DashboardApp() {
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <AppSensorAnalytics />
+          </Grid>
+
+          <Grid item xs={12}>
+            <BlockchainPanel />
           </Grid>
 
           <Grid item xs={12}>

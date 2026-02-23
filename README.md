@@ -34,3 +34,29 @@ yarn dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 
+
+## Blockchain + SSR
+
+### Blockchain (EVM)
+
+Foi adicionada uma integração inicial de blockchain no dashboard com:
+
+- Conexão de carteira EVM (ex.: MetaMask);
+- Assinatura de mensagem para checkpoint de cultivo;
+- Envio de transação nativa (ETH) para endereço informado.
+
+### SSR seletivo
+
+Também foi incluído SSR seletivo com Vite para rotas específicas:
+
+- `/login`
+- `/register`
+- `/forgot-password`
+
+Comandos:
+
+```bash
+npm run serve:ssr     # desenvolvimento com SSR via Vite middleware
+npm run build:ssr     # build do cliente + bundle SSR
+NODE_ENV=production npm run serve:ssr
+```
