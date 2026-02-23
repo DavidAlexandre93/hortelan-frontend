@@ -13,6 +13,9 @@ import DashboardApp from './pages/DashboardApp';
 import Hortelan360 from './pages/Hortelan360';
 import Onboarding from './pages/Onboarding';
 import StatusPage from './pages/StatusPage';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import Security from './pages/Security';
 import RequireAuth from './components/auth/RequireAuth';
 import RedirectIfAuth from './components/auth/RedirectIfAuth';
 
@@ -35,6 +38,7 @@ export default function Router() {
         { path: 'hortelan-360', element: <Hortelan360 /> },
         { path: 'onboarding', element: <Onboarding /> },
         { path: 'status', element: <StatusPage /> },
+        { path: 'security', element: <Security /> },
       ],
     },
     {
@@ -52,6 +56,14 @@ export default function Router() {
           <Register />
         </RedirectIfAuth>
       ),
+    },
+    {
+      path: 'forgot-password',
+      element: <ForgotPassword />,
+    },
+    {
+      path: 'reset-password',
+      element: <ResetPassword />,
     },
     {
       path: '/',
