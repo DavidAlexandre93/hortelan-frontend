@@ -1,37 +1,35 @@
 import * as Yup from 'yup';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 // form
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
-import { Link, Stack, IconButton, InputAdornment } from '@mui/material';
+import { Alert, Link, Stack, IconButton, InputAdornment } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFTextField, RHFCheckbox } from '../../../components/hook-form';
-
-const MOCK_ADMIN_USER = {
-  username: 'davidfernandes',
-  password: 'admin',
-  role: 'administrator',
-};
+import useAuth from '../../../auth/useAuth';
 
 // ----------------------------------------------------------------------
 
 export default function LoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const LoginSchema = Yup.object().shape({
-    email: Yup.string().required('Username is required'),
-    password: Yup.string().required('Password is required'),
+    email: Yup.string().email('Informe um e-mail válido').required('E-mail é obrigatório'),
+    password: Yup.string().required('Senha é obrigatória'),
   });
 
   const defaultValues = {
-    email: MOCK_ADMIN_USER.username,
-    password: MOCK_ADMIN_USER.password,
+    email: '',
+    password: '',
     remember: true,
   };
 
@@ -42,33 +40,33 @@ export default function LoginForm() {
 
   const {
     handleSubmit,
-    setError,
     formState: { isSubmitting },
   } = methods;
 
-  const onSubmit = async ({ email, password }) => {
-    const isValidAdmin = email === MOCK_ADMIN_USER.username && password === MOCK_ADMIN_USER.password;
+  const onSubmit = async ({ email, password, remember }) => {
+    setSubmitError('');
 
-    if (!isValidAdmin) {
-      setError('password', {
-        type: 'manual',
-        message: 'Invalid credentials. Use davidfernandes / admin.',
-      });
+    const result = login({ email, password, remember });
+
+    if (result.error) {
+      setSubmitError(result.error);
       return;
     }
 
-    localStorage.setItem('hortelan-auth', JSON.stringify(MOCK_ADMIN_USER));
-    navigate('/dashboard/app', { replace: true });
+    const destination = location.state?.from || '/dashboard/app';
+    navigate(destination, { replace: true });
   };
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
-        <RHFTextField name="email" label="Username" />
+        {submitError && <Alert severity="error">{submitError}</Alert>}
+
+        <RHFTextField name="email" label="E-mail" />
 
         <RHFTextField
           name="password"
-          label="Password"
+          label="Senha"
           type={showPassword ? 'text' : 'password'}
           InputProps={{
             endAdornment: (
@@ -83,14 +81,14 @@ export default function LoginForm() {
       </Stack>
 
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
-        <RHFCheckbox name="remember" label="Remember me" />
+        <RHFCheckbox name="remember" label="Lembrar-me" />
         <Link variant="subtitle2" underline="hover">
-          Forgot password?
+          Esqueceu sua senha?
         </Link>
       </Stack>
 
       <LoadingButton fullWidth size="large" type="submit" variant="contained" loading={isSubmitting}>
-        Login
+        Entrar
       </LoadingButton>
     </FormProvider>
   );

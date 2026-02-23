@@ -69,9 +69,9 @@ export default function Login() {
 
           {smUp && (
             <Typography variant="body2" sx={{ mt: { md: -2 } }}>
-              Don’t have an account? {''}
+              Não tem uma conta? {''}
               <Link variant="subtitle2" component={RouterLink} to="/register">
-                Get started
+                Cadastre-se
               </Link>
             </Typography>
           )}
@@ -80,7 +80,7 @@ export default function Login() {
         {mdUp && (
           <SectionStyle>
             <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
-              Hi, Welcome Back to Hortelan
+              Olá, bem-vindo de volta ao Hortelan
             </Typography>
             <img src="/static/illustrations/illustration_login.png" alt="login" />
           </SectionStyle>
@@ -89,12 +89,12 @@ export default function Login() {
         <Container maxWidth="sm">
           <ContentStyle>
             <Typography variant="h4" gutterBottom>
-              Sign in to Hortelan
+              Entrar no Hortelan
             </Typography>
 
-            <Typography sx={{ color: 'text.secondary', mb: 1 }}>Enter your details below.</Typography>
+            <Typography sx={{ color: 'text.secondary', mb: 1 }}>Use seu e-mail e senha para continuar.</Typography>
             <Typography sx={{ color: 'text.secondary', mb: 5 }}>
-              Mock admin access: <strong>davidfernandes</strong> / <strong>admin</strong>.
+              Acesso de demonstração: <strong>admin@hortelan.com</strong> / <strong>admin123</strong>.
             </Typography>
 
             <AuthSocial />
@@ -103,9 +103,9 @@ export default function Login() {
 
             {!smUp && (
               <Typography variant="body2" align="center" sx={{ mt: 3 }}>
-                Don’t have an account?{' '}
+                Não tem uma conta?{' '}
                 <Link variant="subtitle2" component={RouterLink} to="/register">
-                  Get started
+                  Cadastre-se
                 </Link>
               </Typography>
             )}
