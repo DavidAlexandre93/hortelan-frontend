@@ -17,7 +17,7 @@ const navConfig = [
     icon: getIcon('eva:people-fill'),
   },
   {
-    title: 'ecommerce gardens',
+    title: 'catálogo de espécies',
     path: '/dashboard/products',
     icon: getIcon('eva:shopping-bag-fill'),
   },
