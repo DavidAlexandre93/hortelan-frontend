@@ -10,6 +10,8 @@ import NotFound from './pages/Page404';
 import Register from './pages/Register';
 import Products from './pages/Products';
 import DashboardApp from './pages/DashboardApp';
+import Hortelan360 from './pages/Hortelan360';
+import Onboarding from './pages/Onboarding';
 
 // ----------------------------------------------------------------------
 
@@ -23,6 +25,8 @@ export default function Router() {
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },
         { path: 'blog', element: <Blog /> },
+        { path: 'hortelan-360', element: <Hortelan360 /> },
+        { path: 'onboarding', element: <Onboarding /> },
       ],
     },
     {

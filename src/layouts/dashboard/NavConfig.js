@@ -21,6 +21,17 @@ const navConfig = [
     path: '/dashboard/products',
     icon: getIcon('eva:shopping-bag-fill'),
   },
+
+  {
+    title: 'onboarding',
+    path: '/dashboard/onboarding',
+    icon: getIcon('eva:navigation-2-fill'),
+  },
+  {
+    title: 'hortelan 360',
+    path: '/dashboard/hortelan-360',
+    icon: getIcon('eva:layers-fill'),
+  },
   {
     title: 'community',
     path: '/dashboard/blog',
