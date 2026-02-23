@@ -4,16 +4,15 @@
   "licence": "MIT",
   "version": "1.5.0",
   "scripts": {
-    "install": "yarn install --non-interactive",
     "start": "react-scripts start",
-    "build": "react-scripts build && yarn sentry:sourcemaps",
+    "build": "react-scripts build && npm run sentry:sourcemaps",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint --ext .js,.jsx ./src",
     "lint:fix": "eslint --fix --ext .js,.jsx ./src",
     "clear-all": "rm -rf build node_modules",
-    "re-start": "rm -rf build node_modules && yarn install && yarn start",
-    "re-build": "rm -rf build node_modules && yarn install && yarn build",
+    "re-start": "rm -rf build node_modules && npm install && npm run start",
+    "re-build": "rm -rf build node_modules && npm install && npm run build",
     "sentry:sourcemaps": "node scripts/sentry-sourcemaps.js"
   },
   "eslintConfig": {
@@ -95,8 +94,6 @@
     "@svgr/webpack": "^6.2.1"
   },
   "engines": {
-    "node": "24.x",
-    "yarn": "1.x"
-  },
-  "packageManager": "yarn@1.22.22"
+    "node": "24.x"
+  }
 }
