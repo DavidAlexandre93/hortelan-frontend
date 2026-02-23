@@ -6,12 +6,16 @@ import ErrorRoundedIcon from '@mui/icons-material/ErrorRounded';
 import {
   Alert,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
   Container,
+  Divider,
+  FormControlLabel,
   Grid,
   Stack,
+  Switch,
   Typography,
 } from '@mui/material';
 import Page from '../components/Page';
@@ -89,6 +93,51 @@ const greenhouseAreas = [
   },
 ];
 
+const actuatorControls = [
+  {
+    id: 'water-pump',
+    label: 'Bomba de água',
+    description: 'Pressurização principal para irrigação por setores.',
+    enabled: true,
+    phase: 'MVP',
+  },
+  {
+    id: 'solenoid-valve',
+    label: 'Válvula / solenoide',
+    description: 'Abertura e fechamento por zona para controle fino da rega.',
+    enabled: true,
+    phase: 'MVP',
+  },
+  {
+    id: 'grow-light',
+    label: 'Iluminação grow / LED',
+    description: 'Complemento de fotoperíodo para ambientes internos e estufas.',
+    enabled: true,
+    phase: 'MVP',
+  },
+  {
+    id: 'ventilation',
+    label: 'Ventilação / exaustor',
+    description: 'Renovação de ar e redução de calor em horários críticos.',
+    enabled: true,
+    phase: 'MVP',
+  },
+  {
+    id: 'nebulization',
+    label: 'Nebulização',
+    description: 'Aumento pontual de umidade para mudas e berçários.',
+    enabled: false,
+    phase: 'Release 2',
+  },
+  {
+    id: 'doser',
+    label: 'Dosador',
+    description: 'Fertirrigação e correção de pH automatizadas por receita.',
+    enabled: false,
+    phase: 'Fase avançada',
+  },
+];
+
 export default function StatusPage() {
   const totalDevices = greenhouseAreas.reduce((acc, area) => acc + area.devices.length, 0);
   const totalAlerts = greenhouseAreas.reduce((acc, area) => acc + area.alerts.length, 0);
@@ -154,6 +203,45 @@ export default function StatusPage() {
           </Stack>
 
           <Grid container spacing={3}>
+            <Grid item xs={12} lg={4}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Stack spacing={2}>
+                    <Box>
+                      <Typography variant="h6">Painel de atuadores</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Controles disponibilizados para operação remota e automação por regras.
+                      </Typography>
+                    </Box>
+
+                    {actuatorControls.map((actuator, index) => (
+                      <Box key={actuator.id}>
+                        {index > 0 && <Divider sx={{ mb: 1.5 }} />}
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+                          <Box>
+                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+                              <Typography variant="subtitle2">{actuator.label}</Typography>
+                              <Chip size="small" label={actuator.phase} color="primary" variant="outlined" />
+                            </Stack>
+                            <Typography variant="caption" color="text.secondary">
+                              {actuator.description}
+                            </Typography>
+                          </Box>
+                          <FormControlLabel
+                            control={<Switch defaultChecked={actuator.enabled} color="success" />}
+                            label=""
+                            sx={{ m: 0 }}
+                          />
+                        </Stack>
+                      </Box>
+                    ))}
+
+                    <Button variant="contained">Acionar rotina manual</Button>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
             {greenhouseAreas.map((area) => {
               const config = areaStatusConfig[area.status];
 

@@ -119,8 +119,9 @@ export const hortelanModules = [
     title: 'Controle e Automação',
     tags: ['MVP', 'IoT'],
     features: [
-      'Ação manual de irrigação, bombas e iluminação',
+      'Ação manual de bomba de água, válvula/solenoide, iluminação grow/LED, ventilação/exaustor e nebulização',
       'Regras por sensor, horário, combinação e planta/zona',
+      'Dosador (fase avançada) para fertirrigação e ajuste de pH por receita',
       'Janela de segurança e limite de irrigações por dia',
       'Simulação, histórico de execução, modo férias/economia/emergência',
     ],
