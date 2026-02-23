@@ -7,6 +7,8 @@ const PASSWORD_HISTORY_KEY = 'hortelan-password-history';
 const MFA_SETTINGS_KEY = 'hortelan-mfa-settings';
 const MFA_CHALLENGES_KEY = 'hortelan-mfa-challenges';
 const TRUSTED_DEVICES_KEY = 'hortelan-trusted-devices';
+const CONSENTS_KEY = 'hortelan-consents';
+const ACCOUNT_DELETION_REQUESTS_KEY = 'hortelan-account-deletion-requests';
 const DEVICE_STORAGE_KEY = 'hortelan-device-id';
 const RESET_TOKEN_EXPIRY_MINUTES = 30;
 const MFA_CODE_EXPIRY_MINUTES = 5;
@@ -89,6 +91,15 @@ const INITIAL_MFA_SETTINGS = {
   },
 };
 
+const INITIAL_CONSENTS = {
+  'admin-1': {
+    marketing: false,
+    analytics: true,
+    communications: true,
+    updatedAt: new Date().toISOString(),
+  },
+};
+
 const getLocalJson = (key, fallback) => {
   const value = localStorage.getItem(key);
 
@@ -159,6 +170,18 @@ const getTrustedDevicesStore = () => getLocalJson(TRUSTED_DEVICES_KEY, []);
 
 const saveTrustedDevicesStore = (devices) => {
   localStorage.setItem(TRUSTED_DEVICES_KEY, JSON.stringify(devices));
+};
+
+const getConsentsMap = () => getLocalJson(CONSENTS_KEY, INITIAL_CONSENTS);
+
+const saveConsentsMap = (consents) => {
+  localStorage.setItem(CONSENTS_KEY, JSON.stringify(consents));
+};
+
+const getAccountDeletionRequestsStore = () => getLocalJson(ACCOUNT_DELETION_REQUESTS_KEY, []);
+
+const saveAccountDeletionRequestsStore = (requests) => {
+  localStorage.setItem(ACCOUNT_DELETION_REQUESTS_KEY, JSON.stringify(requests));
 };
 
 const appendPasswordHistory = ({ user, method, changedBy }) => {
@@ -310,6 +333,10 @@ export const loginWithEmailAndPassword = ({
     return { error: 'Credenciais inválidas. Use admin@hortelan.com / admin123.' };
   }
 
+  if (user.isActive === false) {
+    return { error: 'Conta desativada. Entre em contato com o suporte para reativação.' };
+  }
+
   const mfaSettings = getMfaSettingsMap()[user.id] || { enabled: false, method: 'email' };
   const currentDeviceId = getCurrentDeviceId();
   const trustedDevice = isTrustedDeviceForUser(user.id, currentDeviceId);
@@ -417,6 +444,88 @@ export const getAuthenticatedUser = () => {
     return null;
   }
 
+  return {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+    isActive: user.isActive !== false,
+  };
+};
+
+export const getUserConsents = () => {
+  const user = getAuthenticatedUser();
+
+  if (!user) {
+    return {
+      marketing: false,
+      analytics: false,
+      communications: false,
+      updatedAt: null,
+    };
+  }
+
+  return (
+    getConsentsMap()[user.id] || {
+      marketing: false,
+      analytics: true,
+      communications: true,
+      updatedAt: null,
+    }
+  );
+};
+
+export const updateUserConsents = (nextConsents) => {
+  const user = getAuthenticatedUser();
+
+  if (!user) {
+    return { error: 'Usuário não autenticado.' };
+  }
+
+  const consents = getConsentsMap();
+  consents[user.id] = {
+    ...getUserConsents(),
+    ...nextConsents,
+    updatedAt: new Date().toISOString(),
+  };
+
+  saveConsentsMap(consents);
+  return { success: true, consents: consents[user.id] };
+};
+
+export const getAccountDeletionRequest = () => {
+  const user = getAuthenticatedUser();
+
+  if (!user) {
+    return null;
+  }
+
+  return getAccountDeletionRequestsStore().find((request) => request.userId === user.id) || null;
+};
+
+export const requestAccountDeletion = ({ reason }) => {
+  const user = getAuthenticatedUser();
+
+  if (!user) {
+    return { error: 'Usuário não autenticado.' };
+  }
+
+  const now = new Date().toISOString();
+  const requests = getAccountDeletionRequestsStore().filter((request) => request.userId !== user.id);
+  requests.push({
+    id: `deletion-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    userId: user.id,
+    email: user.email,
+    reason: reason?.trim() || 'Não informado',
+    requestedAt: now,
+    status: 'pending',
+  });
+  saveAccountDeletionRequestsStore(requests);
+
+  return { success: true };
+};
+
+export const deactivateCurrentAccount = ({ reason }) => {
   return buildSafeUser(user);
 };
 
@@ -428,6 +537,51 @@ export const updateAuthenticatedUserProfile = (payload) => {
   }
 
   const users = getUsers();
+  const updatedUsers = users.map((item) =>
+    item.id === user.id
+      ? {
+          ...item,
+          isActive: false,
+          deactivatedAt: new Date().toISOString(),
+          deactivationReason: reason?.trim() || 'Não informado',
+        }
+      : item
+  );
+  saveUsers(updatedUsers);
+
+  logoutAllSessions();
+  return { success: true };
+};
+
+export const exportCurrentUserData = () => {
+  const user = getAuthenticatedUser();
+
+  if (!user) {
+    return { error: 'Usuário não autenticado.' };
+  }
+
+  const fullUser = getUsers().find((item) => item.id === user.id);
+
+  if (!fullUser) {
+    return { error: 'Dados de usuário não encontrados.' };
+  }
+
+  return {
+    exportedAt: new Date().toISOString(),
+    user: {
+      id: fullUser.id,
+      name: fullUser.name,
+      email: fullUser.email,
+      role: fullUser.role,
+      isActive: fullUser.isActive !== false,
+      deactivatedAt: fullUser.deactivatedAt || null,
+    },
+    consents: getConsentsMap()[fullUser.id] || null,
+    twoFactor: getMfaSettingsMap()[fullUser.id] || null,
+    sessions: getActiveSessions().filter((session) => session.userId === fullUser.id),
+    trustedDevices: getTrustedDevicesStore().filter((device) => device.userId === fullUser.id),
+    passwordHistory: getPasswordHistory().filter((entry) => entry.userId === fullUser.id),
+    accountDeletionRequest: getAccountDeletionRequestsStore().find((request) => request.userId === fullUser.id) || null,
   const currentUser = users.find((item) => item.id === user.id);
 
   if (!currentUser) {

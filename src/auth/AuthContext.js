@@ -2,6 +2,8 @@ import PropTypes from 'prop-types';
 import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   getAuthenticatedUser,
+  getAccountDeletionRequest,
+  getUserConsents,
   getTrustedDevices,
   getTwoFactorSettings,
   getUserSessions,
@@ -11,7 +13,11 @@ import {
   logoutAllSessions,
   logoutCurrentSession,
   logoutOtherSessions,
+  deactivateCurrentAccount,
+  exportCurrentUserData,
+  requestAccountDeletion,
   revokeTrustedDevice,
+  updateUserConsents,
   updateAuthenticatedUserProfile,
   updateTwoFactorSettings,
 } from './session';
@@ -23,12 +29,16 @@ export function AuthProvider({ children }) {
   const [sessions, setSessions] = useState(() => getUserSessions());
   const [twoFactor, setTwoFactor] = useState(() => getTwoFactorSettings());
   const [trustedDevices, setTrustedDevices] = useState(() => getTrustedDevices());
+  const [consents, setConsents] = useState(() => getUserConsents());
+  const [deletionRequest, setDeletionRequest] = useState(() => getAccountDeletionRequest());
 
   const refreshAuthState = useCallback(() => {
     setUser(getAuthenticatedUser());
     setSessions(getUserSessions());
     setTwoFactor(getTwoFactorSettings());
     setTrustedDevices(getTrustedDevices());
+    setConsents(getUserConsents());
+    setDeletionRequest(getAccountDeletionRequest());
   }, []);
 
   useEffect(() => {
@@ -95,6 +105,8 @@ export function AuthProvider({ children }) {
     refreshAuthState();
   }, [refreshAuthState]);
 
+  const updateConsents = useCallback((nextConsents) => {
+    const result = updateUserConsents(nextConsents);
   const updateProfile = useCallback((payload) => {
     const result = updateAuthenticatedUserProfile(payload);
 
@@ -105,12 +117,33 @@ export function AuthProvider({ children }) {
     return result;
   }, [refreshAuthState]);
 
+  const requestDeletion = useCallback((payload) => {
+    const result = requestAccountDeletion(payload);
+
+    if (!result.error) {
+      refreshAuthState();
+    }
+
+    return result;
+  }, [refreshAuthState]);
+
+  const deactivateAccount = useCallback((payload) => {
+    const result = deactivateCurrentAccount(payload);
+
+    refreshAuthState();
+    return result;
+  }, [refreshAuthState]);
+
+  const exportPersonalData = useCallback(() => exportCurrentUserData(), []);
+
   const value = useMemo(
     () => ({
       user,
       sessions,
       twoFactor,
       trustedDevices,
+      consents,
+      deletionRequest,
       authenticated: isAuthenticated(),
       login,
       loginWithSocial,
@@ -119,6 +152,10 @@ export function AuthProvider({ children }) {
       logoutOthers,
       update2FASettings,
       removeTrustedDevice,
+      updateConsents,
+      requestDeletion,
+      deactivateAccount,
+      exportPersonalData,
       updateProfile,
       refreshAuthState,
     }),
@@ -127,6 +164,8 @@ export function AuthProvider({ children }) {
       sessions,
       twoFactor,
       trustedDevices,
+      consents,
+      deletionRequest,
       login,
       loginWithSocial,
       logout,
@@ -134,6 +173,10 @@ export function AuthProvider({ children }) {
       logoutOthers,
       update2FASettings,
       removeTrustedDevice,
+      updateConsents,
+      requestDeletion,
+      deactivateAccount,
+      exportPersonalData,
       updateProfile,
       refreshAuthState,
     ]
