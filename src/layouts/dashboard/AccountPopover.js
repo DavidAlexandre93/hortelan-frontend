@@ -1,29 +1,34 @@
 import { useRef, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // @mui
 import { alpha } from '@mui/material/styles';
-import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton } from '@mui/material';
+import {
+  Box,
+  Divider,
+  Typography,
+  Stack,
+  MenuItem,
+  Avatar,
+  IconButton,
+  ListItemText,
+} from '@mui/material';
 // components
 import MenuPopover from '../../components/MenuPopover';
-// mocks_
-import account from '../../_mock/account';
+import useAuth from '../../auth/useAuth';
 
 // ----------------------------------------------------------------------
 
 const MENU_OPTIONS = [
   {
     label: 'Home',
-    icon: 'eva:home-fill',
     linkTo: '/',
   },
   {
     label: 'Profile',
-    icon: 'eva:person-fill',
     linkTo: '#',
   },
   {
     label: 'Settings',
-    icon: 'eva:settings-2-fill',
     linkTo: '#',
   },
 ];
@@ -31,7 +36,9 @@ const MENU_OPTIONS = [
 // ----------------------------------------------------------------------
 
 export default function AccountPopover() {
+  const navigate = useNavigate();
   const anchorRef = useRef(null);
+  const { user, sessions, logout, logoutAll, logoutOthers } = useAuth();
 
   const [open, setOpen] = useState(null);
 
@@ -41,6 +48,23 @@ export default function AccountPopover() {
 
   const handleClose = () => {
     setOpen(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleClose();
+    navigate('/login', { replace: true });
+  };
+
+  const handleLogoutOthers = () => {
+    logoutOthers();
+    handleClose();
+  };
+
+  const handleLogoutAll = () => {
+    logoutAll();
+    handleClose();
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -63,7 +87,7 @@ export default function AccountPopover() {
           }),
         }}
       >
-        <Avatar src={account.photoURL} alt="photoURL" />
+        <Avatar alt={user?.name || 'Usuário'} />
       </IconButton>
 
       <MenuPopover
@@ -82,10 +106,13 @@ export default function AccountPopover() {
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {account.displayName}
+            {user?.name || 'Usuário'}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {account.email}
+            {user?.email || '-'}
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            Sessões ativas: {sessions.length}
           </Typography>
         </Box>
 
@@ -101,9 +128,25 @@ export default function AccountPopover() {
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        <MenuItem onClick={handleClose} sx={{ m: 1 }}>
-          Logout
-        </MenuItem>
+        <Stack sx={{ p: 1 }}>
+          <MenuItem onClick={handleLogoutOthers}>
+            <ListItemText
+              primary="Encerrar outras sessões"
+              secondary="Mantém somente este dispositivo conectado"
+            />
+          </MenuItem>
+
+          <MenuItem onClick={handleLogoutAll}>
+            <ListItemText
+              primary="Encerrar todas as sessões"
+              secondary="Desconecta todos os dispositivos"
+            />
+          </MenuItem>
+
+          <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+            Logout seguro
+          </MenuItem>
+        </Stack>
       </MenuPopover>
     </>
   );

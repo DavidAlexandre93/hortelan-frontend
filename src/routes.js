@@ -13,6 +13,8 @@ import DashboardApp from './pages/DashboardApp';
 import Hortelan360 from './pages/Hortelan360';
 import Onboarding from './pages/Onboarding';
 import StatusPage from './pages/StatusPage';
+import RequireAuth from './components/auth/RequireAuth';
+import RedirectIfAuth from './components/auth/RedirectIfAuth';
 
 // ----------------------------------------------------------------------
 
@@ -20,7 +22,11 @@ export default function Router() {
   return useRoutes([
     {
       path: '/dashboard',
-      element: <DashboardLayout />,
+      element: (
+        <RequireAuth>
+          <DashboardLayout />
+        </RequireAuth>
+      ),
       children: [
         { path: 'app', element: <DashboardApp /> },
         { path: 'user', element: <User /> },
@@ -33,11 +39,19 @@ export default function Router() {
     },
     {
       path: 'login',
-      element: <Login />,
+      element: (
+        <RedirectIfAuth>
+          <Login />
+        </RedirectIfAuth>
+      ),
     },
     {
       path: 'register',
-      element: <Register />,
+      element: (
+        <RedirectIfAuth>
+          <Register />
+        </RedirectIfAuth>
+      ),
     },
     {
       path: '/',
