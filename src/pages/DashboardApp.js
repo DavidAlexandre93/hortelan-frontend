@@ -1,7 +1,23 @@
 import { faker } from '@faker-js/faker';
+import { useState } from 'react';
 // @mui
 import { useTheme } from '@mui/material/styles';
-import { Grid, Container, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Container,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 // components
 import Page from '../components/Page';
 import Iconify from '../components/Iconify';
@@ -22,6 +38,51 @@ import {
 
 export default function DashboardApp() {
   const theme = useTheme();
+  const [plantas, setPlantas] = useState([]);
+  const [novaPlanta, setNovaPlanta] = useState({
+    especie: '',
+    dataPlantio: '',
+    quantidade: '',
+    faseCultivo: '',
+  });
+
+  const opcoesEspecie = [
+    'Alface Crespa',
+    'Alface Americana',
+    'Tomate Cereja',
+    'Manjericão',
+    'Rúcula',
+    'Couve Manteiga',
+  ];
+
+  const fasesCultivo = ['Germinação', 'Crescimento', 'Floração', 'Colheita'];
+
+  const onChangeCampo = (field) => (event) => {
+    setNovaPlanta((prev) => ({ ...prev, [field]: event.target.value }));
+  };
+
+  const adicionarPlanta = (event) => {
+    event.preventDefault();
+
+    if (!novaPlanta.especie || !novaPlanta.dataPlantio || !novaPlanta.quantidade || !novaPlanta.faseCultivo) {
+      return;
+    }
+
+    setPlantas((prev) => [
+      {
+        id: faker.datatype.uuid(),
+        ...novaPlanta,
+      },
+      ...prev,
+    ]);
+
+    setNovaPlanta({
+      especie: '',
+      dataPlantio: '',
+      quantidade: '',
+      faseCultivo: '',
+    });
+  };
 
   return (
     <Page title="Dashboard">
@@ -31,6 +92,105 @@ export default function DashboardApp() {
         </Typography>
 
         <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" sx={{ mb: 2 }}>
+                  Adicionar planta manualmente
+                </Typography>
+
+                <Box component="form" onSubmit={adicionarPlanta}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={3}>
+                      <FormControl fullWidth>
+                        <InputLabel id="especie-label">Espécie / variedade</InputLabel>
+                        <Select
+                          labelId="especie-label"
+                          label="Espécie / variedade"
+                          value={novaPlanta.especie}
+                          onChange={onChangeCampo('especie')}
+                        >
+                          {opcoesEspecie.map((especie) => (
+                            <MenuItem key={especie} value={especie}>
+                              {especie}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        fullWidth
+                        label="Data de plantio"
+                        type="date"
+                        value={novaPlanta.dataPlantio}
+                        onChange={onChangeCampo('dataPlantio')}
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={2}>
+                      <TextField
+                        fullWidth
+                        label="Quantidade"
+                        type="number"
+                        value={novaPlanta.quantidade}
+                        onChange={onChangeCampo('quantidade')}
+                        inputProps={{ min: 1 }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={3}>
+                      <FormControl fullWidth>
+                        <InputLabel id="fase-cultivo-label">Fase do cultivo</InputLabel>
+                        <Select
+                          labelId="fase-cultivo-label"
+                          label="Fase do cultivo"
+                          value={novaPlanta.faseCultivo}
+                          onChange={onChangeCampo('faseCultivo')}
+                        >
+                          {fasesCultivo.map((fase) => (
+                            <MenuItem key={fase} value={fase}>
+                              {fase}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} md={1}>
+                      <Button fullWidth type="submit" variant="contained" sx={{ height: '100%' }}>
+                        Adicionar
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                <Stack spacing={1.2} sx={{ mt: 3 }}>
+                  {plantas.length === 0 ? (
+                    <Typography color="text.secondary">Nenhuma planta cadastrada manualmente até o momento.</Typography>
+                  ) : (
+                    plantas.map((planta) => (
+                      <Card key={planta.id} variant="outlined">
+                        <CardContent sx={{ py: 2 }}>
+                          <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1}>
+                            <Typography variant="subtitle1">{planta.especie}</Typography>
+                            <Stack direction="row" spacing={1} flexWrap="wrap">
+                              <Chip label={`Plantio: ${planta.dataPlantio}`} size="small" />
+                              <Chip label={`Qtd: ${planta.quantidade}`} size="small" color="primary" variant="outlined" />
+                              <Chip label={planta.faseCultivo} size="small" color="success" />
+                            </Stack>
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+
           <Grid item xs={12} sm={6} md={3}>
             <AppWidgetSummary title="Soil moisture" total={20} icon1={'carbon:soil-moisture-field'} />
           </Grid>
