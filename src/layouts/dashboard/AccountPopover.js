@@ -21,15 +21,15 @@ import useAuth from '../../auth/useAuth';
 const MENU_OPTIONS = [
   {
     label: 'Home',
-    linkTo: '/',
+    linkTo: '/dashboard/app',
   },
   {
     label: 'Profile',
-    linkTo: '#',
+    linkTo: '/dashboard/profile',
   },
   {
     label: 'Settings',
-    linkTo: '#',
+    linkTo: '/dashboard/security',
   },
 ];
 
@@ -87,7 +87,7 @@ export default function AccountPopover() {
           }),
         }}
       >
-        <Avatar alt={user?.name || 'Usuário'} />
+        <Avatar src={user?.photoURL || ''} alt={user?.name || 'Usuário'} />
       </IconButton>
 
       <MenuPopover
