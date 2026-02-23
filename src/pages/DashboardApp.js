@@ -18,6 +18,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+
 // components
 import Page from '../components/Page';
 import Iconify from '../components/Iconify';
@@ -36,14 +37,61 @@ import {
 
 // ----------------------------------------------------------------------
 
+const monthFormatter = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
+
+const cropCatalog = {
+  'Alface Crespa': { family: 'Folhosas', cycle: '45-60 dias' },
+  'Alface Americana': { family: 'Folhosas', cycle: '55-70 dias' },
+  'Tomate Cereja': { family: 'Solanáceas', cycle: '90-110 dias' },
+  Manjericão: { family: 'Aromáticas', cycle: '60-90 dias' },
+  Rúcula: { family: 'Folhosas', cycle: '35-45 dias' },
+  'Couve Manteiga': { family: 'Brássicas', cycle: '75-95 dias' },
+};
+
+const regionalSeasonality = {
+  Sudeste: {
+    'Alface Crespa': [2, 3, 4, 5, 6, 7, 8, 9],
+    'Alface Americana': [2, 3, 4, 5, 6, 7, 8, 9],
+    'Tomate Cereja': [8, 9, 10, 11, 12, 1],
+    Manjericão: [9, 10, 11, 12, 1, 2, 3],
+    Rúcula: [3, 4, 5, 6, 7, 8, 9, 10],
+    'Couve Manteiga': [3, 4, 5, 6, 7, 8],
+  },
+  Sul: {
+    'Alface Crespa': [1, 2, 3, 4, 8, 9, 10, 11, 12],
+    'Alface Americana': [1, 2, 3, 4, 8, 9, 10, 11, 12],
+    'Tomate Cereja': [9, 10, 11, 12, 1],
+    Manjericão: [10, 11, 12, 1, 2, 3],
+    Rúcula: [2, 3, 4, 5, 6, 7, 8, 9],
+    'Couve Manteiga': [2, 3, 4, 5, 6, 7, 8],
+  },
+  Nordeste: {
+    'Alface Crespa': [3, 4, 5, 6, 7, 8, 9, 10],
+    'Alface Americana': [3, 4, 5, 6, 7, 8, 9, 10],
+    'Tomate Cereja': [4, 5, 6, 7, 8, 9],
+    Manjericão: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    Rúcula: [4, 5, 6, 7, 8, 9, 10],
+    'Couve Manteiga': [4, 5, 6, 7, 8, 9],
+  },
+};
+
+const rotationByFamily = {
+  Folhosas: ['Frutos', 'Leguminosas', 'Raízes'],
+  Solanáceas: ['Folhosas', 'Leguminosas', 'Brássicas'],
+  Aromáticas: ['Folhosas', 'Frutos', 'Brássicas'],
+  Brássicas: ['Leguminosas', 'Raízes', 'Frutos'],
+};
+
 export default function DashboardApp() {
   const theme = useTheme();
+  const [region, setRegion] = useState('Sudeste');
   const [plantas, setPlantas] = useState([]);
   const [novaPlanta, setNovaPlanta] = useState({
     especie: '',
     dataPlantio: '',
     quantidade: '',
     faseCultivo: '',
+    setor: 'Canteiro A',
   });
 
   const opcoesEspecie = [
@@ -56,6 +104,8 @@ export default function DashboardApp() {
   ];
 
   const fasesCultivo = ['Germinação', 'Crescimento', 'Floração', 'Colheita'];
+  const setores = ['Canteiro A', 'Canteiro B', 'Canteiro C'];
+  const regionOptions = Object.keys(regionalSeasonality);
 
   const onChangeCampo = (field) => (event) => {
     setNovaPlanta((prev) => ({ ...prev, [field]: event.target.value }));
@@ -72,6 +122,8 @@ export default function DashboardApp() {
       {
         id: faker.datatype.uuid(),
         ...novaPlanta,
+        familia: cropCatalog[novaPlanta.especie].family,
+        ciclo: cropCatalog[novaPlanta.especie].cycle,
       },
       ...prev,
     ]);
@@ -81,8 +133,56 @@ export default function DashboardApp() {
       dataPlantio: '',
       quantidade: '',
       faseCultivo: '',
+      setor: 'Canteiro A',
     });
   };
+
+  const janelaAtual = regionalSeasonality[region][novaPlanta.especie] || [];
+  const mesEscolhido = novaPlanta.dataPlantio ? new Date(`${novaPlanta.dataPlantio}T00:00:00`).getMonth() + 1 : null;
+
+  const statusJanela = !mesEscolhido
+    ? 'Selecione uma data para validar a janela de plantio.'
+    : janelaAtual.includes(mesEscolhido)
+    ? 'Janela ideal para plantio nesta região.'
+    : 'Fora da janela ideal. Considere ajustar a data ou utilizar ambiente protegido.';
+
+  const proximosMeses = [...Array(6)].map((_, index) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() + index);
+    const month = date.getMonth() + 1;
+
+    const recomendadas = opcoesEspecie.filter((species) => regionalSeasonality[region][species].includes(month));
+
+    return {
+      month,
+      label: monthFormatter.format(date),
+      recomendadas,
+    };
+  });
+
+  const rotationInsights = setores.map((setor) => {
+    const historico = plantas.filter((planta) => planta.setor === setor);
+    const recente = historico[0];
+
+    if (!recente) {
+      return {
+        setor,
+        status: 'Sem histórico ainda',
+        recomendacao: 'Registre ao menos um plantio para habilitar a rotação inteligente.',
+      };
+    }
+
+    const proximaFamilia = rotationByFamily[recente.familia] || ['Folhosas'];
+    const repeticao = historico[1] && historico[1].familia === recente.familia;
+
+    return {
+      setor,
+      status: repeticao ? 'Risco de repetição de família' : 'Rotação saudável',
+      recomendacao: repeticao
+        ? `Evite novo ciclo de ${recente.familia}. Priorize ${proximaFamilia.join(', ')}.`
+        : `Próxima rotação sugerida: ${proximaFamilia.join(', ')}.`,
+    };
+  });
 
   return (
     <Page title="Dashboard">
@@ -95,6 +195,20 @@ export default function DashboardApp() {
           <Grid item xs={12}>
             <Card>
               <CardContent>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }} sx={{ mb: 3 }}>
+                  <Typography variant="h5">Planejamento de plantio inteligente</Typography>
+                  <FormControl sx={{ minWidth: 220 }}>
+                    <InputLabel id="regiao-label">Sazonalidade por região</InputLabel>
+                    <Select labelId="regiao-label" label="Sazonalidade por região" value={region} onChange={(event) => setRegion(event.target.value)}>
+                      {regionOptions.map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Stack>
+
                 <Typography variant="h5" sx={{ mb: 2 }}>
                   Adicionar planta manualmente
                 </Typography>
@@ -159,13 +273,96 @@ export default function DashboardApp() {
                       </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} md={1}>
+                    <Grid item xs={12} md={2}>
+                      <FormControl fullWidth>
+                        <InputLabel id="setor-label">Canteiro</InputLabel>
+                        <Select labelId="setor-label" label="Canteiro" value={novaPlanta.setor} onChange={onChangeCampo('setor')}>
+                          {setores.map((setor) => (
+                            <MenuItem key={setor} value={setor}>
+                              {setor}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} md={2}>
                       <Button fullWidth type="submit" variant="contained" sx={{ height: '100%' }}>
                         Adicionar
                       </Button>
                     </Grid>
                   </Grid>
                 </Box>
+
+                <Card variant="outlined" sx={{ mt: 3 }}>
+                  <CardContent>
+                    <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                      Recomendação de janela de plantio
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      {novaPlanta.especie
+                        ? `${novaPlanta.especie} • meses ideais para ${region}: ${janelaAtual
+                            .map((month) => monthFormatter.format(new Date(2024, month - 1, 1)))
+                            .join(', ')}`
+                        : 'Selecione uma espécie para visualizar os meses recomendados por região.'}
+                    </Typography>
+                    <Alert severity={mesEscolhido && janelaAtual.includes(mesEscolhido) ? 'success' : 'warning'}>{statusJanela}</Alert>
+                  </CardContent>
+                </Card>
+
+                <Card variant="outlined" sx={{ mt: 2 }}>
+                  <CardContent>
+                    <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                      Planejamento por calendário (próximos 6 meses)
+                    </Typography>
+                    <Grid container spacing={1.5}>
+                      {proximosMeses.map((periodo) => (
+                        <Grid item xs={12} md={6} lg={4} key={`${periodo.month}-${periodo.label}`}>
+                          <Card variant="outlined" sx={{ height: '100%' }}>
+                            <CardContent>
+                              <Typography variant="subtitle2" sx={{ textTransform: 'capitalize', mb: 1 }}>
+                                {periodo.label}
+                              </Typography>
+                              <Stack direction="row" gap={1} flexWrap="wrap">
+                                {periodo.recomendadas.map((item) => (
+                                  <Chip key={`${periodo.label}-${item}`} label={item} size="small" color="success" variant="outlined" />
+                                ))}
+                              </Stack>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </CardContent>
+                </Card>
+
+                <Card variant="outlined" sx={{ mt: 2 }}>
+                  <CardContent>
+                    <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                      Rotação de cultura (fase avançada)
+                    </Typography>
+                    <Grid container spacing={1.5}>
+                      {rotationInsights.map((insight) => (
+                        <Grid item xs={12} md={4} key={insight.setor}>
+                          <Card variant="outlined">
+                            <CardContent>
+                              <Typography variant="subtitle2">{insight.setor}</Typography>
+                              <Chip
+                                label={insight.status}
+                                size="small"
+                                sx={{ my: 1 }}
+                                color={insight.status.includes('Risco') ? 'warning' : 'success'}
+                              />
+                              <Typography variant="body2" color="text.secondary">
+                                {insight.recomendacao}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </CardContent>
+                </Card>
 
                 <Stack spacing={1.2} sx={{ mt: 3 }}>
                   {plantas.length === 0 ? (
@@ -174,15 +371,18 @@ export default function DashboardApp() {
                     plantas.map((planta) => (
                       <Card key={planta.id} variant="outlined">
                         <CardContent sx={{ py: 2 }}>
-                          <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1}>
-                            <Typography variant="subtitle1">{planta.especie}</Typography>
-                            <Stack direction="row" spacing={1} flexWrap="wrap">
-                              <Chip label={`Plantio: ${planta.dataPlantio}`} size="small" />
-                              <Chip label={`Qtd: ${planta.quantidade}`} size="small" color="primary" variant="outlined" />
-                              <Chip label={planta.faseCultivo} size="small" color="success" />
+                            <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1}>
+                              <Typography variant="subtitle1">{planta.especie}</Typography>
+                              <Stack direction="row" spacing={1} flexWrap="wrap">
+                                <Chip label={`Plantio: ${planta.dataPlantio}`} size="small" />
+                                <Chip label={`Qtd: ${planta.quantidade}`} size="small" color="primary" variant="outlined" />
+                                <Chip label={planta.faseCultivo} size="small" color="success" />
+                                <Chip label={planta.setor} size="small" />
+                                <Chip label={`Família: ${planta.familia}`} size="small" color="warning" variant="outlined" />
+                                <Chip label={`Ciclo: ${planta.ciclo}`} size="small" color="info" variant="outlined" />
+                              </Stack>
                             </Stack>
-                          </Stack>
-                        </CardContent>
+                          </CardContent>
                       </Card>
                     ))
                   )}
