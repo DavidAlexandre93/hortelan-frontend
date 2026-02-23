@@ -3,6 +3,7 @@ import { useState } from 'react';
 // @mui
 import { useTheme } from '@mui/material/styles';
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -38,6 +39,10 @@ import {
 // ----------------------------------------------------------------------
 
 const monthFormatter = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
+const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+});
 
 const cropCatalog = {
   'Alface Crespa': { family: 'Folhosas', cycle: '45-60 dias' },
@@ -82,6 +87,14 @@ const rotationByFamily = {
   Brássicas: ['Leguminosas', 'Raízes', 'Frutos'],
 };
 
+const eventTypeOptions = [
+  { value: 'rega', label: 'Rega' },
+  { value: 'poda', label: 'Poda' },
+  { value: 'adubacao', label: 'Adubação' },
+  { value: 'praga', label: 'Praga' },
+  { value: 'colheita', label: 'Colheita' },
+];
+
 export default function DashboardApp() {
   const theme = useTheme();
   const [region, setRegion] = useState('Sudeste');
@@ -93,6 +106,9 @@ export default function DashboardApp() {
     faseCultivo: '',
     setor: 'Canteiro A',
   });
+  const [novoEventoPorPlanta, setNovoEventoPorPlanta] = useState({});
+  const [novaFotoPorPlanta, setNovaFotoPorPlanta] = useState({});
+  const [novaObservacaoPorPlanta, setNovaObservacaoPorPlanta] = useState({});
 
   const opcoesEspecie = [
     'Alface Crespa',
@@ -124,6 +140,9 @@ export default function DashboardApp() {
         ...novaPlanta,
         familia: cropCatalog[novaPlanta.especie].family,
         ciclo: cropCatalog[novaPlanta.especie].cycle,
+        eventos: [],
+        fotos: [],
+        observacoes: [],
       },
       ...prev,
     ]);
@@ -135,6 +154,136 @@ export default function DashboardApp() {
       faseCultivo: '',
       setor: 'Canteiro A',
     });
+  };
+
+  const atualizarNovoEvento = (plantaId, field, value) => {
+    setNovoEventoPorPlanta((prev) => ({
+      ...prev,
+      [plantaId]: {
+        tipo: prev[plantaId]?.tipo || '',
+        data: prev[plantaId]?.data || '',
+        detalhes: prev[plantaId]?.detalhes || '',
+        [field]: value,
+      },
+    }));
+  };
+
+  const atualizarNovaFoto = (plantaId, value) => {
+    setNovaFotoPorPlanta((prev) => ({
+      ...prev,
+      [plantaId]: {
+        data: prev[plantaId]?.data || '',
+        url: prev[plantaId]?.url || '',
+        legenda: prev[plantaId]?.legenda || '',
+        ...value,
+      },
+    }));
+  };
+
+  const atualizarNovaObservacao = (plantaId, value) => {
+    setNovaObservacaoPorPlanta((prev) => ({
+      ...prev,
+      [plantaId]: {
+        data: prev[plantaId]?.data || '',
+        texto: prev[plantaId]?.texto || '',
+        ...value,
+      },
+    }));
+  };
+
+  const adicionarEvento = (plantaId) => {
+    const draft = novoEventoPorPlanta[plantaId];
+
+    if (!draft?.tipo || !draft?.data || !draft?.detalhes) {
+      return;
+    }
+
+    setPlantas((prev) =>
+      prev.map((planta) =>
+        planta.id === plantaId
+          ? {
+              ...planta,
+              eventos: [
+                {
+                  id: faker.datatype.uuid(),
+                  tipo: draft.tipo,
+                  data: draft.data,
+                  detalhes: draft.detalhes,
+                },
+                ...planta.eventos,
+              ],
+            }
+          : planta
+      )
+    );
+
+    setNovoEventoPorPlanta((prev) => ({
+      ...prev,
+      [plantaId]: { tipo: '', data: '', detalhes: '' },
+    }));
+  };
+
+  const adicionarFoto = (plantaId) => {
+    const draft = novaFotoPorPlanta[plantaId];
+
+    if (!draft?.data || !draft?.url) {
+      return;
+    }
+
+    setPlantas((prev) =>
+      prev.map((planta) =>
+        planta.id === plantaId
+          ? {
+              ...planta,
+              fotos: [
+                {
+                  id: faker.datatype.uuid(),
+                  data: draft.data,
+                  url: draft.url,
+                  legenda: draft.legenda || '',
+                },
+                ...planta.fotos,
+              ],
+            }
+          : planta
+      )
+    );
+
+    setNovaFotoPorPlanta((prev) => ({
+      ...prev,
+      [plantaId]: { data: '', url: '', legenda: '' },
+    }));
+  };
+
+  const adicionarObservacao = (plantaId) => {
+    const draft = novaObservacaoPorPlanta[plantaId];
+
+    if (!draft?.data || !draft?.texto) {
+      return;
+    }
+
+    setPlantas((prev) =>
+      prev.map((planta) =>
+        planta.id === plantaId
+          ? {
+              ...planta,
+              observacoes: [
+                {
+                  id: faker.datatype.uuid(),
+                  data: draft.data,
+                  texto: draft.texto,
+                },
+                ...planta.observacoes,
+              ],
+            }
+          : planta
+      )
+    );
+
+    setNovaObservacaoPorPlanta((prev) => ({
+      ...prev,
+      [plantaId]: { data: '', texto: '' },
+    }));
   };
 
   const janelaAtual = regionalSeasonality[region][novaPlanta.especie] || [];
@@ -368,9 +517,39 @@ export default function DashboardApp() {
                   {plantas.length === 0 ? (
                     <Typography color="text.secondary">Nenhuma planta cadastrada manualmente até o momento.</Typography>
                   ) : (
-                    plantas.map((planta) => (
-                      <Card key={planta.id} variant="outlined">
-                        <CardContent sx={{ py: 2 }}>
+                    plantas.map((planta) => {
+                      const draftEvento = novoEventoPorPlanta[planta.id] || { tipo: '', data: '', detalhes: '' };
+                      const draftFoto = novaFotoPorPlanta[planta.id] || { data: '', url: '', legenda: '' };
+                      const draftObservacao = novaObservacaoPorPlanta[planta.id] || { data: '', texto: '' };
+
+                      const timeline = [
+                        ...planta.eventos.map((evento) => ({
+                          id: evento.id,
+                          tipo: 'evento',
+                          data: evento.data,
+                          titulo: eventTypeOptions.find((option) => option.value === evento.tipo)?.label || evento.tipo,
+                          descricao: evento.detalhes,
+                        })),
+                        ...planta.fotos.map((foto) => ({
+                          id: foto.id,
+                          tipo: 'foto',
+                          data: foto.data,
+                          titulo: 'Foto de evolução',
+                          descricao: foto.legenda || 'Sem legenda',
+                          url: foto.url,
+                        })),
+                        ...planta.observacoes.map((observacao) => ({
+                          id: observacao.id,
+                          tipo: 'observacao',
+                          data: observacao.data,
+                          titulo: 'Observação do usuário',
+                          descricao: observacao.texto,
+                        })),
+                      ].sort((a, b) => new Date(`${b.data}T00:00:00`) - new Date(`${a.data}T00:00:00`));
+
+                      return (
+                        <Card key={planta.id} variant="outlined">
+                          <CardContent sx={{ py: 2 }}>
                             <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1}>
                               <Typography variant="subtitle1">{planta.especie}</Typography>
                               <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -382,9 +561,153 @@ export default function DashboardApp() {
                                 <Chip label={`Ciclo: ${planta.ciclo}`} size="small" color="info" variant="outlined" />
                               </Stack>
                             </Stack>
+
+                            <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                              <Grid item xs={12} md={4}>
+                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                  Registro de eventos
+                                </Typography>
+                                <Stack spacing={1}>
+                                  <FormControl size="small" fullWidth>
+                                    <InputLabel id={`tipo-evento-${planta.id}`}>Tipo</InputLabel>
+                                    <Select
+                                      labelId={`tipo-evento-${planta.id}`}
+                                      label="Tipo"
+                                      value={draftEvento.tipo}
+                                      onChange={(event) => atualizarNovoEvento(planta.id, 'tipo', event.target.value)}
+                                    >
+                                      {eventTypeOptions.map((option) => (
+                                        <MenuItem key={option.value} value={option.value}>
+                                          {option.label}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                  <TextField
+                                    size="small"
+                                    label="Data"
+                                    type="date"
+                                    value={draftEvento.data}
+                                    onChange={(event) => atualizarNovoEvento(planta.id, 'data', event.target.value)}
+                                    InputLabelProps={{ shrink: true }}
+                                  />
+                                  <TextField
+                                    size="small"
+                                    label="Detalhes"
+                                    value={draftEvento.detalhes}
+                                    onChange={(event) => atualizarNovoEvento(planta.id, 'detalhes', event.target.value)}
+                                  />
+                                  <Button size="small" variant="contained" onClick={() => adicionarEvento(planta.id)}>
+                                    Salvar evento
+                                  </Button>
+                                </Stack>
+                              </Grid>
+
+                              <Grid item xs={12} md={4}>
+                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                  Fotos de evolução
+                                </Typography>
+                                <Stack spacing={1}>
+                                  <TextField
+                                    size="small"
+                                    label="Data"
+                                    type="date"
+                                    value={draftFoto.data}
+                                    onChange={(event) => atualizarNovaFoto(planta.id, { data: event.target.value })}
+                                    InputLabelProps={{ shrink: true }}
+                                  />
+                                  <TextField
+                                    size="small"
+                                    label="URL da foto"
+                                    value={draftFoto.url}
+                                    onChange={(event) => atualizarNovaFoto(planta.id, { url: event.target.value })}
+                                  />
+                                  <TextField
+                                    size="small"
+                                    label="Legenda"
+                                    value={draftFoto.legenda}
+                                    onChange={(event) => atualizarNovaFoto(planta.id, { legenda: event.target.value })}
+                                  />
+                                  <Button size="small" variant="contained" onClick={() => adicionarFoto(planta.id)}>
+                                    Salvar foto
+                                  </Button>
+                                </Stack>
+                              </Grid>
+
+                              <Grid item xs={12} md={4}>
+                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                  Observações do usuário
+                                </Typography>
+                                <Stack spacing={1}>
+                                  <TextField
+                                    size="small"
+                                    label="Data"
+                                    type="date"
+                                    value={draftObservacao.data}
+                                    onChange={(event) => atualizarNovaObservacao(planta.id, { data: event.target.value })}
+                                    InputLabelProps={{ shrink: true }}
+                                  />
+                                  <TextField
+                                    size="small"
+                                    label="Observação"
+                                    multiline
+                                    minRows={2}
+                                    value={draftObservacao.texto}
+                                    onChange={(event) => atualizarNovaObservacao(planta.id, { texto: event.target.value })}
+                                  />
+                                  <Button size="small" variant="contained" onClick={() => adicionarObservacao(planta.id)}>
+                                    Salvar observação
+                                  </Button>
+                                </Stack>
+                              </Grid>
+                            </Grid>
+
+                            <Card variant="outlined" sx={{ mt: 2, bgcolor: 'background.neutral' }}>
+                              <CardContent>
+                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                  Linha do tempo da planta
+                                </Typography>
+                                {timeline.length === 0 ? (
+                                  <Typography variant="body2" color="text.secondary">
+                                    Ainda não há registros de eventos, fotos ou observações para esta planta.
+                                  </Typography>
+                                ) : (
+                                  <Stack spacing={1.2}>
+                                    {timeline.map((item) => (
+                                      <Card key={item.id} variant="outlined">
+                                        <CardContent sx={{ py: 1.5 }}>
+                                          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1}>
+                                            <Stack direction="row" spacing={1} alignItems="center">
+                                              <Chip
+                                                size="small"
+                                                color={item.tipo === 'evento' ? 'primary' : item.tipo === 'foto' ? 'secondary' : 'default'}
+                                                label={item.tipo}
+                                              />
+                                              <Typography variant="subtitle2">{item.titulo}</Typography>
+                                            </Stack>
+                                            <Typography variant="caption" color="text.secondary">
+                                              {dateTimeFormatter.format(new Date(`${item.data}T00:00:00`))}
+                                            </Typography>
+                                          </Stack>
+                                          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                            {item.descricao}
+                                          </Typography>
+                                          {item.url ? (
+                                            <Box component="a" href={item.url} target="_blank" rel="noopener noreferrer" sx={{ fontSize: 12 }}>
+                                              Abrir foto
+                                            </Box>
+                                          ) : null}
+                                        </CardContent>
+                                      </Card>
+                                    ))}
+                                  </Stack>
+                                )}
+                              </CardContent>
+                            </Card>
                           </CardContent>
-                      </Card>
-                    ))
+                        </Card>
+                      );
+                    })
                   )}
                 </Stack>
               </CardContent>
