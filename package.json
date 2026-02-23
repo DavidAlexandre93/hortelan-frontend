@@ -5,15 +5,15 @@
   "version": "1.5.0",
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && yarn sentry:sourcemaps",
+    "build": "NODE_OPTIONS=--no-deprecation react-scripts build && npm run sentry:sourcemaps",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint --ext .js,.jsx ./src",
     "lint:fix": "eslint --fix --ext .js,.jsx ./src",
     "clear-all": "rm -rf build node_modules",
-    "re-start": "rm -rf build node_modules && yarn install && yarn start",
-    "re-build": "rm -rf build node_modules && yarn install && yarn build",
-    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org hortelan --project hortelan-frontend ./ && sentry-cli sourcemaps upload --org hortelan --project hortelan-frontend ./"
+    "re-start": "rm -rf build node_modules && npm install && npm run start",
+    "re-build": "rm -rf build node_modules && npm install && npm run build",
+    "sentry:sourcemaps": "node scripts/sentry-sourcemaps.js"
   },
   "eslintConfig": {
     "extends": [
@@ -94,8 +94,6 @@
     "@svgr/webpack": "^6.2.1"
   },
   "engines": {
-    "node": "24.x",
-    "yarn": "1.x"
-  },
-  "packageManager": "yarn@1.22.22"
+    "node": "20.x"
+  }
 }
