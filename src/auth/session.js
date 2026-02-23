@@ -50,6 +50,20 @@ const USERS = [
         gardenType: 'vaso',
         location: 'São Paulo/SP - Vila Mariana',
         photoURL: '',
+        sectors: [
+          {
+            id: 'sector-admin-1',
+            name: 'Canteiro 1',
+            dimensions: '2m x 1m',
+            sectorType: 'sol_pleno',
+          },
+          {
+            id: 'sector-admin-2',
+            name: 'Bancada A',
+            dimensions: '',
+            sectorType: 'meia_sombra',
+          },
+        ],
       },
     ],
   },
@@ -86,6 +100,12 @@ const buildSafeUser = (user) => ({
     gardenType: garden.gardenType || 'solo',
     location: garden.location || '',
     photoURL: garden.photoURL || '',
+    sectors: (garden.sectors || []).map((sector, sectorIndex) => ({
+      id: sector.id || `sector-${Date.now()}-${index}-${sectorIndex}`,
+      name: sector.name || `Setor ${sectorIndex + 1}`,
+      dimensions: sector.dimensions || '',
+      sectorType: sector.sectorType || 'sol_pleno',
+    })),
   })),
 });
 
@@ -642,6 +662,12 @@ export const updateAuthenticatedUserProfile = (payload) => {
       gardenType: garden.gardenType || 'solo',
       location: garden.location?.trim() || '',
       photoURL: garden.photoURL?.trim() || '',
+      sectors: (garden.sectors || []).map((sector, sectorIndex) => ({
+        id: sector.id || `sector-${Date.now()}-${index}-${sectorIndex}`,
+        name: sector.name?.trim() || `Setor ${sectorIndex + 1}`,
+        dimensions: sector.dimensions?.trim() || '',
+        sectorType: sector.sectorType || 'sol_pleno',
+      })),
     })),
   };
 

@@ -48,12 +48,28 @@ const GARDEN_TYPE_OPTIONS = [
   { value: 'estufa', label: 'Estufa' },
 ];
 
+const SECTOR_TYPE_OPTIONS = [
+  { value: 'sol_pleno', label: 'Luz solar total' },
+  { value: 'meia_sombra', label: 'Meia sombra' },
+  { value: 'sombra_total', label: 'Sombra total' },
+  { value: 'indoor', label: 'Indoor' },
+  { value: 'estufa', label: 'Estufa' },
+];
+
+const createEmptySector = () => ({
+  id: `sector-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  name: '',
+  dimensions: '',
+  sectorType: 'sol_pleno',
+});
+
 const createEmptyGarden = () => ({
   id: `garden-${Date.now()}-${Math.random().toString(16).slice(2)}`,
   name: '',
   gardenType: 'solo',
   location: '',
   photoURL: '',
+  sectors: [createEmptySector()],
 });
 
 export default function ProfileSettings() {
@@ -77,7 +93,12 @@ export default function ProfileSettings() {
     },
     savedAddresses: user?.savedAddresses?.length ? user.savedAddresses : [{ id: `address-${Date.now()}`, label: '', addressLine: '' }],
     cultivationLevel: user?.cultivationLevel || 'iniciante',
-    gardens: user?.gardens?.length ? user.gardens : [createEmptyGarden()],
+    gardens: user?.gardens?.length
+      ? user.gardens.map((garden) => ({
+          ...garden,
+          sectors: garden.sectors?.length ? garden.sectors : [createEmptySector()],
+        }))
+      : [createEmptyGarden()],
   }));
   const [feedback, setFeedback] = useState(null);
 
@@ -381,6 +402,107 @@ export default function ProfileSettings() {
                         Remover horta
                       </Button>
                     </Stack>
+
+                    <Card variant="outlined" sx={{ p: 2 }}>
+                      <Stack spacing={2}>
+                        <Typography variant="subtitle2">Setores da horta</Typography>
+
+                        {garden.sectors?.map((sector, sectorIndex) => (
+                          <Box key={sector.id}>
+                            <Stack spacing={2}>
+                              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                                <TextField
+                                  fullWidth
+                                  label="Nome do setor"
+                                  placeholder="Canteiro 1, bancada A, torre 2..."
+                                  value={sector.name}
+                                  onChange={(event) => {
+                                    const nextGardens = [...form.gardens];
+                                    const nextSectors = [...(garden.sectors || [])];
+                                    nextSectors[sectorIndex] = { ...sector, name: event.target.value };
+                                    nextGardens[index] = { ...garden, sectors: nextSectors };
+                                    setField('gardens', nextGardens);
+                                  }}
+                                />
+
+                                <FormControl fullWidth>
+                                  <InputLabel id={`sector-type-${sector.id}`}>Tipo do setor</InputLabel>
+                                  <Select
+                                    labelId={`sector-type-${sector.id}`}
+                                    label="Tipo do setor"
+                                    value={sector.sectorType}
+                                    onChange={(event) => {
+                                      const nextGardens = [...form.gardens];
+                                      const nextSectors = [...(garden.sectors || [])];
+                                      nextSectors[sectorIndex] = { ...sector, sectorType: event.target.value };
+                                      nextGardens[index] = { ...garden, sectors: nextSectors };
+                                      setField('gardens', nextGardens);
+                                    }}
+                                  >
+                                    {SECTOR_TYPE_OPTIONS.map((option) => (
+                                      <MenuItem key={option.value} value={option.value}>
+                                        {option.label}
+                                      </MenuItem>
+                                    ))}
+                                  </Select>
+                                </FormControl>
+                              </Stack>
+
+                              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
+                                <TextField
+                                  fullWidth
+                                  label="Dimensões (opcional)"
+                                  placeholder="Ex.: 2m x 1m"
+                                  value={sector.dimensions}
+                                  onChange={(event) => {
+                                    const nextGardens = [...form.gardens];
+                                    const nextSectors = [...(garden.sectors || [])];
+                                    nextSectors[sectorIndex] = { ...sector, dimensions: event.target.value };
+                                    nextGardens[index] = { ...garden, sectors: nextSectors };
+                                    setField('gardens', nextGardens);
+                                  }}
+                                />
+
+                                <Button
+                                  color="error"
+                                  onClick={() => {
+                                    if ((garden.sectors || []).length === 1) {
+                                      return;
+                                    }
+
+                                    const nextGardens = [...form.gardens];
+                                    nextGardens[index] = {
+                                      ...garden,
+                                      sectors: garden.sectors.filter((item) => item.id !== sector.id),
+                                    };
+                                    setField('gardens', nextGardens);
+                                  }}
+                                >
+                                  Remover setor
+                                </Button>
+                              </Stack>
+                            </Stack>
+
+                            {sectorIndex < (garden.sectors?.length || 0) - 1 && <Divider sx={{ mt: 2 }} />}
+                          </Box>
+                        ))}
+
+                        <Button
+                          variant="outlined"
+                          startIcon={<Iconify icon="eva:plus-outline" />}
+                          onClick={() => {
+                            const nextGardens = [...form.gardens];
+                            nextGardens[index] = {
+                              ...garden,
+                              sectors: [...(garden.sectors || []), createEmptySector()],
+                            };
+                            setField('gardens', nextGardens);
+                          }}
+                        >
+                          Adicionar setor
+                        </Button>
+                      </Stack>
+                    </Card>
                   </Stack>
 
                   {index < form.gardens.length - 1 && <Divider sx={{ mt: 2 }} />}
@@ -430,6 +552,13 @@ export default function ProfileSettings() {
                     .map((item) => ({
                       ...item,
                       name: item.name.trim() || 'Horta sem nome',
+                      sectors: (item.sectors || [])
+                        .filter((sector) => sector.name.trim() || sector.dimensions.trim())
+                        .map((sector, sectorIndex) => ({
+                          ...sector,
+                          name: sector.name.trim() || `Setor ${sectorIndex + 1}`,
+                          dimensions: sector.dimensions.trim(),
+                        })),
                     })),
                 };
 
