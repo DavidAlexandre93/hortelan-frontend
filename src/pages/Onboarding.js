@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -7,6 +8,7 @@ import {
   Checkbox,
   Container,
   Divider,
+  FormHelperText,
   FormControl,
   FormControlLabel,
   FormGroup,
@@ -28,6 +30,11 @@ import Page from '../components/Page';
 const steps = ['Perfil', 'Primeira horta', 'Ambiente', 'IoT e ativação'];
 const structureTypes = ['Vaso', 'Canteiro', 'Módulo', 'Torre', 'Reservatório'];
 const materialOptions = ['Plástico', 'Cerâmica', 'Madeira', 'Cimento', 'Metal', 'Fibra de coco'];
+const pairingMethods = [
+  { value: 'qr', label: 'QR Code', helper: 'Escaneie o QR Code exibido no dispositivo para concluir o pareamento.' },
+  { value: 'serial', label: 'Código serial', helper: 'Digite o código serial impresso na etiqueta do dispositivo.' },
+];
+const gardenAreas = ['Horta principal', 'Estufa interna', 'Setor de mudas', 'Jardim vertical'];
 
 const createStructure = () => ({
   type: 'Vaso',
@@ -41,6 +48,11 @@ const createStructure = () => ({
 export default function Onboarding() {
   const [activeStep, setActiveStep] = useState(0);
   const [structures, setStructures] = useState([createStructure()]);
+  const [pairingMethod, setPairingMethod] = useState('qr');
+  const [friendlyName, setFriendlyName] = useState('');
+  const [pairingCode, setPairingCode] = useState('');
+  const [selectedArea, setSelectedArea] = useState(gardenAreas[0]);
+  const [linkedDevices, setLinkedDevices] = useState([]);
 
   const updateStructureField = (index, field, value) => {
     setStructures((prev) => prev.map((item, itemIndex) => (itemIndex === index ? { ...item, [field]: value } : item)));
@@ -58,6 +70,28 @@ export default function Onboarding() {
 
       return prev.filter((_, itemIndex) => itemIndex !== index);
     });
+  };
+
+  const selectedPairingMethod = pairingMethods.find((method) => method.value === pairingMethod);
+
+  const handleLinkDevice = () => {
+    if (!friendlyName.trim() || !pairingCode.trim()) {
+      return;
+    }
+
+    setLinkedDevices((prev) => [
+      {
+        id: `linked-${Date.now()}`,
+        name: friendlyName.trim(),
+        code: pairingCode.trim(),
+        method: selectedPairingMethod?.label || 'QR Code',
+        area: selectedArea,
+      },
+      ...prev,
+    ]);
+
+    setFriendlyName('');
+    setPairingCode('');
   };
 
   return (
@@ -232,6 +266,84 @@ export default function Onboarding() {
 
             {activeStep === 3 && (
               <Stack spacing={2}>
+                <Typography variant="h6">Vincular dispositivo à conta</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Faça o pareamento por QR Code ou código serial, associe o dispositivo à área correta e defina um nome
+                  amigável para facilitar o monitoramento.
+                </Typography>
+
+                <FormControl fullWidth>
+                  <InputLabel>Método de pareamento</InputLabel>
+                  <Select
+                    label="Método de pareamento"
+                    value={pairingMethod}
+                    onChange={(event) => setPairingMethod(event.target.value)}
+                  >
+                    {pairingMethods.map((method) => (
+                      <MenuItem key={method.value} value={method.value}>
+                        {method.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText>{selectedPairingMethod?.helper}</FormHelperText>
+                </FormControl>
+
+                <TextField
+                  label={pairingMethod === 'qr' ? 'QR Code do dispositivo' : 'Código serial do dispositivo'}
+                  value={pairingCode}
+                  onChange={(event) => setPairingCode(event.target.value)}
+                  fullWidth
+                  placeholder={pairingMethod === 'qr' ? 'Ex.: QR-HRT-001-9AF2' : 'Ex.: HRT-SERIAL-45BX-98'}
+                />
+
+                <TextField
+                  label="Nome amigável do dispositivo"
+                  value={friendlyName}
+                  onChange={(event) => setFriendlyName(event.target.value)}
+                  fullWidth
+                  placeholder="Ex.: Sensor de umidade da estufa"
+                />
+
+                <FormControl fullWidth>
+                  <InputLabel>Horta / área de associação</InputLabel>
+                  <Select
+                    label="Horta / área de associação"
+                    value={selectedArea}
+                    onChange={(event) => setSelectedArea(event.target.value)}
+                  >
+                    {gardenAreas.map((area) => (
+                      <MenuItem key={area} value={area}>
+                        {area}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <Box>
+                  <Button
+                    variant="contained"
+                    onClick={handleLinkDevice}
+                    disabled={!friendlyName.trim() || !pairingCode.trim()}
+                  >
+                    Vincular dispositivo
+                  </Button>
+                </Box>
+
+                {linkedDevices.length > 0 ? (
+                  <Stack spacing={1}>
+                    {linkedDevices.map((device) => (
+                      <Alert key={device.id} severity="success" variant="outlined">
+                        <strong>{device.name}</strong> vinculado via {device.method} ({device.code}) em <strong>{device.area}</strong>.
+                      </Alert>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Alert severity="info" variant="outlined">
+                    Nenhum dispositivo vinculado nesta etapa ainda.
+                  </Alert>
+                )}
+
+                <Divider />
                 <FormGroup>
                   <FormControlLabel control={<Checkbox defaultChecked />} label="Vincular dispositivo IoT agora" />
                   <FormControlLabel control={<Checkbox defaultChecked />} label="Habilitar modo manual como fallback" />
