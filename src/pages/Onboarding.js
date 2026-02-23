@@ -6,9 +6,11 @@ import {
   CardContent,
   Checkbox,
   Container,
+  Divider,
   FormControl,
   FormControlLabel,
   FormGroup,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
@@ -19,12 +21,44 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Page from '../components/Page';
 
 const steps = ['Perfil', 'Primeira horta', 'Ambiente', 'IoT e ativação'];
+const structureTypes = ['Vaso', 'Canteiro', 'Módulo', 'Torre', 'Reservatório'];
+const materialOptions = ['Plástico', 'Cerâmica', 'Madeira', 'Cimento', 'Metal', 'Fibra de coco'];
+
+const createStructure = () => ({
+  type: 'Vaso',
+  name: '',
+  capacity: '',
+  material: 'Plástico',
+  sensor: '',
+  actuator: '',
+});
 
 export default function Onboarding() {
   const [activeStep, setActiveStep] = useState(0);
+  const [structures, setStructures] = useState([createStructure()]);
+
+  const updateStructureField = (index, field, value) => {
+    setStructures((prev) => prev.map((item, itemIndex) => (itemIndex === index ? { ...item, [field]: value } : item)));
+  };
+
+  const addStructure = () => {
+    setStructures((prev) => [...prev, createStructure()]);
+  };
+
+  const removeStructure = (index) => {
+    setStructures((prev) => {
+      if (prev.length === 1) {
+        return [createStructure()];
+      }
+
+      return prev.filter((_, itemIndex) => itemIndex !== index);
+    });
+  };
 
   return (
     <Page title="Onboarding">
@@ -69,6 +103,102 @@ export default function Onboarding() {
                 <TextField label="Nome da horta" defaultValue="Minha horta principal" fullWidth />
                 <TextField label="Plantas iniciais" helperText="Ex.: hortelã, alface, manjericão" fullWidth />
                 <TextField label="Localização" fullWidth />
+
+                <Divider sx={{ pt: 1 }}>Estruturas de cultivo</Divider>
+                <Typography variant="body2" color="text.secondary">
+                  Cadastre vasos, canteiros, módulos, torres e reservatórios com volume, material e vínculo IoT.
+                </Typography>
+
+                {structures.map((structure, index) => (
+                  <Card key={`structure-${index}`} variant="outlined" sx={{ bgcolor: 'background.neutral' }}>
+                    <CardContent>
+                      <Stack spacing={2}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="subtitle2">Estrutura {index + 1}</Typography>
+                          <IconButton
+                            color="error"
+                            onClick={() => removeStructure(index)}
+                            disabled={structures.length === 1}
+                            aria-label="Remover estrutura"
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Stack>
+
+                        <FormControl fullWidth>
+                          <InputLabel>Tipo</InputLabel>
+                          <Select
+                            label="Tipo"
+                            value={structure.type}
+                            onChange={(event) => updateStructureField(index, 'type', event.target.value)}
+                          >
+                            {structureTypes.map((type) => (
+                              <MenuItem key={type} value={type}>
+                                {type}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+
+                        <TextField
+                          label="Nome / Identificador"
+                          fullWidth
+                          value={structure.name}
+                          onChange={(event) => updateStructureField(index, 'name', event.target.value)}
+                          placeholder="Ex.: Torre vertical A1"
+                        />
+
+                        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                          <TextField
+                            type="number"
+                            label="Capacidade / volume (L)"
+                            fullWidth
+                            value={structure.capacity}
+                            onChange={(event) => updateStructureField(index, 'capacity', event.target.value)}
+                          />
+
+                          <FormControl fullWidth>
+                            <InputLabel>Material</InputLabel>
+                            <Select
+                              label="Material"
+                              value={structure.material}
+                              onChange={(event) => updateStructureField(index, 'material', event.target.value)}
+                            >
+                              {materialOptions.map((material) => (
+                                <MenuItem key={material} value={material}>
+                                  {material}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Stack>
+
+                        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                          <TextField
+                            label="Sensor associado"
+                            fullWidth
+                            value={structure.sensor}
+                            onChange={(event) => updateStructureField(index, 'sensor', event.target.value)}
+                            helperText="Ex.: sensor_umidade_01"
+                          />
+                          <TextField
+                            label="Atuador associado"
+                            fullWidth
+                            value={structure.actuator}
+                            onChange={(event) => updateStructureField(index, 'actuator', event.target.value)}
+                            helperText="Ex.: valvula_setor_03"
+                          />
+                        </Stack>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                ))}
+
+                <Box>
+                  <Button variant="outlined" startIcon={<AddIcon />} onClick={addStructure}>
+                    Adicionar estrutura
+                  </Button>
+                </Box>
               </Stack>
             )}
 
