@@ -1,35 +1,60 @@
-import * as Yup from 'yup';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import * as Yup from "yup";
+import { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
 // form
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 // @mui
-import { Stack, IconButton, InputAdornment } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
+import {
+  Alert,
+  Stack,
+  Link,
+  Button,
+  IconButton,
+  Checkbox,
+  InputAdornment,
+  FormControlLabel,
+  FormHelperText,
+} from "@mui/material";
+import { LoadingButton } from "@mui/lab";
 // components
-import Iconify from '../../../components/Iconify';
-import { FormProvider, RHFTextField } from '../../../components/hook-form';
+import Iconify from "../../../components/Iconify";
+import { FormProvider, RHFTextField } from "../../../components/hook-form";
 
 // ----------------------------------------------------------------------
 
 export default function RegisterForm() {
-  const navigate = useNavigate();
-
   const [showPassword, setShowPassword] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
 
   const RegisterSchema = Yup.object().shape({
-    firstName: Yup.string().required('First name required'),
-    lastName: Yup.string().required('Last name required'),
-    email: Yup.string().email('Email must be a valid email address').required('Email is required'),
-    password: Yup.string().required('Password is required'),
+    name: Yup.string().required("Nome é obrigatório"),
+    email: Yup.string()
+      .email("Informe um e-mail válido")
+      .required("E-mail é obrigatório"),
+    phone: Yup.string()
+      .nullable()
+      .test("phone-format", "Informe um telefone válido", (value) => {
+        if (!value) return true;
+
+        const digits = value.replace(/\D/g, "");
+        return digits.length >= 10 && digits.length <= 11;
+      }),
+    password: Yup.string()
+      .min(8, "A senha deve ter ao menos 8 caracteres")
+      .required("Senha é obrigatória"),
+    acceptedTerms: Yup.bool().oneOf(
+      [true],
+      "Você precisa aceitar os termos para continuar"
+    ),
   });
 
   const defaultValues = {
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    acceptedTerms: false,
   };
 
   const methods = useForm({
@@ -39,40 +64,108 @@ export default function RegisterForm() {
 
   const {
     handleSubmit,
-    formState: { isSubmitting },
+    control,
+    reset,
+    formState: { isSubmitting, errors },
   } = methods;
 
-  const onSubmit = async () => {
-    navigate('/dashboard', { replace: true });
+  const onSubmit = async ({ email }) => {
+    setVerificationEmail(email);
+    reset();
   };
+
+  if (verificationEmail) {
+    return (
+      <Stack spacing={3}>
+        <Alert severity="success">
+          Cadastro realizado com sucesso! Enviamos um link de verificação para{" "}
+          <strong>{verificationEmail}</strong>. Confirme seu e-mail para ativar
+          sua conta.
+        </Alert>
+
+        <Button
+          component={RouterLink}
+          to="/login"
+          size="large"
+          variant="contained"
+        >
+          Ir para login
+        </Button>
+      </Stack>
+    );
+  }
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-          <RHFTextField name="firstName" label="First name" />
-          <RHFTextField name="lastName" label="Last name" />
-        </Stack>
+        <RHFTextField name="name" label="Nome completo" />
 
-        <RHFTextField name="email" label="Email address" />
+        <RHFTextField name="email" label="E-mail" />
+
+        <RHFTextField
+          name="phone"
+          label="Telefone (opcional)"
+          placeholder="(11) 99999-9999"
+        />
 
         <RHFTextField
           name="password"
-          label="Password"
-          type={showPassword ? 'text' : 'password'}
+          label="Senha"
+          type={showPassword ? "text" : "password"}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton edge="end" onClick={() => setShowPassword(!showPassword)}>
-                  <Iconify icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+                <IconButton
+                  edge="end"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  <Iconify
+                    icon={showPassword ? "eva:eye-fill" : "eva:eye-off-fill"}
+                  />
                 </IconButton>
               </InputAdornment>
             ),
           }}
         />
 
-        <LoadingButton fullWidth size="large" type="submit" variant="contained" loading={isSubmitting}>
-          Register
+        <Controller
+          name="acceptedTerms"
+          control={control}
+          render={({ field }) => (
+            <Stack>
+              <FormControlLabel
+                control={<Checkbox {...field} checked={field.value} />}
+                label={
+                  <span>
+                    Eu aceito os{" "}
+                    <Link underline="always" color="text.primary" href="#">
+                      Termos de Uso
+                    </Link>{" "}
+                    e a{" "}
+                    <Link underline="always" color="text.primary" href="#">
+                      Política de Privacidade
+                    </Link>
+                    .
+                  </span>
+                }
+              />
+              {errors.acceptedTerms && (
+                <FormHelperText error>
+                  {errors.acceptedTerms.message}
+                </FormHelperText>
+              )}
+            </Stack>
+          )}
+        />
+
+        <LoadingButton
+          fullWidth
+          size="large"
+          type="submit"
+          variant="contained"
+          loading={isSubmitting}
+        >
+          Criar conta
         </LoadingButton>
       </Stack>
     </FormProvider>
