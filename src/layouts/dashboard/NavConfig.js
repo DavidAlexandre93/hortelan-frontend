@@ -57,6 +57,12 @@ const navConfig = [
     path: '/dashboard/security',
     icon: getIcon('eva:shield-fill'),
   },
+
+  {
+    title: 'perfil',
+    path: '/dashboard/profile',
+    icon: getIcon('eva:person-fill'),
+  },
 ];
 
 export default navConfig;

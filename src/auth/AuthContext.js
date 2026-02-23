@@ -18,6 +18,7 @@ import {
   requestAccountDeletion,
   revokeTrustedDevice,
   updateUserConsents,
+  updateAuthenticatedUserProfile,
   updateTwoFactorSettings,
 } from './session';
 
@@ -106,6 +107,8 @@ export function AuthProvider({ children }) {
 
   const updateConsents = useCallback((nextConsents) => {
     const result = updateUserConsents(nextConsents);
+  const updateProfile = useCallback((payload) => {
+    const result = updateAuthenticatedUserProfile(payload);
 
     if (!result.error) {
       refreshAuthState();
@@ -153,6 +156,7 @@ export function AuthProvider({ children }) {
       requestDeletion,
       deactivateAccount,
       exportPersonalData,
+      updateProfile,
       refreshAuthState,
     }),
     [
@@ -173,6 +177,7 @@ export function AuthProvider({ children }) {
       requestDeletion,
       deactivateAccount,
       exportPersonalData,
+      updateProfile,
       refreshAuthState,
     ]
   );

@@ -21,8 +21,57 @@ const USERS = [
     password: 'admin123',
     name: 'Administrador Hortelan',
     role: 'administrator',
+    photoURL: '',
+    bio: 'Cultivando alimentos e tecnologia para uma horta mais inteligente.',
+    preferences: {
+      language: 'pt-BR',
+      measurementUnit: 'métrico',
+      timezone: 'America/Sao_Paulo',
+    },
+    notifications: {
+      irrigationAlerts: true,
+      pestAlerts: true,
+      weatherAlerts: true,
+      communityUpdates: false,
+      marketing: false,
+    },
+    savedAddresses: [
+      {
+        id: 'address-admin-1',
+        label: 'Casa',
+        addressLine: 'Rua das Hortas, 123 - São Paulo/SP',
+      },
+    ],
+    cultivationLevel: 'intermediario',
   },
 ];
+
+const buildSafeUser = (user) => ({
+  id: user.id,
+  email: user.email,
+  role: user.role,
+  name: user.name,
+  photoURL: user.photoURL || '',
+  bio: user.bio || '',
+  preferences: {
+    language: user.preferences?.language || 'pt-BR',
+    measurementUnit: user.preferences?.measurementUnit || 'métrico',
+    timezone: user.preferences?.timezone || 'America/Sao_Paulo',
+  },
+  notifications: {
+    irrigationAlerts: Boolean(user.notifications?.irrigationAlerts),
+    pestAlerts: Boolean(user.notifications?.pestAlerts),
+    weatherAlerts: Boolean(user.notifications?.weatherAlerts),
+    communityUpdates: Boolean(user.notifications?.communityUpdates),
+    marketing: Boolean(user.notifications?.marketing),
+  },
+  savedAddresses: (user.savedAddresses || []).map((address) => ({
+    id: address.id,
+    label: address.label,
+    addressLine: address.addressLine,
+  })),
+  cultivationLevel: user.cultivationLevel || 'iniciante',
+});
 
 const INITIAL_PASSWORD_HISTORY = [
   {
@@ -329,12 +378,7 @@ export const loginWithEmailAndPassword = ({
   saveActiveSessions(sessions);
   setCurrentSessionId(sessionId, remember);
 
-  const safeUser = {
-    id: user.id,
-    email: user.email,
-    role: user.role,
-    name: user.name,
-  };
+  const safeUser = buildSafeUser(user);
 
   persistAuthUser(safeUser, remember);
 
@@ -482,6 +526,10 @@ export const requestAccountDeletion = ({ reason }) => {
 };
 
 export const deactivateCurrentAccount = ({ reason }) => {
+  return buildSafeUser(user);
+};
+
+export const updateAuthenticatedUserProfile = (payload) => {
   const user = getAuthenticatedUser();
 
   if (!user) {
@@ -534,7 +582,46 @@ export const exportCurrentUserData = () => {
     trustedDevices: getTrustedDevicesStore().filter((device) => device.userId === fullUser.id),
     passwordHistory: getPasswordHistory().filter((entry) => entry.userId === fullUser.id),
     accountDeletionRequest: getAccountDeletionRequestsStore().find((request) => request.userId === fullUser.id) || null,
+  const currentUser = users.find((item) => item.id === user.id);
+
+  if (!currentUser) {
+    return { error: 'Usuário não encontrado.' };
+  }
+
+  const nextUser = {
+    ...currentUser,
+    name: payload.name?.trim() || currentUser.name,
+    photoURL: payload.photoURL?.trim() || '',
+    bio: payload.bio?.trim() || '',
+    preferences: {
+      language: payload.preferences?.language || currentUser.preferences?.language || 'pt-BR',
+      measurementUnit: payload.preferences?.measurementUnit || currentUser.preferences?.measurementUnit || 'métrico',
+      timezone: payload.preferences?.timezone || currentUser.preferences?.timezone || 'America/Sao_Paulo',
+    },
+    notifications: {
+      irrigationAlerts: Boolean(payload.notifications?.irrigationAlerts),
+      pestAlerts: Boolean(payload.notifications?.pestAlerts),
+      weatherAlerts: Boolean(payload.notifications?.weatherAlerts),
+      communityUpdates: Boolean(payload.notifications?.communityUpdates),
+      marketing: Boolean(payload.notifications?.marketing),
+    },
+    savedAddresses: (payload.savedAddresses || []).map((address, index) => ({
+      id: address.id || `address-${Date.now()}-${index}`,
+      label: address.label?.trim() || `Endereço ${index + 1}`,
+      addressLine: address.addressLine?.trim() || '',
+    })),
+    cultivationLevel: payload.cultivationLevel || currentUser.cultivationLevel || 'iniciante',
   };
+
+  const updatedUsers = users.map((item) => (item.id === currentUser.id ? nextUser : item));
+  saveUsers(updatedUsers);
+
+  const safeUser = buildSafeUser(nextUser);
+  const currentSessionId = getCurrentSessionId();
+  const currentSession = getCurrentSession();
+  persistAuthUser(safeUser, Boolean(currentSession?.persistent || localStorage.getItem(SESSION_STORAGE_KEY) === currentSessionId));
+
+  return { success: true, user: safeUser };
 };
 
 export const requestPasswordReset = (email) => {

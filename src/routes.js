@@ -16,6 +16,7 @@ import StatusPage from './pages/StatusPage';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Security from './pages/Security';
+import ProfileSettings from './pages/ProfileSettings';
 import RequireAuth from './components/auth/RequireAuth';
 import RedirectIfAuth from './components/auth/RedirectIfAuth';
 
@@ -39,6 +40,7 @@ export default function Router() {
         { path: 'onboarding', element: <Onboarding /> },
         { path: 'status', element: <StatusPage /> },
         { path: 'security', element: <Security /> },
+        { path: 'profile', element: <ProfileSettings /> },
       ],
     },
     {
