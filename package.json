@@ -4,6 +4,9 @@
   "licence": "MIT",
   "version": "1.5.0",
   "private": false,
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build && yarn sentry:sourcemaps",
