@@ -16,6 +16,18 @@ import { tryLoadAndStartRecorder } from '@alwaysmeticulous/recorder-loader'
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
+
+const ERROR_REDIRECT_URL = 'https://hortelan.vercel.app/404';
+
+function redirectToErrorPage() {
+  if (window.location.href !== ERROR_REDIRECT_URL) {
+    window.location.replace(ERROR_REDIRECT_URL);
+  }
+}
+
+window.addEventListener('error', redirectToErrorPage);
+window.addEventListener('unhandledrejection', redirectToErrorPage);
+
 async function startApp() {
     // Record all sessions on localhost, staging stacks and preview URLs
     if (!isProduction()) {
