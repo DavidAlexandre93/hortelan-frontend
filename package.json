@@ -13,7 +13,7 @@
     "clear-all": "rm -rf build node_modules",
     "re-start": "rm -rf build node_modules && yarn install && yarn start",
     "re-build": "rm -rf build node_modules && yarn install && yarn build",
-    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org hortelan --project hortelan-frontend ./ && sentry-cli sourcemaps upload --org hortelan --project hortelan-frontend ./"
+    "sentry:sourcemaps": "node scripts/sentry-sourcemaps.js"
   },
   "eslintConfig": {
     "extends": [
