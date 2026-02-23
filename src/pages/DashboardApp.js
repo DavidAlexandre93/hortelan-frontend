@@ -34,6 +34,7 @@ import {
   AppWidgetSummary,
   AppCurrentSubject,
   AppConversionRates,
+  AppSensorAnalytics,
 } from '../sections/@dashboard/app';
 
 // ----------------------------------------------------------------------
@@ -341,6 +342,10 @@ export default function DashboardApp() {
         </Typography>
 
         <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <AppSensorAnalytics />
+          </Grid>
+
           <Grid item xs={12}>
             <Card>
               <CardContent>
