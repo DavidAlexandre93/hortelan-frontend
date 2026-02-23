@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import SensorsIcon from '@mui/icons-material/Sensors';
 import RouterIcon from '@mui/icons-material/Router';
@@ -329,50 +328,11 @@ const manualStatusConfig = {
 
 const statusPriority = { healthy: 1, attention: 2, critical: 3 };
 
-function getSensorStatus(readings) {
-  if (!readings) return null;
-
-  const isCritical = readings.moisture < 25 || readings.temperature > 37 || readings.conductivity > 2.5;
-  if (isCritical) return 'critical';
-
-  const isAttention = readings.moisture < 40 || readings.temperature > 31 || readings.conductivity < 1;
-  if (isAttention) return 'attention';
-
-  return 'healthy';
-}
-
-function getPlantSensorAlerts(readings) {
-  if (!readings) return [];
-
-  const sensorAlerts = [];
-
-  if (readings.moisture < 40) sensorAlerts.push(`Umidade de solo baixa (${readings.moisture}%)`);
-  if (readings.temperature > 31) sensorAlerts.push(`Temperatura acima da faixa ideal (${readings.temperature}°C)`);
-  if (readings.conductivity < 1 || readings.conductivity > 2.5) {
-    sensorAlerts.push(`Condutividade fora da faixa recomendada (${readings.conductivity} mS/cm)`);
-  }
-
-  return sensorAlerts;
-}
-
-export default function StatusPage() {
-  const initialManualStatus = useMemo(
-    () =>
-      greenhouseAreas.flatMap((area) => area.plants).reduce((acc, plant) => {
-        acc[plant.id] = plant.manualStatus;
-        return acc;
-      }, {}),
-    []
-  );
-  const [manualPlantStatus, setManualPlantStatus] = useState(initialManualStatus);
-
-  const totalDevices = greenhouseAreas.reduce((acc, area) => acc + area.devices.length, 0);
-  const totalAlerts = greenhouseAreas.reduce((acc, area) => acc + area.alerts.length, 0);
-  const totalPlants = greenhouseAreas.reduce((acc, area) => acc + area.plants.length, 0);
 const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short',
   timeStyle: 'medium',
 });
+
 
 const randomNumberInRange = (min, max, decimalPlaces = 1) => {
   const multiplier = 10 ** decimalPlaces;
@@ -450,6 +410,32 @@ const getUpdatedMeasurement = (previousMeasurement) => {
   return { ...previousMeasurement, online: toggledOnline, updatedAt: new Date().toISOString() };
 };
 
+function getSensorStatus(readings) {
+  if (!readings) return null;
+
+  const isCritical = readings.moisture < 25 || readings.temperature > 37 || readings.conductivity > 2.5;
+  if (isCritical) return 'critical';
+
+  const isAttention = readings.moisture < 40 || readings.temperature > 31 || readings.conductivity < 1;
+  if (isAttention) return 'attention';
+
+  return 'healthy';
+}
+
+function getPlantSensorAlerts(readings) {
+  if (!readings) return [];
+
+  const sensorAlerts = [];
+
+  if (readings.moisture < 40) sensorAlerts.push(`Umidade de solo baixa (${readings.moisture}%)`);
+  if (readings.temperature > 31) sensorAlerts.push(`Temperatura acima da faixa ideal (${readings.temperature}°C)`);
+  if (readings.conductivity < 1 || readings.conductivity > 2.5) {
+    sensorAlerts.push(`Condutividade fora da faixa recomendada (${readings.conductivity} mS/cm)`);
+  }
+
+  return sensorAlerts;
+}
+
 export default function StatusPage() {
   const [measurementsByDevice, setMeasurementsByDevice] = useState(() => buildInitialMeasurements());
   const [lastRefreshAt, setLastRefreshAt] = useState(new Date().toISOString());
@@ -486,6 +472,7 @@ export default function StatusPage() {
     (acc, area) => acc + area.devices.filter((device) => device.type === 'sensor').length,
     0
   );
+  const totalPlants = greenhouseAreas.reduce((acc, area) => acc + area.plants.length, 0);
 
   return (
     <Page title="Status por Área">
@@ -650,7 +637,6 @@ export default function StatusPage() {
               </Card>
             </Grid>
 
-            {greenhouseAreas.map((area) => {
             {filteredAreas.map((area) => {
               const config = areaStatusConfig[area.status];
               const scopedDevices = area.devices.filter((device) => {
@@ -791,6 +777,8 @@ export default function StatusPage() {
                                 </Stack>
                               </CardContent>
                             </Card>
+                          );
+                        })}
                         {scopedDevices.map((device) => {
                           const measurement = measurementsByDevice[device.id];
 
