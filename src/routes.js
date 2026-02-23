@@ -12,6 +12,7 @@ import Products from './pages/Products';
 import DashboardApp from './pages/DashboardApp';
 import Hortelan360 from './pages/Hortelan360';
 import Onboarding from './pages/Onboarding';
+import StatusPage from './pages/StatusPage';
 
 // ----------------------------------------------------------------------
 
@@ -27,6 +28,7 @@ export default function Router() {
         { path: 'blog', element: <Blog /> },
         { path: 'hortelan-360', element: <Hortelan360 /> },
         { path: 'onboarding', element: <Onboarding /> },
+        { path: 'status', element: <StatusPage /> },
       ],
     },
     {

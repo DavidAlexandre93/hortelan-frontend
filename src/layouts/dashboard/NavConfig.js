@@ -48,9 +48,9 @@ const navConfig = [
     icon: getIcon('eva:person-add-fill'),
   },
   {
-    title: 'Page for Error Usage',
-    path: '/404',
-    icon: getIcon('eva:alert-triangle-fill'),
+    title: 'status page',
+    path: '/dashboard/status',
+    icon: getIcon('eva:activity-fill'),
   },
 ];
 
