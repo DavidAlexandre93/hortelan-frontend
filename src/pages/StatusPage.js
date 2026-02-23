@@ -1,48 +1,30 @@
-import { useMemo, useState } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import SensorsIcon from '@mui/icons-material/Sensors';
 import RouterIcon from '@mui/icons-material/Router';
-import SignalCellularAltRoundedIcon from '@mui/icons-material/SignalCellularAltRounded';
-import Battery4BarRoundedIcon from '@mui/icons-material/Battery4BarRounded';
-import UsbRoundedIcon from '@mui/icons-material/UsbRounded';
-import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import ErrorRoundedIcon from '@mui/icons-material/ErrorRounded';
 import {
   Alert,
   Box,
-  Button,
   Card,
   CardContent,
   Chip,
   Container,
-  Divider,
-  FormControlLabel,
   FormControl,
   Grid,
   InputLabel,
   MenuItem,
   Select,
   Stack,
-  Switch,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import Page from '../components/Page';
 
-const signalQualityConfig = {
-  excelente: { label: 'Excelente', color: 'success' },
-  boa: { label: 'Boa', color: 'success' },
-  moderada: { label: 'Moderada', color: 'warning' },
-  fraca: { label: 'Fraca', color: 'error' },
-};
-
-const connectionStateConfig = {
-  online: { label: 'Online', color: 'success' },
-  offline: { label: 'Offline', color: 'default' },
-};
+const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+});
 
 const areaStatusConfig = {
   normal: {
@@ -68,6 +50,20 @@ const areaStatusConfig = {
   },
 };
 
+const severityConfig = {
+  high: { label: 'Alta', color: 'error' },
+  medium: { label: 'Média', color: 'warning' },
+  low: { label: 'Baixa', color: 'info' },
+};
+
+const alertTypeConfig = {
+  sensor: 'Sensor',
+  device: 'Dispositivo',
+  ambiente: 'Ambiente',
+  planta: 'Planta',
+  operacao: 'Operação',
+};
+
 const greenhouseAreas = [
   {
     id: 'A1',
@@ -75,55 +71,20 @@ const greenhouseAreas = [
     status: 'normal',
     size: { xs: 12, md: 7 },
     devices: [
-      {
-        id: 'S-101',
-        type: 'sensor',
-        name: 'Sensor Solo A',
-        top: '28%',
-        left: '18%',
-        connectionStatus: 'online',
-        lastContact: 'há 20s',
-        signalQuality: 'excelente',
-        batteryLevel: 88,
-        firmware: 'v2.4.1',
-      },
-      {
-        id: 'S-102',
-        type: 'sensor',
-        name: 'Sensor Clima A',
-        top: '62%',
-        left: '42%',
-        connectionStatus: 'online',
-        lastContact: 'há 1min',
-        signalQuality: 'boa',
-        batteryLevel: 73,
-        firmware: 'v2.3.9',
-      },
-      {
-        id: 'D-014',
-        type: 'device',
-        name: 'Bomba de Irrigação',
-        top: '18%',
-        left: '74%',
-        connectionStatus: 'online',
-        lastContact: 'há 9s',
-        signalQuality: null,
-        batteryLevel: null,
-        firmware: 'v1.8.0',
-      },
+      { id: 'S-101', type: 'sensor', name: 'Sensor Solo A', top: '28%', left: '18%' },
+      { id: 'S-102', type: 'sensor', name: 'Sensor Clima A', top: '62%', left: '42%' },
+      { id: 'D-014', type: 'device', name: 'Bomba de Irrigação', top: '18%', left: '74%' },
     ],
     plants: [
       {
         id: 'PL-001',
         name: 'Tomate Italiano',
-        manualStatus: 'healthy',
         sensorReadings: { moisture: 56, temperature: 24, conductivity: 1.7 },
         alerts: [],
       },
       {
         id: 'PL-002',
         name: 'Manjericão',
-        manualStatus: 'attention',
         sensorReadings: { moisture: 41, temperature: 28, conductivity: 1.2 },
         alerts: ['Desenvolvimento lento observado na última inspeção visual'],
       },
@@ -136,43 +97,19 @@ const greenhouseAreas = [
     status: 'warning',
     size: { xs: 12, md: 5 },
     devices: [
-      {
-        id: 'S-205',
-        type: 'sensor',
-        name: 'Sensor Umidade B',
-        top: '36%',
-        left: '20%',
-        connectionStatus: 'offline',
-        lastContact: 'há 17min',
-        signalQuality: 'fraca',
-        batteryLevel: 14,
-        firmware: 'v2.2.7',
-      },
-      {
-        id: 'D-118',
-        type: 'device',
-        name: 'Válvula Setor 2',
-        top: '68%',
-        left: '58%',
-        connectionStatus: 'online',
-        lastContact: 'há 12s',
-        signalQuality: 'moderada',
-        batteryLevel: null,
-        firmware: 'v1.6.4',
-      },
+      { id: 'S-205', type: 'sensor', name: 'Sensor Umidade B', top: '36%', left: '20%' },
+      { id: 'D-118', type: 'device', name: 'Válvula Setor 2', top: '68%', left: '58%' },
     ],
     plants: [
       {
         id: 'PL-031',
         name: 'Alface Crespa',
-        manualStatus: 'attention',
         sensorReadings: { moisture: 29, temperature: 31, conductivity: 0.8 },
         alerts: ['Pontas queimadas em folhas externas'],
       },
       {
         id: 'PL-032',
         name: 'Rúcula',
-        manualStatus: 'healthy',
         sensorReadings: null,
         alerts: [],
       },
@@ -185,237 +122,34 @@ const greenhouseAreas = [
     status: 'critical',
     size: { xs: 12, md: 4 },
     devices: [
-      {
-        id: 'S-307',
-        type: 'sensor',
-        name: 'Sensor Temperatura C',
-        top: '48%',
-        left: '30%',
-        connectionStatus: 'online',
-        lastContact: 'há 34s',
-        signalQuality: 'boa',
-        batteryLevel: 62,
-        firmware: 'v2.1.5',
-      },
-      {
-        id: 'D-219',
-        type: 'device',
-        name: 'Exaustor Principal',
-        top: '24%',
-        left: '68%',
-        connectionStatus: 'offline',
-        lastContact: 'há 4min',
-        signalQuality: null,
-        batteryLevel: null,
-        firmware: 'v1.4.2',
-      },
+      { id: 'S-307', type: 'sensor', name: 'Sensor Temperatura C', top: '48%', left: '30%' },
+      { id: 'D-219', type: 'device', name: 'Exaustor Principal', top: '24%', left: '68%' },
     ],
     plants: [
       {
         id: 'PL-078',
         name: 'Pimentão Vermelho',
-        manualStatus: 'critical',
         sensorReadings: { moisture: 18, temperature: 39, conductivity: 2.8 },
         alerts: ['Murcha severa e perda de turgor em 30% das plantas'],
       },
     ],
     alerts: ['Temperatura acima de 38°C', 'Falha intermitente no exaustor principal'],
   },
-  {
-    id: 'B2',
-    name: 'Área de Compostagem',
-    status: 'normal',
-    size: { xs: 12, md: 8 },
-    devices: [
-      {
-        id: 'S-412',
-        type: 'sensor',
-        name: 'Sensor pH D',
-        top: '54%',
-        left: '22%',
-        connectionStatus: 'online',
-        lastContact: 'há 42s',
-        signalQuality: 'excelente',
-        batteryLevel: 91,
-        firmware: 'v2.5.0',
-      },
-      {
-        id: 'D-333',
-        type: 'device',
-        name: 'Misturador',
-        top: '42%',
-        left: '64%',
-        connectionStatus: 'online',
-        lastContact: 'há 7s',
-        signalQuality: null,
-        batteryLevel: null,
-        firmware: 'v1.3.8',
-      },
-      {
-        id: 'S-413',
-        type: 'sensor',
-        name: 'Sensor Umidade D',
-        top: '70%',
-        left: '82%',
-        connectionStatus: 'online',
-        lastContact: 'há 25s',
-        signalQuality: 'boa',
-        batteryLevel: 67,
-        firmware: 'v2.3.1',
-      },
-    ],
-    plants: [
-      {
-        id: 'PL-144',
-        name: 'Couve Manteiga',
-        manualStatus: 'healthy',
-        sensorReadings: { moisture: 62, temperature: 23, conductivity: 1.5 },
-        alerts: [],
-      },
-    ],
-    alerts: [],
-  },
 ];
-
-const actuatorControls = [
-  {
-    id: 'water-pump',
-    label: 'Bomba de água',
-    description: 'Pressurização principal para irrigação por setores.',
-    enabled: true,
-    phase: 'MVP',
-  },
-  {
-    id: 'solenoid-valve',
-    label: 'Válvula / solenoide',
-    description: 'Abertura e fechamento por zona para controle fino da rega.',
-    enabled: true,
-    phase: 'MVP',
-  },
-  {
-    id: 'grow-light',
-    label: 'Iluminação grow / LED',
-    description: 'Complemento de fotoperíodo para ambientes internos e estufas.',
-    enabled: true,
-    phase: 'MVP',
-  },
-  {
-    id: 'ventilation',
-    label: 'Ventilação / exaustor',
-    description: 'Renovação de ar e redução de calor em horários críticos.',
-    enabled: true,
-    phase: 'MVP',
-  },
-  {
-    id: 'nebulization',
-    label: 'Nebulização',
-    description: 'Aumento pontual de umidade para mudas e berçários.',
-    enabled: false,
-    phase: 'Release 2',
-  },
-  {
-    id: 'doser',
-    label: 'Dosador',
-    description: 'Fertirrigação e correção de pH automatizadas por receita.',
-    enabled: false,
-    phase: 'Fase avançada',
-  },
-];
-const manualStatusConfig = {
-  healthy: { label: 'Saudável', color: 'success' },
-  attention: { label: 'Atenção', color: 'warning' },
-  critical: { label: 'Crítico', color: 'error' },
-};
-
-const statusPriority = { healthy: 1, attention: 2, critical: 3 };
-
-function getSensorStatus(readings) {
-  if (!readings) return null;
-
-  const isCritical = readings.moisture < 25 || readings.temperature > 37 || readings.conductivity > 2.5;
-  if (isCritical) return 'critical';
-
-  const isAttention = readings.moisture < 40 || readings.temperature > 31 || readings.conductivity < 1;
-  if (isAttention) return 'attention';
-
-  return 'healthy';
-}
-
-function getPlantSensorAlerts(readings) {
-  if (!readings) return [];
-
-  const sensorAlerts = [];
-
-  if (readings.moisture < 40) sensorAlerts.push(`Umidade de solo baixa (${readings.moisture}%)`);
-  if (readings.temperature > 31) sensorAlerts.push(`Temperatura acima da faixa ideal (${readings.temperature}°C)`);
-  if (readings.conductivity < 1 || readings.conductivity > 2.5) {
-    sensorAlerts.push(`Condutividade fora da faixa recomendada (${readings.conductivity} mS/cm)`);
-  }
-
-  return sensorAlerts;
-}
-
-export default function StatusPage() {
-  const initialManualStatus = useMemo(
-    () =>
-      greenhouseAreas.flatMap((area) => area.plants).reduce((acc, plant) => {
-        acc[plant.id] = plant.manualStatus;
-        return acc;
-      }, {}),
-    []
-  );
-  const [manualPlantStatus, setManualPlantStatus] = useState(initialManualStatus);
-
-  const totalDevices = greenhouseAreas.reduce((acc, area) => acc + area.devices.length, 0);
-  const totalAlerts = greenhouseAreas.reduce((acc, area) => acc + area.alerts.length, 0);
-  const totalPlants = greenhouseAreas.reduce((acc, area) => acc + area.plants.length, 0);
-const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
-  dateStyle: 'short',
-  timeStyle: 'medium',
-});
 
 const randomNumberInRange = (min, max, decimalPlaces = 1) => {
   const multiplier = 10 ** decimalPlaces;
   return Math.round((Math.random() * (max - min) + min) * multiplier) / multiplier;
 };
 
-const getMeasurementLabel = (device, measurement) => {
-  if (device.type === 'sensor') {
-    switch (measurement.metric) {
-      case 'soilMoisture':
-        return `Umidade do solo: ${measurement.value}%`;
-      case 'temperature':
-        return `Temperatura: ${measurement.value}°C`;
-      case 'ph':
-        return `pH: ${measurement.value}`;
-      default:
-        return `Leitura: ${measurement.value}`;
-    }
-  }
-
-  return measurement.online ? 'Dispositivo online' : 'Dispositivo offline';
-};
-
 const buildInitialMeasurements = () =>
   greenhouseAreas.reduce((acc, area) => {
     area.devices.forEach((device) => {
       if (device.type === 'sensor') {
-        let metric = 'soilMoisture';
-        let value = randomNumberInRange(35, 80);
-
-        if (device.name.toLowerCase().includes('temperatura') || device.name.toLowerCase().includes('clima')) {
-          metric = 'temperature';
-          value = randomNumberInRange(19, 35);
-        }
-
-        if (device.name.toLowerCase().includes('ph')) {
-          metric = 'ph';
-          value = randomNumberInRange(5.5, 7.4, 2);
-        }
-
+        const metric = device.name.toLowerCase().includes('temperatura') ? 'temperature' : 'soilMoisture';
         acc[device.id] = {
           metric,
-          value,
+          value: metric === 'temperature' ? randomNumberInRange(21, 38) : randomNumberInRange(22, 74),
           updatedAt: new Date().toISOString(),
         };
       } else {
@@ -436,36 +170,78 @@ const getUpdatedMeasurement = (previousMeasurement) => {
     return { ...previousMeasurement, value: Number(nextValue.toFixed(1)), updatedAt: new Date().toISOString() };
   }
 
-  if (previousMeasurement.metric === 'ph') {
-    const nextValue = Math.max(4.8, Math.min(8.5, previousMeasurement.value + randomNumberInRange(-0.12, 0.12, 2)));
-    return { ...previousMeasurement, value: Number(nextValue.toFixed(2)), updatedAt: new Date().toISOString() };
-  }
-
   if (previousMeasurement.metric === 'soilMoisture') {
-    const nextValue = Math.max(10, Math.min(95, previousMeasurement.value + randomNumberInRange(-2.4, 2.4)));
+    const nextValue = Math.max(10, Math.min(95, previousMeasurement.value + randomNumberInRange(-3, 3)));
     return { ...previousMeasurement, value: Number(nextValue.toFixed(1)), updatedAt: new Date().toISOString() };
   }
 
-  const toggledOnline = Math.random() > 0.95 ? !previousMeasurement.online : previousMeasurement.online;
+  const toggledOnline = Math.random() > 0.96 ? !previousMeasurement.online : previousMeasurement.online;
   return { ...previousMeasurement, online: toggledOnline, updatedAt: new Date().toISOString() };
 };
+
+const getPlantSensorIncidents = (plant, area) => {
+  if (!plant.sensorReadings) return [];
+
+  const incidents = [];
+  const { moisture, temperature, conductivity } = plant.sensorReadings;
+
+  if (moisture < 25) {
+    incidents.push({
+      title: `Umidade crítica em ${plant.name}`,
+      description: `Umidade de solo em ${moisture}% no ${area.name}.`,
+      severity: 'high',
+      type: 'sensor',
+    });
+  } else if (moisture < 40) {
+    incidents.push({
+      title: `Umidade abaixo do ideal em ${plant.name}`,
+      description: `Umidade de solo em ${moisture}% no ${area.name}.`,
+      severity: 'medium',
+      type: 'sensor',
+    });
+  }
+
+  if (temperature > 37) {
+    incidents.push({
+      title: `Temperatura crítica em ${plant.name}`,
+      description: `Temperatura em ${temperature}°C no ${area.name}.`,
+      severity: 'high',
+      type: 'ambiente',
+    });
+  } else if (temperature > 31) {
+    incidents.push({
+      title: `Temperatura acima do ideal em ${plant.name}`,
+      description: `Temperatura em ${temperature}°C no ${area.name}.`,
+      severity: 'medium',
+      type: 'ambiente',
+    });
+  }
+
+  if (conductivity < 1 || conductivity > 2.5) {
+    incidents.push({
+      title: `Condutividade fora da faixa em ${plant.name}`,
+      description: `Condutividade em ${conductivity} mS/cm no ${area.name}.`,
+      severity: conductivity > 2.7 ? 'high' : 'medium',
+      type: 'sensor',
+    });
+  }
+
+  return incidents;
+};
+
+const severityRank = { high: 3, medium: 2, low: 1 };
 
 export default function StatusPage() {
   const [measurementsByDevice, setMeasurementsByDevice] = useState(() => buildInitialMeasurements());
   const [lastRefreshAt, setLastRefreshAt] = useState(new Date().toISOString());
-  const [viewMode, setViewMode] = useState('area');
   const [selectedArea, setSelectedArea] = useState('all');
+  const [alertTypeFilter, setAlertTypeFilter] = useState('all');
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMeasurementsByDevice((previous) => {
-        const updated = Object.fromEntries(
-          Object.entries(previous).map(([deviceId, measurement]) => [deviceId, getUpdatedMeasurement(measurement)])
-        );
-
-        return updated;
-      });
-
+      setMeasurementsByDevice((previous) =>
+        Object.fromEntries(Object.entries(previous).map(([deviceId, measurement]) => [deviceId, getUpdatedMeasurement(measurement)]))
+      );
       setLastRefreshAt(new Date().toISOString());
     }, 6000);
 
@@ -473,28 +249,86 @@ export default function StatusPage() {
   }, []);
 
   const filteredAreas = useMemo(() => {
-    if (selectedArea === 'all') {
-      return greenhouseAreas;
-    }
-
+    if (selectedArea === 'all') return greenhouseAreas;
     return greenhouseAreas.filter((area) => area.id === selectedArea);
   }, [selectedArea]);
 
-  const totalDevices = greenhouseAreas.reduce((acc, area) => acc + area.devices.length, 0);
-  const totalAlerts = greenhouseAreas.reduce((acc, area) => acc + area.alerts.length, 0);
-  const totalSensors = greenhouseAreas.reduce(
-    (acc, area) => acc + area.devices.filter((device) => device.type === 'sensor').length,
-    0
+  const prioritizedIncidents = useMemo(() => {
+    const incidents = [];
+
+    filteredAreas.forEach((area) => {
+      area.alerts.forEach((alertText, index) => {
+        incidents.push({
+          id: `${area.id}-area-${index}`,
+          title: `Alerta da área ${area.name}`,
+          description: alertText,
+          severity: area.status === 'critical' ? 'high' : area.status === 'warning' ? 'medium' : 'low',
+          type: alertText.toLowerCase().includes('falha') ? 'operacao' : 'ambiente',
+          areaName: area.name,
+        });
+      });
+
+      area.devices.forEach((device) => {
+        const measurement = measurementsByDevice[device.id];
+        if (device.type === 'device' && measurement && measurement.online === false) {
+          incidents.push({
+            id: `${area.id}-${device.id}-offline`,
+            title: `Dispositivo offline (${device.id})`,
+            description: `${device.name} sem comunicação no ${area.name}.`,
+            severity: 'high',
+            type: 'device',
+            areaName: area.name,
+          });
+        }
+      });
+
+      area.plants.forEach((plant, index) => {
+        plant.alerts.forEach((alertText) => {
+          incidents.push({
+            id: `${area.id}-${plant.id}-manual-${index}`,
+            title: `Inspeção manual: ${plant.name}`,
+            description: alertText,
+            severity: area.status === 'critical' ? 'high' : 'medium',
+            type: 'planta',
+            areaName: area.name,
+          });
+        });
+
+        getPlantSensorIncidents(plant, area).forEach((incident, incidentIndex) => {
+          incidents.push({
+            id: `${area.id}-${plant.id}-sensor-${incidentIndex}`,
+            ...incident,
+            areaName: area.name,
+          });
+        });
+      });
+    });
+
+    return incidents.sort((a, b) => severityRank[b.severity] - severityRank[a.severity] || a.areaName.localeCompare(b.areaName));
+  }, [filteredAreas, measurementsByDevice]);
+
+  const severityCards = useMemo(
+    () => ({
+      high: prioritizedIncidents.filter((incident) => incident.severity === 'high').length,
+      medium: prioritizedIncidents.filter((incident) => incident.severity === 'medium').length,
+      low: prioritizedIncidents.filter((incident) => incident.severity === 'low').length,
+    }),
+    [prioritizedIncidents]
   );
+
+  const visibleIncidents = useMemo(() => {
+    if (alertTypeFilter === 'all') return prioritizedIncidents;
+    return prioritizedIncidents.filter((incident) => incident.type === alertTypeFilter);
+  }, [alertTypeFilter, prioritizedIncidents]);
 
   return (
     <Page title="Status por Área">
       <Container maxWidth="xl">
         <Stack spacing={3}>
           <Stack spacing={1}>
-            <Typography variant="h4">Layout operacional das áreas</Typography>
+            <Typography variant="h4">Monitoramento e alertas operacionais</Typography>
             <Typography color="text.secondary">
-              Visualização espacial com posicionamento de sensores/dispositivos e status em tempo real por área.
+              Painel com priorização de incidentes, alertas por criticidade e filtros por tipo de alerta.
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Atualização automática a cada 6s • Última atualização: {dateTimeFormatter.format(new Date(lastRefreshAt))}
@@ -502,28 +336,13 @@ export default function StatusPage() {
           </Stack>
 
           <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={6}>
               <FormControl fullWidth size="small">
-                <InputLabel id="view-mode-label">Visualização</InputLabel>
-                <Select
-                  labelId="view-mode-label"
-                  value={viewMode}
-                  label="Visualização"
-                  onChange={(event) => setViewMode(event.target.value)}
-                >
-                  <MenuItem value="area">Por área</MenuItem>
-                  <MenuItem value="sensor">Por sensor</MenuItem>
-                  <MenuItem value="device">Por dispositivo</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth size="small">
-                <InputLabel id="area-filter-label">Filtrar área</InputLabel>
+                <InputLabel id="area-filter-label">Área</InputLabel>
                 <Select
                   labelId="area-filter-label"
                   value={selectedArea}
-                  label="Filtrar área"
+                  label="Área"
                   onChange={(event) => setSelectedArea(event.target.value)}
                 >
                   <MenuItem value="all">Todas as áreas</MenuItem>
@@ -535,163 +354,84 @@ export default function StatusPage() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={4}>
-              <Card variant="outlined" sx={{ height: '100%' }}>
-                <CardContent>
-                  <Typography variant="caption" color="text.secondary">
-                    Leitura em quase tempo real
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {viewMode === 'area' && 'Layout com todos os pontos e última medição por item.'}
-                    {viewMode === 'sensor' && `Exibindo ${totalSensors} sensores com timestamps das medições.`}
-                    {viewMode === 'device' && `Exibindo ${totalDevices - totalSensors} dispositivos com status atualizado.`}
-                  </Typography>
-                </CardContent>
-              </Card>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="alert-type-filter-label">Tipo de alerta</InputLabel>
+                <Select
+                  labelId="alert-type-filter-label"
+                  value={alertTypeFilter}
+                  label="Tipo de alerta"
+                  onChange={(event) => setAlertTypeFilter(event.target.value)}
+                >
+                  <MenuItem value="all">Todos os tipos</MenuItem>
+                  {Object.entries(alertTypeConfig).map(([value, label]) => (
+                    <MenuItem key={value} value={value}>
+                      {label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
 
           <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="overline" color="text.secondary">
-                    Áreas monitoradas
-                  </Typography>
-                  <Typography variant="h3">{greenhouseAreas.length}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="overline" color="text.secondary">
-                    Sensores e dispositivos
-                  </Typography>
-                  <Typography variant="h3">{totalDevices}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="overline" color="text.secondary">
-                    Alertas ativos
-                  </Typography>
-                  <Typography variant="h3" color={totalAlerts > 0 ? 'error.main' : 'success.main'}>
-                    {totalAlerts}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="overline" color="text.secondary">
-                    Plantas acompanhadas
-                  </Typography>
-                  <Typography variant="h3">{totalPlants}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+            {Object.entries(severityCards).map(([severity, total]) => (
+              <Grid key={severity} item xs={12} md={4}>
+                <Card variant="outlined" sx={{ borderColor: `${severityConfig[severity].color}.main` }}>
+                  <CardContent>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Alertas de criticidade {severityConfig[severity].label.toLowerCase()}
+                    </Typography>
+                    <Typography variant="h3" sx={{ color: `${severityConfig[severity].color}.main`, mt: 1 }}>
+                      {total}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
 
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-            {Object.entries(areaStatusConfig).map(([status, config]) => (
-              <Chip
-                key={status}
-                color={config.color}
-                variant="outlined"
-                icon={<config.icon fontSize="small" />}
-                label={`Status ${config.label}`}
-              />
-            ))}
-            <Chip icon={<SensorsIcon fontSize="small" />} label="Sensor" variant="outlined" />
-            <Chip icon={<RouterIcon fontSize="small" />} label="Dispositivo" variant="outlined" />
-          </Stack>
-
-          <Grid container spacing={3}>
-            <Grid item xs={12} lg={4}>
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Stack spacing={2}>
-                    <Box>
-                      <Typography variant="h6">Painel de atuadores</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Controles disponibilizados para operação remota e automação por regras.
-                      </Typography>
-                    </Box>
-
-                    {actuatorControls.map((actuator, index) => (
-                      <Box key={actuator.id}>
-                        {index > 0 && <Divider sx={{ mb: 1.5 }} />}
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-                          <Box>
-                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-                              <Typography variant="subtitle2">{actuator.label}</Typography>
-                              <Chip size="small" label={actuator.phase} color="primary" variant="outlined" />
-                            </Stack>
-                            <Typography variant="caption" color="text.secondary">
-                              {actuator.description}
-                            </Typography>
-                          </Box>
-                          <FormControlLabel
-                            control={<Switch defaultChecked={actuator.enabled} color="success" />}
-                            label=""
-                            sx={{ m: 0 }}
-                          />
-                        </Stack>
-                      </Box>
-                    ))}
-
-                    <Button variant="contained">Acionar rotina manual</Button>
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {greenhouseAreas.map((area) => {
-            {filteredAreas.map((area) => {
-              const config = areaStatusConfig[area.status];
-              const scopedDevices = area.devices.filter((device) => {
-                if (viewMode === 'sensor') {
-                  return device.type === 'sensor';
-                }
-
-                if (viewMode === 'device') {
-                  return device.type === 'device';
-                }
-
-                return true;
-              });
-
-              if (scopedDevices.length === 0) {
-                return null;
-              }
-
-              return (
-                <Grid item key={area.id} xs={area.size.xs} md={area.size.md}>
-                  <Card
-                    sx={{
-                      border: 1,
-                      borderColor: config.borderColor,
-                      bgcolor: config.bgColor,
-                    }}
-                  >
-                    <CardContent>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                        <Stack spacing={0.5}>
-                          <Typography variant="subtitle1">{area.name}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Código: {area.id}
+          <Card>
+            <CardContent>
+              <Stack spacing={2}>
+                <Typography variant="h6">Incidentes priorizados</Typography>
+                {visibleIncidents.length === 0 ? (
+                  <Alert severity="success">Nenhum incidente para o filtro selecionado.</Alert>
+                ) : (
+                  visibleIncidents.map((incident, index) => (
+                    <Card key={incident.id} variant="outlined">
+                      <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <Stack spacing={1}>
+                          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                            <Chip size="small" color="default" label={`Prioridade #${index + 1}`} />
+                            <Chip size="small" color={severityConfig[incident.severity].color} label={severityConfig[incident.severity].label} />
+                            <Chip size="small" variant="outlined" label={alertTypeConfig[incident.type]} />
+                            <Chip size="small" variant="outlined" label={incident.areaName} />
+                          </Stack>
+                          <Typography variant="subtitle2">{incident.title}</Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {incident.description}
                           </Typography>
                         </Stack>
-                        <Chip
-                          size="small"
-                          icon={<config.icon fontSize="small" />}
-                          label={config.label}
-                          color={config.color}
-                        />
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </Stack>
+            </CardContent>
+          </Card>
+
+          <Grid container spacing={2}>
+            {filteredAreas.map((area) => {
+              const config = areaStatusConfig[area.status];
+
+              return (
+                <Grid item key={area.id} xs={12} md={area.size.md}>
+                  <Card sx={{ border: 1, borderColor: config.borderColor, bgcolor: config.bgColor }}>
+                    <CardContent>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                        <Typography variant="subtitle1">{area.name}</Typography>
+                        <Chip size="small" icon={<config.icon fontSize="small" />} label={config.label} color={config.color} />
                       </Stack>
 
                       <Box
@@ -701,14 +441,13 @@ export default function StatusPage() {
                           bgcolor: 'background.paper',
                           border: '1px dashed',
                           borderColor: 'divider',
-                          minHeight: 190,
+                          minHeight: 170,
                           p: 1,
-                          overflow: 'hidden',
                         }}
                       >
-                        {scopedDevices.map((device) => {
-                          const isSensor = device.type === 'sensor';
+                        {area.devices.map((device) => {
                           const measurement = measurementsByDevice[device.id];
+                          const isSensor = device.type === 'sensor';
 
                           return (
                             <Box
@@ -724,168 +463,13 @@ export default function StatusPage() {
                                 size="small"
                                 icon={isSensor ? <SensorsIcon fontSize="small" /> : <RouterIcon fontSize="small" />}
                                 label={device.id}
-                                color={isSensor ? 'primary' : measurement?.online ? 'success' : 'error'}
+                                color={isSensor ? 'primary' : measurement?.online === false ? 'error' : 'success'}
                                 variant={isSensor ? 'filled' : 'outlined'}
                               />
                             </Box>
                           );
                         })}
                       </Box>
-
-                      <Stack spacing={1} sx={{ mt: 2 }}>
-                        {area.devices.map((device) => {
-                          const connectionConfig = connectionStateConfig[device.connectionStatus];
-                          const signalConfig = device.signalQuality ? signalQualityConfig[device.signalQuality] : null;
-                          const isWireless = device.batteryLevel !== null;
-
-                          return (
-                            <Card key={`${area.id}-${device.id}`} variant="outlined" sx={{ bgcolor: 'background.default' }}>
-                              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                                <Stack spacing={1}>
-                                  <Stack direction="row" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="subtitle2">
-                                      {device.id} — {device.name}
-                                    </Typography>
-                                    <Chip
-                                      size="small"
-                                      label={connectionConfig.label}
-                                      color={connectionConfig.color}
-                                      variant={device.connectionStatus === 'online' ? 'filled' : 'outlined'}
-                                    />
-                                  </Stack>
-
-                                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                                    <Chip size="small" label={`Último contato: ${device.lastContact}`} variant="outlined" />
-
-                                    {signalConfig && (
-                                      <Chip
-                                        size="small"
-                                        icon={<SignalCellularAltRoundedIcon fontSize="small" />}
-                                        label={`Sinal: ${signalConfig.label}`}
-                                        color={signalConfig.color}
-                                        variant="outlined"
-                                      />
-                                    )}
-
-                                    <Chip
-                                      size="small"
-                                      icon={
-                                        isWireless ? (
-                                          <Battery4BarRoundedIcon fontSize="small" />
-                                        ) : (
-                                          <UsbRoundedIcon fontSize="small" />
-                                        )
-                                      }
-                                      label={isWireless ? `Bateria: ${device.batteryLevel}%` : 'Sem fio: não'}
-                                      color={isWireless ? 'primary' : 'default'}
-                                      variant="outlined"
-                                    />
-
-                                    <Chip
-                                      size="small"
-                                      icon={<MemoryRoundedIcon fontSize="small" />}
-                                      label={`Firmware: ${device.firmware}`}
-                                      variant="outlined"
-                                    />
-                                  </Stack>
-                                </Stack>
-                              </CardContent>
-                            </Card>
-                        {scopedDevices.map((device) => {
-                          const measurement = measurementsByDevice[device.id];
-
-                          return (
-                            <Typography key={`${area.id}-${device.id}`} variant="body2" color="text.secondary">
-                              • {device.id} — {device.name} • {measurement ? getMeasurementLabel(device, measurement) : 'Sem leitura'} •{' '}
-                              {measurement ? dateTimeFormatter.format(new Date(measurement.updatedAt)) : '-'}
-                            </Typography>
-                          );
-                        })}
-                      </Stack>
-
-                      {area.alerts.length > 0 && (
-                        <Stack spacing={1} sx={{ mt: 2 }}>
-                          {area.alerts.map((alertText) => (
-                            <Alert key={`${area.id}-${alertText}`} severity={area.status === 'critical' ? 'error' : 'warning'}>
-                              {alertText}
-                            </Alert>
-                          ))}
-                        </Stack>
-                      )}
-
-                      <Stack spacing={2} sx={{ mt: 2 }}>
-                        <Typography variant="subtitle2">Status das plantas</Typography>
-                        {area.plants.map((plant) => {
-                          const manualStatus = manualPlantStatus[plant.id] || plant.manualStatus;
-                          const sensorStatus = getSensorStatus(plant.sensorReadings);
-                          const finalStatus =
-                            sensorStatus && statusPriority[sensorStatus] > statusPriority[manualStatus]
-                              ? sensorStatus
-                              : manualStatus;
-                          const plantAlerts = [...getPlantSensorAlerts(plant.sensorReadings), ...plant.alerts];
-
-                          return (
-                            <Card key={plant.id} variant="outlined" sx={{ borderColor: 'divider' }}>
-                              <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                                <Stack spacing={1.2}>
-                                  <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                                      {plant.name}
-                                    </Typography>
-                                    <Chip
-                                      size="small"
-                                      color={manualStatusConfig[finalStatus].color}
-                                      label={`Condição atual: ${manualStatusConfig[finalStatus].label}`}
-                                    />
-                                  </Stack>
-
-                                  <ToggleButtonGroup
-                                    exclusive
-                                    size="small"
-                                    value={manualStatus}
-                                    onChange={(_, nextValue) => {
-                                      if (!nextValue) return;
-                                      setManualPlantStatus((prev) => ({ ...prev, [plant.id]: nextValue }));
-                                    }}
-                                  >
-                                    {Object.entries(manualStatusConfig).map(([status, config]) => (
-                                      <ToggleButton key={`${plant.id}-${status}`} value={status}>
-                                        {config.label}
-                                      </ToggleButton>
-                                    ))}
-                                  </ToggleButtonGroup>
-
-                                  {plant.sensorReadings ? (
-                                    <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                                      <Chip size="small" variant="outlined" label={`Umidade: ${plant.sensorReadings.moisture}%`} />
-                                      <Chip size="small" variant="outlined" label={`Temperatura: ${plant.sensorReadings.temperature}°C`} />
-                                      <Chip
-                                        size="small"
-                                        variant="outlined"
-                                        label={`Condutividade: ${plant.sensorReadings.conductivity} mS/cm`}
-                                      />
-                                    </Stack>
-                                  ) : (
-                                    <Typography variant="caption" color="text.secondary">
-                                      Sem telemetria recente para esta planta.
-                                    </Typography>
-                                  )}
-
-                                  {plantAlerts.length > 0 && (
-                                    <Stack spacing={0.8}>
-                                      {plantAlerts.map((plantAlert) => (
-                                        <Alert key={`${plant.id}-${plantAlert}`} severity={finalStatus === 'critical' ? 'error' : 'warning'}>
-                                          {plantAlert}
-                                        </Alert>
-                                      ))}
-                                    </Stack>
-                                  )}
-                                </Stack>
-                              </CardContent>
-                            </Card>
-                          );
-                        })}
-                      </Stack>
                     </CardContent>
                   </Card>
                 </Grid>
