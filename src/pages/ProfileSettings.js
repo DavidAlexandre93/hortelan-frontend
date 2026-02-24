@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Card,
+  Chip,
   Container,
   Divider,
   FormControl,
@@ -72,6 +73,78 @@ const createEmptyGarden = () => ({
   sectors: [createEmptySector()],
 });
 
+const ROLE_OPTIONS = [
+  { value: 'owner', label: 'Proprietário', description: 'Controle total da horta e gestão de acessos.' },
+  { value: 'admin', label: 'Administrador da horta', description: 'Gerencia rotinas, equipe e integrações.' },
+  { value: 'operator', label: 'Operador/cuidador', description: 'Executa tarefas operacionais e intervenções diárias.' },
+  { value: 'viewer', label: 'Visualizador', description: 'Acompanhamento em modo leitura.' },
+];
+
+const FINE_PERMISSION_OPTIONS = [
+  { key: 'automation', label: 'Automação' },
+  { key: 'purchases', label: 'Compras' },
+  { key: 'reports', label: 'Relatórios' },
+  { key: 'community', label: 'Comunidade' },
+];
+
+const ROLE_DEFAULT_PERMISSIONS = {
+  owner: { automation: true, purchases: true, reports: true, community: true },
+  admin: { automation: true, purchases: true, reports: true, community: true },
+  operator: { automation: true, purchases: false, reports: true, community: false },
+  viewer: { automation: false, purchases: false, reports: true, community: true },
+};
+
+const createPermissionSet = (role = 'viewer', overrides = {}) => ({
+  ...(ROLE_DEFAULT_PERMISSIONS[role] || ROLE_DEFAULT_PERMISSIONS.viewer),
+  ...overrides,
+});
+
+const createAuditEntry = ({ action, actor, target }) => ({
+  id: `audit-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  action,
+  actor,
+  target,
+  createdAt: new Date().toISOString(),
+});
+
+const normalizeAccessControl = (garden) => {
+  const accessControl = garden.accessControl || {};
+  const collaborators = (accessControl.collaborators || []).map((member, memberIndex) => {
+    const role = member.role || 'viewer';
+    return {
+      id: member.id || `collaborator-${Date.now()}-${memberIndex}`,
+      name: member.name || `Membro ${memberIndex + 1}`,
+      email: member.email || '',
+      role,
+      status: member.status || 'active',
+      invitedAt: member.invitedAt || new Date().toISOString(),
+      finePermissions: createPermissionSet(role, member.finePermissions || {}),
+    };
+  });
+
+  return {
+    ownerId: accessControl.ownerId || 'self',
+    inviteDraftEmail: accessControl.inviteDraftEmail || '',
+    inviteDraftRole: accessControl.inviteDraftRole || 'viewer',
+    pendingInvites: (accessControl.pendingInvites || []).map((invite, inviteIndex) => ({
+      id: invite.id || `invite-${Date.now()}-${inviteIndex}`,
+      email: invite.email || '',
+      role: invite.role || 'viewer',
+      status: invite.status || 'pending',
+      invitedBy: invite.invitedBy || 'Você',
+      createdAt: invite.createdAt || new Date().toISOString(),
+    })),
+    collaborators,
+    auditLogs: (accessControl.auditLogs || []).map((entry, entryIndex) => ({
+      id: entry.id || `audit-${Date.now()}-${entryIndex}`,
+      action: entry.action || 'Ação registrada',
+      actor: entry.actor || 'Sistema',
+      target: entry.target || 'Horta',
+      createdAt: entry.createdAt || new Date().toISOString(),
+    })),
+  };
+};
+
 export default function ProfileSettings() {
   const { user, updateProfile } = useAuth();
 
@@ -97,8 +170,9 @@ export default function ProfileSettings() {
       ? user.gardens.map((garden) => ({
           ...garden,
           sectors: garden.sectors?.length ? garden.sectors : [createEmptySector()],
+          accessControl: normalizeAccessControl(garden),
         }))
-      : [createEmptyGarden()],
+      : [{ ...createEmptyGarden(), accessControl: normalizeAccessControl({}) }],
   }));
   const [feedback, setFeedback] = useState(null);
 
@@ -106,6 +180,104 @@ export default function ProfileSettings() {
 
   const setField = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const updateGarden = (gardenIndex, updater) => {
+    setField(
+      'gardens',
+      form.gardens.map((garden, index) => (index === gardenIndex ? updater(garden) : garden))
+    );
+  };
+
+
+  const handleInviteByEmail = (gardenIndex) => {
+    const garden = form.gardens[gardenIndex];
+    const email = garden?.accessControl?.inviteDraftEmail?.trim().toLowerCase();
+    const role = garden?.accessControl?.inviteDraftRole || 'viewer';
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setFeedback({ type: 'error', message: 'Informe um e-mail válido para enviar o convite.' });
+      return;
+    }
+
+    updateGarden(gardenIndex, (currentGarden) => {
+      const accessControl = currentGarden.accessControl || normalizeAccessControl({});
+      const alreadyInvited = (accessControl.pendingInvites || []).some((invite) => invite.email.toLowerCase() === email && invite.status === 'pending');
+      const alreadyMember = (accessControl.collaborators || []).some((member) => member.email.toLowerCase() === email);
+
+      if (alreadyInvited || alreadyMember) {
+        return currentGarden;
+      }
+
+      return {
+        ...currentGarden,
+        accessControl: {
+          ...accessControl,
+          inviteDraftEmail: '',
+          pendingInvites: [
+            {
+              id: `invite-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+              email,
+              role,
+              status: 'pending',
+              invitedBy: form.name || 'Você',
+              createdAt: new Date().toISOString(),
+            },
+            ...(accessControl.pendingInvites || []),
+          ],
+          auditLogs: [
+            createAuditEntry({
+              action: 'Convite enviado por e-mail',
+              actor: form.name || 'Você',
+              target: `${email} (${role})`,
+            }),
+            ...(accessControl.auditLogs || []),
+          ].slice(0, 40),
+        },
+      };
+    });
+
+    setFeedback({ type: 'success', message: `Convite enviado para ${email}.` });
+  };
+
+  const handleAcceptInvite = (gardenIndex, inviteId) => {
+    updateGarden(gardenIndex, (garden) => {
+      const accessControl = garden.accessControl || normalizeAccessControl({});
+      const invite = (accessControl.pendingInvites || []).find((item) => item.id === inviteId);
+      if (!invite) return garden;
+
+      const nextInvites = (accessControl.pendingInvites || []).map((item) => (item.id === inviteId ? { ...item, status: 'accepted' } : item));
+
+      return {
+        ...garden,
+        accessControl: {
+          ...accessControl,
+          pendingInvites: nextInvites,
+          collaborators: [
+            {
+              id: `collaborator-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+              name: invite.email.split('@')[0],
+              email: invite.email,
+              role: invite.role,
+              status: 'active',
+              invitedAt: invite.createdAt,
+              finePermissions: createPermissionSet(invite.role),
+            },
+            ...(accessControl.collaborators || []).filter((member) => member.email.toLowerCase() !== invite.email.toLowerCase()),
+          ],
+          auditLogs: [
+            createAuditEntry({
+              action: 'Convite aceito',
+              actor: invite.email,
+              target: `Papel ${invite.role}`,
+            }),
+            ...(accessControl.auditLogs || []),
+          ].slice(0, 40),
+        },
+      };
+    });
+
+    setFeedback({ type: 'success', message: 'Convite aceito e acesso liberado para a horta.' });
   };
 
   return (
@@ -503,6 +675,199 @@ export default function ProfileSettings() {
                         </Button>
                       </Stack>
                     </Card>
+
+                    <Card variant="outlined" sx={{ p: 2 }}>
+                      <Stack spacing={2}>
+                        <Typography variant="subtitle2">Compartilhamento e permissões (RBAC)</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Convide por e-mail, aceite convites e ajuste permissões finas por área funcional.
+                        </Typography>
+
+                        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+                          <TextField
+                            fullWidth
+                            label="Convidar por e-mail"
+                            value={garden.accessControl?.inviteDraftEmail || ''}
+                            onChange={(event) =>
+                              updateGarden(index, (currentGarden) => ({
+                                ...currentGarden,
+                                accessControl: {
+                                  ...(currentGarden.accessControl || normalizeAccessControl({})),
+                                  inviteDraftEmail: event.target.value,
+                                },
+                              }))
+                            }
+                          />
+                          <FormControl sx={{ minWidth: 220 }}>
+                            <InputLabel id={`invite-role-${garden.id}`}>Papel</InputLabel>
+                            <Select
+                              labelId={`invite-role-${garden.id}`}
+                              label="Papel"
+                              value={garden.accessControl?.inviteDraftRole || 'viewer'}
+                              onChange={(event) =>
+                                updateGarden(index, (currentGarden) => ({
+                                  ...currentGarden,
+                                  accessControl: {
+                                    ...(currentGarden.accessControl || normalizeAccessControl({})),
+                                    inviteDraftRole: event.target.value,
+                                  },
+                                }))
+                              }
+                            >
+                              {ROLE_OPTIONS.map((roleOption) => (
+                                <MenuItem key={roleOption.value} value={roleOption.value}>
+                                  {roleOption.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <Button variant="contained" onClick={() => handleInviteByEmail(index)}>
+                            Enviar convite
+                          </Button>
+                        </Stack>
+
+                        <Stack spacing={1}>
+                          <Typography variant="subtitle2">Convites pendentes</Typography>
+                          {(garden.accessControl?.pendingInvites || []).length === 0 ? (
+                            <Typography variant="body2" color="text.secondary">Nenhum convite pendente.</Typography>
+                          ) : (
+                            (garden.accessControl?.pendingInvites || []).map((invite) => (
+                              <Stack key={invite.id} direction={{ xs: 'column', md: 'row' }} spacing={1} alignItems={{ md: 'center' }}>
+                                <Chip size="small" color={invite.status === 'accepted' ? 'success' : 'warning'} label={invite.status === 'accepted' ? 'Aceito' : 'Pendente'} />
+                                <Typography variant="body2" sx={{ flex: 1 }}>
+                                  {invite.email} • {ROLE_OPTIONS.find((option) => option.value === invite.role)?.label || invite.role}
+                                </Typography>
+                                {invite.status === 'pending' && (
+                                  <Button size="small" variant="outlined" onClick={() => handleAcceptInvite(index, invite.id)}>
+                                    Aceitar convite
+                                  </Button>
+                                )}
+                              </Stack>
+                            ))
+                          )}
+                        </Stack>
+
+                        <Divider />
+
+                        <Stack spacing={1.5}>
+                          <Typography variant="subtitle2">Membros da horta</Typography>
+                          {(garden.accessControl?.collaborators || []).length === 0 ? (
+                            <Typography variant="body2" color="text.secondary">Ainda não há colaboradores ativos.</Typography>
+                          ) : (
+                            (garden.accessControl?.collaborators || []).map((member) => (
+                              <Card key={member.id} variant="outlined" sx={{ p: 1.5 }}>
+                                <Stack spacing={1}>
+                                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ md: 'center' }}>
+                                    <Typography variant="body2" sx={{ flex: 1 }}>
+                                      <strong>{member.name}</strong> ({member.email})
+                                    </Typography>
+                                    <FormControl sx={{ minWidth: 220 }}>
+                                      <InputLabel id={`member-role-${member.id}`}>Papel</InputLabel>
+                                      <Select
+                                        labelId={`member-role-${member.id}`}
+                                        label="Papel"
+                                        value={member.role}
+                                        onChange={(event) => {
+                                          const nextRole = event.target.value;
+                                          updateGarden(index, (currentGarden) => ({
+                                            ...currentGarden,
+                                            accessControl: {
+                                              ...(currentGarden.accessControl || normalizeAccessControl({})),
+                                              collaborators: (currentGarden.accessControl?.collaborators || []).map((currentMember) =>
+                                                currentMember.id === member.id
+                                                  ? {
+                                                      ...currentMember,
+                                                      role: nextRole,
+                                                      finePermissions: createPermissionSet(nextRole, currentMember.finePermissions),
+                                                    }
+                                                  : currentMember
+                                              ),
+                                              auditLogs: [
+                                                createAuditEntry({
+                                                  action: 'Papel de colaborador alterado',
+                                                  actor: form.name || 'Você',
+                                                  target: `${member.email} => ${nextRole}`,
+                                                }),
+                                                ...(currentGarden.accessControl?.auditLogs || []),
+                                              ].slice(0, 40),
+                                            },
+                                          }));
+                                        }}
+                                      >
+                                        {ROLE_OPTIONS.map((roleOption) => (
+                                          <MenuItem key={roleOption.value} value={roleOption.value}>
+                                            {roleOption.label}
+                                          </MenuItem>
+                                        ))}
+                                      </Select>
+                                    </FormControl>
+                                  </Stack>
+                                  <Typography variant="caption" color="text.secondary">
+                                    {ROLE_OPTIONS.find((option) => option.value === member.role)?.description}
+                                  </Typography>
+                                  <Stack direction="row" spacing={2} flexWrap="wrap">
+                                    {FINE_PERMISSION_OPTIONS.map((permission) => (
+                                      <Stack key={`${member.id}-${permission.key}`} direction="row" spacing={0.5} alignItems="center">
+                                        <Typography variant="caption">{permission.label}</Typography>
+                                        <Switch
+                                          size="small"
+                                          checked={Boolean(member.finePermissions?.[permission.key])}
+                                          onChange={(_, checked) => {
+                                            updateGarden(index, (currentGarden) => ({
+                                              ...currentGarden,
+                                              accessControl: {
+                                                ...(currentGarden.accessControl || normalizeAccessControl({})),
+                                                collaborators: (currentGarden.accessControl?.collaborators || []).map((currentMember) =>
+                                                  currentMember.id === member.id
+                                                    ? {
+                                                        ...currentMember,
+                                                        finePermissions: {
+                                                          ...(currentMember.finePermissions || createPermissionSet(currentMember.role)),
+                                                          [permission.key]: checked,
+                                                        },
+                                                      }
+                                                    : currentMember
+                                                ),
+                                                auditLogs: [
+                                                  createAuditEntry({
+                                                    action: 'Permissão fina alterada',
+                                                    actor: form.name || 'Você',
+                                                    target: `${member.email} • ${permission.label}: ${checked ? 'ativada' : 'desativada'}`,
+                                                  }),
+                                                  ...(currentGarden.accessControl?.auditLogs || []),
+                                                ].slice(0, 40),
+                                              },
+                                            }));
+                                          }}
+                                        />
+                                      </Stack>
+                                    ))}
+                                  </Stack>
+                                </Stack>
+                              </Card>
+                            ))
+                          )}
+                        </Stack>
+
+                        <Divider />
+
+                        <Stack spacing={1}>
+                          <Typography variant="subtitle2">Auditoria de ações</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Eventos rastreados: alteração de automação, acionamento manual de dispositivo e exclusão/alteração de dados.
+                          </Typography>
+                          {(garden.accessControl?.auditLogs || []).length === 0 ? (
+                            <Typography variant="body2" color="text.secondary">Sem registros ainda. O log de acesso ficará disponível em fase avançada.</Typography>
+                          ) : (
+                            (garden.accessControl?.auditLogs || []).slice(0, 8).map((entry) => (
+                              <Alert key={entry.id} severity="info" variant="outlined">
+                                <strong>{entry.action}</strong> — {entry.actor} • {entry.target}
+                              </Alert>
+                            ))
+                          )}
+                        </Stack>
+                      </Stack>
+                    </Card>
                   </Stack>
 
                   {index < form.gardens.length - 1 && <Divider sx={{ mt: 2 }} />}
@@ -512,7 +877,7 @@ export default function ProfileSettings() {
               <Button
                 variant="outlined"
                 startIcon={<Iconify icon="eva:plus-outline" />}
-                onClick={() => setField('gardens', [...form.gardens, createEmptyGarden()])}
+                onClick={() => setField('gardens', [...form.gardens, { ...createEmptyGarden(), accessControl: normalizeAccessControl({}) }])}
               >
                 Adicionar horta
               </Button>
@@ -559,6 +924,21 @@ export default function ProfileSettings() {
                           name: sector.name.trim() || `Setor ${sectorIndex + 1}`,
                           dimensions: sector.dimensions.trim(),
                         })),
+                      accessControl: {
+                        ...normalizeAccessControl(item),
+                        pendingInvites: (item.accessControl?.pendingInvites || []).map((invite) => ({
+                          ...invite,
+                          email: invite.email?.trim().toLowerCase() || '',
+                        })),
+                        collaborators: (item.accessControl?.collaborators || [])
+                          .filter((member) => member.email?.trim())
+                          .map((member) => ({
+                            ...member,
+                            email: member.email.trim().toLowerCase(),
+                            name: member.name?.trim() || member.email.split('@')[0],
+                            finePermissions: createPermissionSet(member.role, member.finePermissions || {}),
+                          })),
+                      },
                     })),
                 };
 
