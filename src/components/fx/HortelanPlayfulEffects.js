@@ -45,6 +45,11 @@ function createCursorTrailDot() {
 
 export default function HortelanPlayfulEffects() {
   const [scrollProgress, setScrollProgress] = useState(0);
+  const heartPoints = [
+    { className: 'hortelan-heartbeat-point--top-left', label: 'Saúde da horta: estável' },
+    { className: 'hortelan-heartbeat-point--top-right', label: 'Saúde da horta: vigorosa' },
+    { className: 'hortelan-heartbeat-point--bottom-left', label: 'Saúde da horta: hidratada' }
+  ];
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -221,6 +226,14 @@ export default function HortelanPlayfulEffects() {
         <div className="hortelan-scroll-progress-bar" style={{ width: `${scrollProgress}%` }} />
       </div>
 
+      <div className="hortelan-heartbeat-layer" aria-hidden="true">
+        {heartPoints.map((point) => (
+          <span key={point.className} className={`hortelan-heartbeat-point ${point.className}`} role="img" aria-label={point.label}>
+            ❤️
+          </span>
+        ))}
+      </div>
+
       <style>
         {`
           body {
@@ -296,6 +309,38 @@ export default function HortelanPlayfulEffects() {
             background: linear-gradient(90deg, #7bc96f, #17b978, #12b0c9, #6f8cff);
             box-shadow: 0 0 14px rgba(23, 185, 120, 0.75);
             transition: width 120ms ease-out;
+          }
+
+          .hortelan-heartbeat-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 1497;
+            pointer-events: none;
+          }
+
+          .hortelan-heartbeat-point {
+            position: fixed;
+            font-size: clamp(1.1rem, 1.2vw, 1.35rem);
+            filter: drop-shadow(0 0 10px rgba(255, 53, 102, 0.4));
+            animation: hortelan-heartbeat 1.5s ease-in-out infinite;
+            opacity: 0.95;
+          }
+
+          .hortelan-heartbeat-point--top-left {
+            top: 96px;
+            left: 20px;
+          }
+
+          .hortelan-heartbeat-point--top-right {
+            top: 126px;
+            right: 24px;
+            animation-delay: 240ms;
+          }
+
+          .hortelan-heartbeat-point--bottom-left {
+            bottom: 26px;
+            left: 18px;
+            animation-delay: 480ms;
           }
 
           .hortelan-particle {
@@ -414,11 +459,31 @@ export default function HortelanPlayfulEffects() {
             }
           }
 
+          @keyframes hortelan-heartbeat {
+            0%,
+            100% {
+              transform: scale(0.95);
+            }
+            20% {
+              transform: scale(1.2);
+            }
+            40% {
+              transform: scale(1);
+            }
+            60% {
+              transform: scale(1.15);
+            }
+            80% {
+              transform: scale(1);
+            }
+          }
+
           @media (prefers-reduced-motion: reduce) {
             .hortelan-scroll-progress-track,
             .hortelan-particle,
             .hortelan-cursor-trail-dot,
-            .hortelan-atmosphere-layer {
+            .hortelan-atmosphere-layer,
+            .hortelan-heartbeat-layer {
               display: none;
             }
 
