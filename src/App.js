@@ -10,6 +10,7 @@ import GlobalErrorBoundary from './components/GlobalErrorBoundary';
 import { AuthProvider } from './auth/AuthContext';
 import useAuth from './auth/useAuth';
 import CookieConsentBanner from './components/privacy/CookieConsentBanner';
+import HortelanPlayfulEffects from './components/fx/HortelanPlayfulEffects';
 
 function AppContent() {
   const { consents } = useAuth();
@@ -18,6 +19,7 @@ function AppContent() {
     <>
       <ScrollToTop />
       <BaseOptionChartStyle />
+      <HortelanPlayfulEffects />
       <Router />
       <CookieConsentBanner />
       {consents?.analytics && <Analytics />}
