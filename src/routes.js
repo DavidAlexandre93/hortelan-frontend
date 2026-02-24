@@ -21,6 +21,7 @@ import AlertCenter from './pages/AlertCenter';
 import Reports from './pages/Reports';
 import Subscriptions from './pages/Subscriptions';
 import HelpCenter from './pages/HelpCenter';
+import IntegrationsOps from './pages/IntegrationsOps';
 import Integrations from './pages/Integrations';
 import RequireAuth from './components/auth/RequireAuth';
 import RedirectIfAuth from './components/auth/RedirectIfAuth';
@@ -51,6 +52,7 @@ export default function Router() {
         { path: 'assinaturas', element: <Subscriptions /> },
         { path: 'integracoes', element: <Integrations /> },
         { path: 'suporte', element: <HelpCenter /> },
+        { path: 'integracoes', element: <IntegrationsOps /> },
       ],
     },
     {
