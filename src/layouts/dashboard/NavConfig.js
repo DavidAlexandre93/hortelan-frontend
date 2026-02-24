@@ -59,6 +59,11 @@ const navConfig = [
     icon: getIcon('eva:bar-chart-2-fill'),
   },
   {
+    title: 'assinaturas',
+    path: '/dashboard/assinaturas',
+    icon: getIcon('eva:credit-card-fill'),
+  },
+  {
     title: 'status page',
     path: '/dashboard/status',
     icon: getIcon('eva:activity-fill'),
