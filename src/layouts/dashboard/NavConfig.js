@@ -48,6 +48,11 @@ const navConfig = [
     icon: getIcon('eva:person-add-fill'),
   },
   {
+    title: 'central de alertas',
+    path: '/dashboard/alertas',
+    icon: getIcon('eva:bell-fill'),
+  },
+  {
     title: 'status page',
     path: '/dashboard/status',
     icon: getIcon('eva:activity-fill'),
