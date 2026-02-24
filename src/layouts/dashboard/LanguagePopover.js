@@ -1,92 +1,143 @@
-import { useRef, useState } from 'react';
-// material
+import { useEffect, useMemo, useState } from 'react';
 import { alpha } from '@mui/material/styles';
-import { Box, MenuItem, Stack, IconButton } from '@mui/material';
-// components
-import MenuPopover from '../../components/MenuPopover';
+import { Box, Stack, IconButton, Tooltip } from '@mui/material';
 
-// ----------------------------------------------------------------------
+const STORAGE_KEY = 'preferredLanguage';
+const GOOGLE_COOKIE_KEY = 'googtrans';
 
 const LANGS = [
-  {
-    value: 'en',
-    label: 'English',
-    icon: '/static/icons/eua.svg',
-  },
-  {
-    value: 'ng',
-    label: 'Español',
-    icon: '/static/icons/espanha.svg',
-  },
-  {
-    value: 'de',
-    label: 'Português BR',
-    icon: '/static/icons/brasil.svg',
-  },
-  {
-    value: 'de',
-    label: 'French',
-    icon: '/static/icons/franca.svg',
-  },
-
+  { value: 'en', label: 'English', icon: '/static/icons/eua.svg', countries: ['US'] },
+  { value: 'pt', label: 'Português (Brasil)', icon: '/static/icons/brasil.svg', countries: ['BR'] },
+  { value: 'es', label: 'Español', icon: '/static/icons/espanha.svg', countries: ['ES'] },
+  { value: 'fr', label: 'Français', icon: '/static/icons/franca.svg', countries: ['FR'] },
 ];
 
-// ----------------------------------------------------------------------
+const mapCountryToLanguage = (countryCode) => {
+  if (!countryCode) return 'pt';
+  const upperCountryCode = countryCode.toUpperCase();
+  const language = LANGS.find((lang) => lang.countries.includes(upperCountryCode));
+  return language?.value || 'pt';
+};
+
+const applyGoogleLanguage = (language) => {
+  if (!language) return;
+
+  const cookieValue = `/pt/${language}`;
+  document.cookie = `${GOOGLE_COOKIE_KEY}=${cookieValue};path=/`;
+  document.cookie = `${GOOGLE_COOKIE_KEY}=${cookieValue};path=/;domain=.${window.location.hostname}`;
+
+  const select = document.querySelector('select.goog-te-combo');
+  if (select && select.value !== language) {
+    select.value = language;
+    select.dispatchEvent(new Event('change'));
+  }
+};
+
+const ensureGoogleTranslate = () => {
+  if (window.google?.translate?.TranslateElement) return;
+
+  if (!document.getElementById('google-translate-script')) {
+    const script = document.createElement('script');
+    script.id = 'google-translate-script';
+    script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    script.async = true;
+    document.body.appendChild(script);
+  }
+
+  if (!window.googleTranslateElementInit) {
+    window.googleTranslateElementInit = () => {
+      if (!window.google?.translate?.TranslateElement) return;
+
+      // eslint-disable-next-line no-new
+      new window.google.translate.TranslateElement(
+        {
+          pageLanguage: 'pt',
+          autoDisplay: false,
+          includedLanguages: LANGS.map((lang) => lang.value).join(','),
+        },
+        'google_translate_element'
+      );
+    };
+  }
+};
 
 export default function LanguagePopover() {
-  const anchorRef = useRef(null);
-  const [open, setOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('pt');
 
-  const handleOpen = () => {
-    setOpen(true);
-  };
+  const languageOptions = useMemo(() => LANGS, []);
 
-  const handleClose = () => {
-    setOpen(false);
+  useEffect(() => {
+    ensureGoogleTranslate();
+
+    if (!document.getElementById('google_translate_element')) {
+      const translateContainer = document.createElement('div');
+      translateContainer.id = 'google_translate_element';
+      translateContainer.style.display = 'none';
+      document.body.appendChild(translateContainer);
+    }
+
+    const styleId = 'google-translate-hide-style';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.innerHTML = '.goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; } body { top: 0 !important; }';
+      document.head.appendChild(style);
+    }
+
+    const manualLanguage = localStorage.getItem(STORAGE_KEY);
+    if (manualLanguage) {
+      setSelectedLanguage(manualLanguage);
+      applyGoogleLanguage(manualLanguage);
+      return;
+    }
+
+    const autoDetectLanguage = async () => {
+      try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        const detectedLanguage = mapCountryToLanguage(data?.country_code) || 'pt';
+        setSelectedLanguage(detectedLanguage);
+        applyGoogleLanguage(detectedLanguage);
+      } catch (error) {
+        const browserLanguage = (navigator.language || 'pt').slice(0, 2);
+        const fallbackLanguage = LANGS.some((lang) => lang.value === browserLanguage) ? browserLanguage : 'pt';
+        setSelectedLanguage(fallbackLanguage);
+        applyGoogleLanguage(fallbackLanguage);
+      }
+    };
+
+    autoDetectLanguage();
+  }, []);
+
+  const handleLanguageChange = (language) => {
+    localStorage.setItem(STORAGE_KEY, language);
+    setSelectedLanguage(language);
+    applyGoogleLanguage(language);
   };
 
   return (
-    <>
-      <IconButton
-        ref={anchorRef}
-        onClick={handleOpen}
-        sx={{
-          padding: 0,
-          width: 44,
-          height: 44,
-          ...(open && {
-            bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-          }),
-        }}
-      >
-       <img
-        src={LANGS[0].icon}
-        alt={LANGS[0].label}
-        />
-
-      </IconButton>
-
-      <MenuPopover
-        open={open}
-        onClose={handleClose}
-        anchorEl={anchorRef.current}
-        sx={{
-          mt: 1.5,
-          ml: 0.75,
-          width: 180,
-          '& .MuiMenuItem-root': { px: 1, typography: 'body2', borderRadius: 0.75 },
-        }}
-      >
-        <Stack spacing={0.75}>
-          {LANGS.map((option) => (
-            <MenuItem key={option.value} selected={option.value === LANGS[0].value} onClick={() => handleClose()}>
-              <Box component="img" alt={option.label} src={option.icon} sx={{ width: 28, mr: 2 }} />
-
-              {option.label}
-            </MenuItem>
-          ))}
-        </Stack>
-      </MenuPopover>
-    </>
+    <Stack direction="row" spacing={0.5} alignItems="center">
+      {languageOptions.map((option) => (
+        <Tooltip key={option.value} title={option.label} arrow>
+          <IconButton
+            onClick={() => handleLanguageChange(option.value)}
+            sx={{
+              p: 0.25,
+              width: 32,
+              height: 32,
+              borderRadius: 0.75,
+              border: '1px solid',
+              borderColor: option.value === selectedLanguage ? 'primary.main' : 'transparent',
+              bgcolor: (theme) =>
+                option.value === selectedLanguage
+                  ? alpha(theme.palette.primary.main, theme.palette.action.focusOpacity)
+                  : 'transparent',
+            }}
+          >
+            <Box component="img" src={option.icon} alt={option.label} sx={{ width: 24, height: 16, borderRadius: 0.5 }} />
+          </IconButton>
+        </Tooltip>
+      ))}
+    </Stack>
   );
 }
