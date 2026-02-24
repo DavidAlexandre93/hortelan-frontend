@@ -410,6 +410,12 @@ export default function StatusPage() {
     return greenhouseAreas.filter((area) => area.id === selectedArea);
   }, [selectedArea]);
 
+  const totalDevices = greenhouseAreas.reduce((acc, area) => acc + area.devices.length, 0);
+  const totalAlerts = greenhouseAreas.reduce((acc, area) => acc + area.alerts.length, 0);
+  const totalPlants = greenhouseAreas.reduce((acc, area) => acc + area.plants.length, 0);
+  const totalSensors = greenhouseAreas.reduce(
+    (acc, area) => acc + area.devices.filter((device) => device.type === 'sensor').length,
+    0
   const prioritizedIncidents = useMemo(() => {
     const incidents = [];
 
@@ -823,10 +829,11 @@ export default function StatusPage() {
                       </Box>
 
                       <Stack spacing={1} sx={{ mt: 2 }}>
-                        {area.devices.map((device) => {
+                        {scopedDevices.map((device) => {
                           const connectionConfig = connectionStateConfig[device.connectionStatus];
                           const signalConfig = device.signalQuality ? signalQualityConfig[device.signalQuality] : null;
                           const isWireless = device.batteryLevel !== null;
+                          const measurement = measurementsByDevice[device.id];
 
                           return (
                             <Card key={`${area.id}-${device.id}`} variant="outlined" sx={{ bgcolor: 'background.default' }}>
@@ -878,6 +885,11 @@ export default function StatusPage() {
                                       variant="outlined"
                                     />
                                   </Stack>
+
+                                  <Typography variant="body2" color="text.secondary">
+                                    • {measurement ? getMeasurementLabel(device, measurement) : 'Sem leitura'} •{' '}
+                                    {measurement ? dateTimeFormatter.format(new Date(measurement.updatedAt)) : '-'}
+                                  </Typography>
                                 </Stack>
                               </CardContent>
                             </Card>
