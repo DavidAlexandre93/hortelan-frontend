@@ -26,6 +26,11 @@ import {
   MenuItem,
   Select,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   Typography,
 } from '@mui/material';
 import Page from '../components/Page';
@@ -80,6 +85,53 @@ const streamTemplates = [
   { type: 'alert', severity: 'warning', text: 'Alerta ativo detectado' },
   { type: 'connectivity', severity: 'info', text: 'Heartbeat de conectividade' },
   { type: 'actuator', severity: 'success', text: 'Ação de atuador confirmada' },
+];
+
+const ruleExecutions = [
+  {
+    id: 'RE-001',
+    areaId: 'A1',
+    areaName: 'Estufa Norte',
+    ruleName: 'Irrigação automática por umidade',
+    status: 'success',
+    reason: 'Umidade do solo ficou abaixo de 35% por 10 minutos',
+    createdBy: 'Camila Souza',
+    editedBy: 'Rodrigo Lima',
+    executedAt: '2026-02-24T08:34:00.000Z',
+  },
+  {
+    id: 'RE-002',
+    areaId: 'A2',
+    areaName: 'Estufa Sul',
+    ruleName: 'Exaustor por alta temperatura',
+    status: 'failed',
+    reason: 'Falha de comunicação com o atuador D-118',
+    createdBy: 'Fernanda Alves',
+    editedBy: 'Fernanda Alves',
+    executedAt: '2026-02-24T09:02:00.000Z',
+  },
+  {
+    id: 'RE-003',
+    areaId: 'B1',
+    areaName: 'Viveiro de Mudas',
+    ruleName: 'Nebulização preventiva por calor',
+    status: 'success',
+    reason: 'Temperatura acima de 34°C e umidade do ar abaixo de 48%',
+    createdBy: 'Juliana Prado',
+    editedBy: 'Marcos Teixeira',
+    executedAt: '2026-02-24T10:11:00.000Z',
+  },
+  {
+    id: 'RE-004',
+    areaId: 'A2',
+    areaName: 'Estufa Sul',
+    ruleName: 'Irrigação de segurança no fim do dia',
+    status: 'failed',
+    reason: 'Limite diário de irrigações já atingido',
+    createdBy: 'Camila Souza',
+    editedBy: 'Camila Souza',
+    executedAt: '2026-02-24T17:45:00.000Z',
+  },
 ];
 
 function randomItem(items) {
@@ -178,6 +230,13 @@ export default function StatusPage() {
 
   const activeAlerts = filteredAlerts.filter((alert) => !alert.acknowledgedAt);
   const ackedAlerts = filteredAlerts.filter((alert) => alert.acknowledgedAt);
+  const filteredRuleExecutions = useMemo(
+    () => (selectedArea === 'all' ? ruleExecutions : ruleExecutions.filter((execution) => execution.areaId === selectedArea)),
+    [selectedArea]
+  );
+
+  const successfulExecutions = filteredRuleExecutions.filter((execution) => execution.status === 'success').length;
+  const failedExecutions = filteredRuleExecutions.filter((execution) => execution.status === 'failed').length;
   const filteredActuators = selectedArea === 'all' ? actuators : actuators.filter((actuator) => actuator.areaId === selectedArea);
   const filteredInterventions = selectedArea === 'all'
     ? interventions
@@ -495,6 +554,56 @@ export default function StatusPage() {
 
           <Card>
             <CardContent>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                <Box>
+                  <Typography variant="h6">Histórico de execuções de regras</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Execuções com sucesso/falha, motivo da execução e responsáveis pela criação/edição da regra.
+                  </Typography>
+                </Box>
+                <Stack direction="row" spacing={1}>
+                  <Chip color="success" label={`Sucesso: ${successfulExecutions}`} />
+                  <Chip color="error" label={`Falha: ${failedExecutions}`} />
+                </Stack>
+              </Stack>
+
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Data</TableCell>
+                    <TableCell>Regra</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Motivo da execução</TableCell>
+                    <TableCell>Criada por</TableCell>
+                    <TableCell>Editada por</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredRuleExecutions.map((execution) => (
+                    <TableRow key={execution.id} hover>
+                      <TableCell>{dateTimeFormatter.format(new Date(execution.executedAt))}</TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={600}>
+                          {execution.ruleName}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {execution.areaName}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          size="small"
+                          color={execution.status === 'success' ? 'success' : 'error'}
+                          label={execution.status === 'success' ? 'Bem-sucedida' : 'Falha'}
+                        />
+                      </TableCell>
+                      <TableCell>{execution.reason}</TableCell>
+                      <TableCell>{execution.createdBy}</TableCell>
+                      <TableCell>{execution.editedBy}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
                 <HistoryRoundedIcon color="action" />
                 <Typography variant="h6">Registro de intervenções manuais</Typography>
