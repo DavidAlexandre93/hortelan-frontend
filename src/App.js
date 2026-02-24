@@ -11,6 +11,7 @@ import { AuthProvider } from './auth/AuthContext';
 import useAuth from './auth/useAuth';
 import CookieConsentBanner from './components/privacy/CookieConsentBanner';
 import HortelanPlayfulEffects from './components/fx/HortelanPlayfulEffects';
+import HarvestSplashScreen from './components/fx/HarvestSplashScreen';
 
 function AppContent() {
   const { consents } = useAuth();
@@ -19,6 +20,7 @@ function AppContent() {
     <>
       <ScrollToTop />
       <BaseOptionChartStyle />
+      <HarvestSplashScreen />
       <HortelanPlayfulEffects />
       <Router />
       <CookieConsentBanner />
