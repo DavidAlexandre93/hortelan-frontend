@@ -7,6 +7,10 @@ import {
   getTrustedDevices,
   getTwoFactorSettings,
   getUserSessions,
+  getConsentAuditLogs,
+  getDataRetentionPolicy,
+  rotateTrustedDeviceCredential,
+  revokeCompromisedDevice,
   isAuthenticated,
   loginWithEmailAndPassword,
   loginWithSocialProvider,
@@ -31,6 +35,8 @@ export function AuthProvider({ children }) {
   const [trustedDevices, setTrustedDevices] = useState(() => getTrustedDevices());
   const [consents, setConsents] = useState(() => getUserConsents());
   const [deletionRequest, setDeletionRequest] = useState(() => getAccountDeletionRequest());
+  const [consentLogs, setConsentLogs] = useState(() => getConsentAuditLogs());
+  const [retentionPolicy, setRetentionPolicy] = useState(() => getDataRetentionPolicy());
 
   const refreshAuthState = useCallback(() => {
     setUser(getAuthenticatedUser());
@@ -39,6 +45,8 @@ export function AuthProvider({ children }) {
     setTrustedDevices(getTrustedDevices());
     setConsents(getUserConsents());
     setDeletionRequest(getAccountDeletionRequest());
+    setConsentLogs(getConsentAuditLogs());
+    setRetentionPolicy(getDataRetentionPolicy());
   }, []);
 
   useEffect(() => {
@@ -144,6 +152,27 @@ export function AuthProvider({ children }) {
 
   const exportPersonalData = useCallback(() => exportCurrentUserData(), []);
 
+
+  const rotateDeviceCredential = useCallback((trustedDeviceId) => {
+    const result = rotateTrustedDeviceCredential(trustedDeviceId);
+
+    if (!result.error) {
+      refreshAuthState();
+    }
+
+    return result;
+  }, [refreshAuthState]);
+
+  const revokeCompromised = useCallback((trustedDeviceId, reason) => {
+    const result = revokeCompromisedDevice(trustedDeviceId, reason);
+
+    if (!result.error) {
+      refreshAuthState();
+    }
+
+    return result;
+  }, [refreshAuthState]);
+
   const value = useMemo(
     () => ({
       user,
@@ -152,6 +181,8 @@ export function AuthProvider({ children }) {
       trustedDevices,
       consents,
       deletionRequest,
+      consentLogs,
+      retentionPolicy,
       authenticated: isAuthenticated(),
       login,
       loginWithSocial,
@@ -160,6 +191,8 @@ export function AuthProvider({ children }) {
       logoutOthers,
       update2FASettings,
       removeTrustedDevice,
+      rotateDeviceCredential,
+      revokeCompromised,
       updateConsents,
       requestDeletion,
       deactivateAccount,
@@ -174,6 +207,8 @@ export function AuthProvider({ children }) {
       trustedDevices,
       consents,
       deletionRequest,
+      consentLogs,
+      retentionPolicy,
       login,
       loginWithSocial,
       logout,
@@ -181,6 +216,8 @@ export function AuthProvider({ children }) {
       logoutOthers,
       update2FASettings,
       removeTrustedDevice,
+      rotateDeviceCredential,
+      revokeCompromised,
       updateConsents,
       requestDeletion,
       deactivateAccount,
