@@ -20,6 +20,7 @@ import { LoadingButton } from "@mui/lab";
 // components
 import Iconify from "../../../components/Iconify";
 import { FormProvider, RHFTextField } from "../../../components/hook-form";
+import { evaluatePasswordPolicy } from "../../../auth/securityPolicy";
 
 // ----------------------------------------------------------------------
 
@@ -41,8 +42,10 @@ export default function RegisterForm() {
         return digits.length >= 10 && digits.length <= 11;
       }),
     password: Yup.string()
-      .min(8, "A senha deve ter ao menos 8 caracteres")
-      .required("Senha é obrigatória"),
+      .required("Senha é obrigatória")
+      .test("password-policy", "Senha fora da política de segurança", (value) =>
+        evaluatePasswordPolicy(value).valid
+      ),
     acceptedTerms: Yup.bool().oneOf(
       [true],
       "Você precisa aceitar os termos para continuar"
@@ -127,6 +130,8 @@ export default function RegisterForm() {
             ),
           }}
         />
+
+        <FormHelperText>Use 8+ caracteres com maiúscula, minúscula, número e símbolo.</FormHelperText>
 
         <Controller
           name="acceptedTerms"
