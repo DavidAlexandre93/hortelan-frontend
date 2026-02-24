@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Alert,
   Box,
@@ -6,14 +6,19 @@ import {
   Card,
   CardContent,
   Checkbox,
+  Chip,
   Container,
   Divider,
-  FormHelperText,
   FormControl,
   FormControlLabel,
   FormGroup,
+  FormHelperText,
   IconButton,
   InputLabel,
+  LinearProgress,
+  List,
+  ListItem,
+  ListItemText,
   MenuItem,
   Select,
   Stack,
@@ -21,6 +26,7 @@ import {
   StepLabel,
   Stepper,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -36,6 +42,54 @@ const pairingMethods = [
 ];
 const gardenAreas = ['Horta principal', 'Estufa interna', 'Setor de mudas', 'Jardim vertical'];
 
+const guidedFlow = [
+  {
+    id: 'garden',
+    title: 'Criar primeira horta',
+    description: 'Defina nome, local e estrutura base para iniciar o cultivo.',
+    doneLabel: 'Horta criada',
+  },
+  {
+    id: 'plant',
+    title: 'Adicionar primeira planta',
+    description: 'Cadastre sua primeira espécie e personalize o espaço de cultivo.',
+    doneLabel: 'Planta cadastrada',
+  },
+  {
+    id: 'pairing',
+    title: 'Parear dispositivo',
+    description: 'Conecte sensor/controlador para monitoramento em tempo real.',
+    doneLabel: 'Sensor conectado',
+  },
+  {
+    id: 'automation',
+    title: 'Criar primeira automação',
+    description: 'Ative regras automáticas para irrigação e alertas.',
+    doneLabel: 'Primeira automação criada',
+  },
+];
+
+const automationSuggestions = [
+  {
+    id: 'rega',
+    label: 'Rega inteligente por umidade',
+    description: 'Aciona irrigação quando umidade < 35% por 5 minutos.',
+    pedagogicalAlert: 'Evite excesso de rega: mantenha pausa mínima de 3h entre ciclos.',
+  },
+  {
+    id: 'luz',
+    label: 'Alerta de luminosidade',
+    description: 'Notifica quando houver menos de 4h de luz útil no dia.',
+    pedagogicalAlert: 'Mudas jovens precisam de transição gradual para sol pleno.',
+  },
+  {
+    id: 'nutrientes',
+    label: 'Lembrete de inspeção semanal',
+    description: 'Cria tarefa automática para verificar pH e nutrientes.',
+    pedagogicalAlert: 'Registrar medições melhora a precisão das recomendações futuras.',
+  },
+];
+
 const cultivationTypeTemplates = [
   {
     id: 'folhosas-canteiro',
@@ -43,9 +97,7 @@ const cultivationTypeTemplates = [
     description: 'Modelo para alface, rúcula e couve com rotação simples.',
     gardenName: 'Canteiro de folhosas',
     initialPlants: 'alface, rúcula, couve',
-    structures: [
-      { type: 'Canteiro', name: 'Canteiro principal', capacity: '180', material: 'Madeira', sensor: 'sensor_umidade_01', actuator: 'valvula_setor_01' },
-    ],
+    structures: [{ type: 'Canteiro', name: 'Canteiro principal', capacity: '180', material: 'Madeira', sensor: 'sensor_umidade_01', actuator: 'valvula_setor_01' }],
   },
   {
     id: 'ervas-vasos',
@@ -56,16 +108,6 @@ const cultivationTypeTemplates = [
     structures: [
       { type: 'Vaso', name: 'Vaso aromáticas A', capacity: '18', material: 'Cerâmica', sensor: 'sensor_umidade_ervas', actuator: 'bomba_irrigacao_01' },
       { type: 'Vaso', name: 'Vaso aromáticas B', capacity: '18', material: 'Cerâmica', sensor: 'sensor_umidade_ervas_02', actuator: '' },
-    ],
-  },
-  {
-    id: 'frutiferas-torre',
-    label: 'Frutíferas em torre',
-    description: 'Modelo vertical para tomate-cereja e pimentas em pequenos espaços.',
-    gardenName: 'Torre frutífera',
-    initialPlants: 'tomate-cereja, pimenta, morango',
-    structures: [
-      { type: 'Torre', name: 'Torre vertical A1', capacity: '75', material: 'Plástico', sensor: 'sensor_nutrientes_01', actuator: 'dosador_nutrientes_01' },
     ],
   },
 ];
@@ -79,17 +121,9 @@ const speciesTemplates = [
 const environmentTemplates = [
   { id: 'indoor', label: 'Indoor', environment: 'interno', space: 'estufa', sunlight: 'media', location: 'Ambiente interno com iluminação complementar' },
   { id: 'varanda', label: 'Varanda', environment: 'externo', space: 'varanda', sunlight: 'alta', location: 'Varanda residencial' },
-  { id: 'hidroponia', label: 'Hidroponia', environment: 'interno', space: 'estufa', sunlight: 'alta', location: 'Bancada hidropônica' },
 ];
 
-const createStructure = () => ({
-  type: 'Vaso',
-  name: '',
-  capacity: '',
-  material: 'Plástico',
-  sensor: '',
-  actuator: '',
-});
+const createStructure = () => ({ type: 'Vaso', name: '', capacity: '', material: 'Plástico', sensor: '', actuator: '' });
 
 export default function Onboarding() {
   const [activeStep, setActiveStep] = useState(0);
@@ -108,31 +142,44 @@ export default function Onboarding() {
   const [pairingCode, setPairingCode] = useState('');
   const [selectedArea, setSelectedArea] = useState(gardenAreas[0]);
   const [linkedDevices, setLinkedDevices] = useState([]);
+  const [automationName, setAutomationName] = useState('');
+  const [automationCreated, setAutomationCreated] = useState([]);
+  const [demoMode, setDemoMode] = useState(false);
+  const [checklist, setChecklist] = useState({
+    accountCreated: true,
+    gardenCreated: false,
+    plantRegistered: false,
+    sensorConnected: false,
+    notificationsEnabled: false,
+    firstTaskCompleted: false,
+  });
+
+  const selectedPairingMethod = pairingMethods.find((method) => method.value === pairingMethod);
+
+  const guideStatus = useMemo(
+    () => ({
+      garden: Boolean(gardenName.trim() && location.trim() && structures.some((item) => item.name.trim())),
+      plant: Boolean(initialPlants.trim()),
+      pairing: linkedDevices.length > 0,
+      automation: automationCreated.length > 0,
+    }),
+    [automationCreated.length, gardenName, initialPlants, linkedDevices.length, location, structures],
+  );
+
+  const completion = useMemo(() => {
+    const totalChecklist = Object.keys(checklist).length;
+    const checklistDone = Object.values(checklist).filter(Boolean).length;
+    const guidedDone = Object.values(guideStatus).filter(Boolean).length;
+    return Math.round(((checklistDone + guidedDone) / (totalChecklist + guidedFlow.length)) * 100);
+  }, [checklist, guideStatus]);
 
   const updateStructureField = (index, field, value) => {
     setStructures((prev) => prev.map((item, itemIndex) => (itemIndex === index ? { ...item, [field]: value } : item)));
   };
 
-  const addStructure = () => {
-    setStructures((prev) => [...prev, createStructure()]);
-  };
-
-  const removeStructure = (index) => {
-    setStructures((prev) => {
-      if (prev.length === 1) {
-        return [createStructure()];
-      }
-
-      return prev.filter((_, itemIndex) => itemIndex !== index);
-    });
-  };
-
-  const selectedPairingMethod = pairingMethods.find((method) => method.value === pairingMethod);
-
   const applyCultivationTemplate = () => {
     const template = cultivationTypeTemplates.find((item) => item.id === selectedCultivationTemplate);
     if (!template) return;
-
     setGardenName(template.gardenName);
     setInitialPlants(template.initialPlants);
     setStructures(template.structures.map((structure) => ({ ...createStructure(), ...structure })));
@@ -141,408 +188,290 @@ export default function Onboarding() {
   const applySpeciesTemplate = () => {
     const template = speciesTemplates.find((item) => item.id === selectedSpeciesTemplate);
     if (!template) return;
-
     setInitialPlants(template.plants);
-    setStructures((prev) => {
-      const [first, ...rest] = prev;
-      const nextFirst = { ...first, ...template.structure };
-      return [nextFirst, ...rest];
-    });
+    setStructures((prev) => [{ ...prev[0], ...template.structure }, ...prev.slice(1)]);
   };
 
   const applyEnvironmentTemplate = () => {
     const template = environmentTemplates.find((item) => item.id === selectedEnvironmentTemplate);
     if (!template) return;
-
     setEnvironment(template.environment);
     setSpaceType(template.space);
     setSunlight(template.sunlight);
     setLocation(template.location);
   };
 
+  const handleChecklistToggle = (field) => {
+    setChecklist((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
+
   const handleLinkDevice = () => {
-    if (!friendlyName.trim() || !pairingCode.trim()) {
-      return;
-    }
-
-    setLinkedDevices((prev) => [
-      {
-        id: `linked-${Date.now()}`,
-        name: friendlyName.trim(),
-        code: pairingCode.trim(),
-        method: selectedPairingMethod?.label || 'QR Code',
-        area: selectedArea,
-      },
-      ...prev,
-    ]);
-
+    if (!friendlyName.trim() || !pairingCode.trim()) return;
+    setLinkedDevices((prev) => [{ id: `linked-${Date.now()}`, name: friendlyName.trim(), code: pairingCode.trim(), method: selectedPairingMethod?.label || 'QR Code', area: selectedArea }, ...prev]);
     setFriendlyName('');
     setPairingCode('');
+  };
+
+  const createAutomation = () => {
+    if (!automationName.trim()) return;
+    setAutomationCreated((prev) => [automationName.trim(), ...prev]);
+    setAutomationName('');
   };
 
   return (
     <Page title="Onboarding">
       <Container maxWidth="md">
-        <Typography variant="h4" sx={{ mb: 3 }}>
-          Onboarding Inteligente — Primeira experiência Hortelan
-        </Typography>
+        <Stack spacing={3}>
+          <Box>
+            <Typography variant="h4">Onboarding guiado Hortelan</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Passo a passo para criar sua primeira horta, cadastrar plantas, parear dispositivo e ativar automações.
+            </Typography>
+          </Box>
 
-        <Card>
-          <CardContent>
-            <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
-              {steps.map((label) => (
-                <Step key={label}>
-                  <StepLabel>{label}</StepLabel>
-                </Step>
-              ))}
-            </Stepper>
-
-            {activeStep === 0 && (
+          <Card>
+            <CardContent>
               <Stack spacing={2}>
-                <FormControl fullWidth>
-                  <InputLabel>Nível</InputLabel>
-                  <Select label="Nível" defaultValue="iniciante">
-                    <MenuItem value="iniciante">Iniciante</MenuItem>
-                    <MenuItem value="intermediario">Intermediário</MenuItem>
-                    <MenuItem value="avancado">Avançado</MenuItem>
-                  </Select>
-                </FormControl>
-                <FormControl fullWidth>
-                  <InputLabel>Perfil</InputLabel>
-                  <Select label="Perfil" defaultValue="domestico">
-                    <MenuItem value="domestico">Doméstico</MenuItem>
-                    <MenuItem value="educacional">Educacional</MenuItem>
-                    <MenuItem value="comercial">Comercial</MenuItem>
-                  </Select>
-                </FormControl>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography variant="subtitle1">Progresso inicial</Typography>
+                  <Chip label={`${completion}% concluído`} color={completion === 100 ? 'success' : 'primary'} />
+                </Stack>
+                <LinearProgress value={completion} variant="determinate" />
+
+                <Divider>Checklist inicial</Divider>
+                <FormGroup>
+                  <FormControlLabel control={<Checkbox checked={checklist.accountCreated} onChange={() => handleChecklistToggle('accountCreated')} />} label="Conta criada" />
+                  <FormControlLabel control={<Checkbox checked={checklist.gardenCreated} onChange={() => handleChecklistToggle('gardenCreated')} />} label="Horta criada" />
+                  <FormControlLabel control={<Checkbox checked={checklist.plantRegistered} onChange={() => handleChecklistToggle('plantRegistered')} />} label="Planta cadastrada" />
+                  <FormControlLabel control={<Checkbox checked={checklist.sensorConnected} onChange={() => handleChecklistToggle('sensorConnected')} />} label="Sensor conectado" />
+                  <FormControlLabel control={<Checkbox checked={checklist.notificationsEnabled} onChange={() => handleChecklistToggle('notificationsEnabled')} />} label="Notificações ativadas" />
+                  <FormControlLabel control={<Checkbox checked={checklist.firstTaskCompleted} onChange={() => handleChecklistToggle('firstTaskCompleted')} />} label="Primeira tarefa concluída" />
+                </FormGroup>
               </Stack>
-            )}
+            </CardContent>
+          </Card>
 
-            {activeStep === 1 && (
+          <Card>
+            <CardContent>
               <Stack spacing={2}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Stack spacing={1.5}>
-                      <Typography variant="subtitle2">Modelos prontos por tipo de cultivo</Typography>
-                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-                        <FormControl fullWidth>
-                          <InputLabel>Tipo de cultivo</InputLabel>
-                          <Select
-                            label="Tipo de cultivo"
-                            value={selectedCultivationTemplate}
-                            onChange={(event) => setSelectedCultivationTemplate(event.target.value)}
-                          >
-                            {cultivationTypeTemplates.map((template) => (
-                              <MenuItem key={template.id} value={template.id}>
-                                {template.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                        <Button variant="outlined" onClick={applyCultivationTemplate}>
-                          Aplicar modelo
-                        </Button>
-                      </Stack>
-                      <Typography variant="caption" color="text.secondary">
-                        {cultivationTypeTemplates.find((template) => template.id === selectedCultivationTemplate)?.description}
-                      </Typography>
-                    </Stack>
-                  </CardContent>
-                </Card>
+                <Typography variant="subtitle1">Passo a passo guiado</Typography>
+                <List dense>
+                  {guidedFlow.map((item, index) => (
+                    <ListItem key={item.id} disablePadding sx={{ mb: 1 }}>
+                      <ListItemText
+                        primary={`${index + 1}. ${item.title}`}
+                        secondary={item.description}
+                      />
+                      <Chip size="small" color={guideStatus[item.id] ? 'success' : 'default'} label={guideStatus[item.id] ? item.doneLabel : 'Pendente'} />
+                    </ListItem>
+                  ))}
+                </List>
+              </Stack>
+            </CardContent>
+          </Card>
 
-                <Card variant="outlined">
-                  <CardContent>
-                    <Stack spacing={1.5}>
-                      <Typography variant="subtitle2">Templates por espécie</Typography>
-                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-                        <FormControl fullWidth>
-                          <InputLabel>Espécie foco</InputLabel>
-                          <Select
-                            label="Espécie foco"
-                            value={selectedSpeciesTemplate}
-                            onChange={(event) => setSelectedSpeciesTemplate(event.target.value)}
-                          >
-                            {speciesTemplates.map((template) => (
-                              <MenuItem key={template.id} value={template.id}>
-                                {template.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                        <Button variant="outlined" onClick={applySpeciesTemplate}>
-                          Aplicar template
-                        </Button>
-                      </Stack>
-                    </Stack>
-                  </CardContent>
-                </Card>
+          <Card>
+            <CardContent>
+              <Stack spacing={3}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={2}>
+                  <Box>
+                    <Typography variant="h6">Demo / modo simulado</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Ambiente de demonstração com dados simulados para usuários sem dispositivo.
+                    </Typography>
+                  </Box>
+                  <FormControlLabel control={<Checkbox checked={demoMode} onChange={() => setDemoMode((prev) => !prev)} />} label="Ativar demo" />
+                </Stack>
+                {demoMode ? (
+                  <Alert severity="info" variant="outlined">
+                    Dashboard simulado ativo: umidade 41%, luminosidade 78%, reservatório em 63% e recomendação automática de rega para amanhã às 07:00.
+                  </Alert>
+                ) : (
+                  <Alert severity="warning" variant="outlined">
+                    Modo demo desativado. Conecte um dispositivo para visualizar dados reais no dashboard.
+                  </Alert>
+                )}
+              </Stack>
+            </CardContent>
+          </Card>
 
-                <TextField label="Nome da horta" value={gardenName} onChange={(event) => setGardenName(event.target.value)} fullWidth />
-                <TextField
-                  label="Plantas iniciais"
-                  helperText="Ex.: hortelã, alface, manjericão"
-                  value={initialPlants}
-                  onChange={(event) => setInitialPlants(event.target.value)}
-                  fullWidth
-                />
-                <TextField label="Localização" value={location} onChange={(event) => setLocation(event.target.value)} fullWidth />
+          <Card>
+            <CardContent>
+              <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 3 }}>
+                {steps.map((label) => (
+                  <Step key={label}>
+                    <StepLabel>{label}</StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
 
-                <Divider sx={{ pt: 1 }}>Estruturas de cultivo</Divider>
-                <Typography variant="body2" color="text.secondary">
-                  Cadastre vasos, canteiros, módulos, torres e reservatórios com volume, material e vínculo IoT.
-                </Typography>
+              {activeStep === 1 && (
+                <Stack spacing={2}>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+                    <FormControl fullWidth>
+                      <InputLabel>Tipo de cultivo</InputLabel>
+                      <Select label="Tipo de cultivo" value={selectedCultivationTemplate} onChange={(event) => setSelectedCultivationTemplate(event.target.value)}>
+                        {cultivationTypeTemplates.map((template) => <MenuItem key={template.id} value={template.id}>{template.label}</MenuItem>)}
+                      </Select>
+                    </FormControl>
+                    <Button variant="outlined" onClick={applyCultivationTemplate}>Aplicar modelo</Button>
+                  </Stack>
 
-                {structures.map((structure, index) => (
-                  <Card key={`structure-${index}`} variant="outlined" sx={{ bgcolor: 'background.neutral' }}>
-                    <CardContent>
-                      <Stack spacing={2}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center">
-                          <Typography variant="subtitle2">Estrutura {index + 1}</Typography>
-                          <IconButton
-                            color="error"
-                            onClick={() => removeStructure(index)}
-                            disabled={structures.length === 1}
-                            aria-label="Remover estrutura"
-                          >
-                            <DeleteOutlineIcon fontSize="small" />
-                          </IconButton>
-                        </Stack>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+                    <FormControl fullWidth>
+                      <InputLabel>Espécie foco</InputLabel>
+                      <Select label="Espécie foco" value={selectedSpeciesTemplate} onChange={(event) => setSelectedSpeciesTemplate(event.target.value)}>
+                        {speciesTemplates.map((template) => <MenuItem key={template.id} value={template.id}>{template.label}</MenuItem>)}
+                      </Select>
+                    </FormControl>
+                    <Button variant="outlined" onClick={applySpeciesTemplate}>Aplicar espécie</Button>
+                  </Stack>
 
-                        <FormControl fullWidth>
-                          <InputLabel>Tipo</InputLabel>
-                          <Select
-                            label="Tipo"
-                            value={structure.type}
-                            onChange={(event) => updateStructureField(index, 'type', event.target.value)}
-                          >
-                            {structureTypes.map((type) => (
-                              <MenuItem key={type} value={type}>
-                                {type}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
+                  <Tooltip title="Dica: comece com 1 a 3 espécies para facilitar ajustes de irrigação.">
+                    <TextField label="Plantas iniciais" value={initialPlants} onChange={(event) => setInitialPlants(event.target.value)} fullWidth />
+                  </Tooltip>
+                  <TextField label="Nome da horta" value={gardenName} onChange={(event) => setGardenName(event.target.value)} fullWidth />
+                  <TextField label="Localização" value={location} onChange={(event) => setLocation(event.target.value)} fullWidth />
 
-                        <TextField
-                          label="Nome / Identificador"
-                          fullWidth
-                          value={structure.name}
-                          onChange={(event) => updateStructureField(index, 'name', event.target.value)}
-                          placeholder="Ex.: Torre vertical A1"
-                        />
-
-                        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                          <TextField
-                            type="number"
-                            label="Capacidade / volume (L)"
-                            fullWidth
-                            value={structure.capacity}
-                            onChange={(event) => updateStructureField(index, 'capacity', event.target.value)}
-                          />
-
+                  {structures.map((structure, index) => (
+                    <Card key={`structure-${index}`} variant="outlined">
+                      <CardContent>
+                        <Stack spacing={1.5}>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="subtitle2">Estrutura {index + 1}</Typography>
+                            <IconButton color="error" disabled={structures.length === 1} onClick={() => setStructures((prev) => prev.filter((_, itemIndex) => itemIndex !== index))}>
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Stack>
+                          <FormControl fullWidth>
+                            <InputLabel>Tipo</InputLabel>
+                            <Select label="Tipo" value={structure.type} onChange={(event) => updateStructureField(index, 'type', event.target.value)}>
+                              {structureTypes.map((type) => <MenuItem key={type} value={type}>{type}</MenuItem>)}
+                            </Select>
+                          </FormControl>
+                          <TextField label="Nome da estrutura" value={structure.name} onChange={(event) => updateStructureField(index, 'name', event.target.value)} fullWidth />
+                          <TextField label="Capacidade (L)" type="number" value={structure.capacity} onChange={(event) => updateStructureField(index, 'capacity', event.target.value)} fullWidth />
                           <FormControl fullWidth>
                             <InputLabel>Material</InputLabel>
-                            <Select
-                              label="Material"
-                              value={structure.material}
-                              onChange={(event) => updateStructureField(index, 'material', event.target.value)}
-                            >
-                              {materialOptions.map((material) => (
-                                <MenuItem key={material} value={material}>
-                                  {material}
-                                </MenuItem>
-                              ))}
+                            <Select label="Material" value={structure.material} onChange={(event) => updateStructureField(index, 'material', event.target.value)}>
+                              {materialOptions.map((material) => <MenuItem key={material} value={material}>{material}</MenuItem>)}
                             </Select>
                           </FormControl>
                         </Stack>
+                      </CardContent>
+                    </Card>
+                  ))}
 
-                        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                          <TextField
-                            label="Sensor associado"
-                            fullWidth
-                            value={structure.sensor}
-                            onChange={(event) => updateStructureField(index, 'sensor', event.target.value)}
-                            helperText="Ex.: sensor_umidade_01"
-                          />
-                          <TextField
-                            label="Atuador associado"
-                            fullWidth
-                            value={structure.actuator}
-                            onChange={(event) => updateStructureField(index, 'actuator', event.target.value)}
-                            helperText="Ex.: valvula_setor_03"
-                          />
-                        </Stack>
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                ))}
+                  <Button startIcon={<AddIcon />} onClick={() => setStructures((prev) => [...prev, createStructure()])} variant="outlined">Adicionar estrutura</Button>
+                </Stack>
+              )}
 
-                <Box>
-                  <Button variant="outlined" startIcon={<AddIcon />} onClick={addStructure}>
-                    Adicionar estrutura
-                  </Button>
-                </Box>
-              </Stack>
-            )}
+              {activeStep === 2 && (
+                <Stack spacing={2}>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+                    <FormControl fullWidth>
+                      <InputLabel>Template de ambiente</InputLabel>
+                      <Select label="Template de ambiente" value={selectedEnvironmentTemplate} onChange={(event) => setSelectedEnvironmentTemplate(event.target.value)}>
+                        {environmentTemplates.map((template) => <MenuItem key={template.id} value={template.id}>{template.label}</MenuItem>)}
+                      </Select>
+                    </FormControl>
+                    <Button variant="outlined" onClick={applyEnvironmentTemplate}>Aplicar ambiente</Button>
+                  </Stack>
 
-            {activeStep === 2 && (
-              <Stack spacing={2}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Stack spacing={1.5}>
-                      <Typography variant="subtitle2">Templates por ambiente</Typography>
-                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-                        <FormControl fullWidth>
-                          <InputLabel>Template de ambiente</InputLabel>
-                          <Select
-                            label="Template de ambiente"
-                            value={selectedEnvironmentTemplate}
-                            onChange={(event) => setSelectedEnvironmentTemplate(event.target.value)}
-                          >
-                            {environmentTemplates.map((template) => (
-                              <MenuItem key={template.id} value={template.id}>
-                                {template.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                        <Button variant="outlined" onClick={applyEnvironmentTemplate}>
-                          Aplicar ambiente
-                        </Button>
-                      </Stack>
-                    </Stack>
-                  </CardContent>
-                </Card>
+                  <FormControl fullWidth>
+                    <InputLabel>Ambiente</InputLabel>
+                    <Select label="Ambiente" value={environment} onChange={(event) => setEnvironment(event.target.value)}>
+                      <MenuItem value="interno">Interno</MenuItem>
+                      <MenuItem value="externo">Externo</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <FormControl fullWidth>
+                    <InputLabel>Tipo de espaço</InputLabel>
+                    <Select label="Tipo de espaço" value={spaceType} onChange={(event) => setSpaceType(event.target.value)}>
+                      <MenuItem value="varanda">Varanda</MenuItem>
+                      <MenuItem value="quintal">Quintal</MenuItem>
+                      <MenuItem value="estufa">Estufa</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <FormControl fullWidth>
+                    <InputLabel>Incidência solar</InputLabel>
+                    <Select label="Incidência solar" value={sunlight} onChange={(event) => setSunlight(event.target.value)}>
+                      <MenuItem value="baixa">Baixa</MenuItem>
+                      <MenuItem value="media">Média</MenuItem>
+                      <MenuItem value="alta">Alta</MenuItem>
+                    </Select>
+                  </FormControl>
 
-                <FormControl fullWidth>
-                  <InputLabel>Ambiente</InputLabel>
-                  <Select label="Ambiente" value={environment} onChange={(event) => setEnvironment(event.target.value)}>
-                    <MenuItem value="interno">Interno</MenuItem>
-                    <MenuItem value="externo">Externo</MenuItem>
-                  </Select>
-                </FormControl>
-                <FormControl fullWidth>
-                  <InputLabel>Tipo de espaço</InputLabel>
-                  <Select label="Tipo de espaço" value={spaceType} onChange={(event) => setSpaceType(event.target.value)}>
-                    <MenuItem value="varanda">Varanda</MenuItem>
-                    <MenuItem value="quintal">Quintal</MenuItem>
-                    <MenuItem value="estufa">Estufa</MenuItem>
-                  </Select>
-                </FormControl>
-                <FormControl fullWidth>
-                  <InputLabel>Incidência solar</InputLabel>
-                  <Select label="Incidência solar" value={sunlight} onChange={(event) => setSunlight(event.target.value)}>
-                    <MenuItem value="baixa">Baixa</MenuItem>
-                    <MenuItem value="media">Média</MenuItem>
-                    <MenuItem value="alta">Alta</MenuItem>
-                  </Select>
-                </FormControl>
-              </Stack>
-            )}
+                  <Alert severity="warning" variant="outlined">
+                    Alerta pedagógico: evite excesso de rega em ambientes internos; prefira validar umidade antes de cada ciclo.
+                  </Alert>
+                </Stack>
+              )}
 
-            {activeStep === 3 && (
-              <Stack spacing={2}>
-                <Typography variant="h6">Vincular dispositivo à conta</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Faça o pareamento por QR Code ou código serial, associe o dispositivo à área correta e defina um nome
-                  amigável para facilitar o monitoramento.
-                </Typography>
+              {activeStep === 3 && (
+                <Stack spacing={2}>
+                  <FormControl fullWidth>
+                    <InputLabel>Método de pareamento</InputLabel>
+                    <Select label="Método de pareamento" value={pairingMethod} onChange={(event) => setPairingMethod(event.target.value)}>
+                      {pairingMethods.map((method) => <MenuItem key={method.value} value={method.value}>{method.label}</MenuItem>)}
+                    </Select>
+                    <FormHelperText>{selectedPairingMethod?.helper}</FormHelperText>
+                  </FormControl>
 
-                <FormControl fullWidth>
-                  <InputLabel>Método de pareamento</InputLabel>
-                  <Select
-                    label="Método de pareamento"
-                    value={pairingMethod}
-                    onChange={(event) => setPairingMethod(event.target.value)}
-                  >
-                    {pairingMethods.map((method) => (
-                      <MenuItem key={method.value} value={method.value}>
-                        {method.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  <FormHelperText>{selectedPairingMethod?.helper}</FormHelperText>
-                </FormControl>
+                  <TextField label={pairingMethod === 'qr' ? 'QR Code do dispositivo' : 'Código serial do dispositivo'} value={pairingCode} onChange={(event) => setPairingCode(event.target.value)} fullWidth />
+                  <TextField label="Nome amigável do dispositivo" value={friendlyName} onChange={(event) => setFriendlyName(event.target.value)} fullWidth />
+                  <FormControl fullWidth>
+                    <InputLabel>Horta / área de associação</InputLabel>
+                    <Select label="Horta / área de associação" value={selectedArea} onChange={(event) => setSelectedArea(event.target.value)}>
+                      {gardenAreas.map((area) => <MenuItem key={area} value={area}>{area}</MenuItem>)}
+                    </Select>
+                  </FormControl>
+                  <Button variant="contained" onClick={handleLinkDevice} disabled={!friendlyName.trim() || !pairingCode.trim()}>Vincular dispositivo</Button>
 
-                <TextField
-                  label={pairingMethod === 'qr' ? 'QR Code do dispositivo' : 'Código serial do dispositivo'}
-                  value={pairingCode}
-                  onChange={(event) => setPairingCode(event.target.value)}
-                  fullWidth
-                  placeholder={pairingMethod === 'qr' ? 'Ex.: QR-HRT-001-9AF2' : 'Ex.: HRT-SERIAL-45BX-98'}
-                />
+                  <Divider>Primeira automação</Divider>
+                  <Tooltip title="Recomendação: inicie por uma regra de irrigação para aprender o comportamento da sua horta.">
+                    <TextField label="Nome da automação" value={automationName} onChange={(event) => setAutomationName(event.target.value)} fullWidth />
+                  </Tooltip>
+                  <Button variant="outlined" onClick={createAutomation} disabled={!automationName.trim()}>Criar automação</Button>
 
-                <TextField
-                  label="Nome amigável do dispositivo"
-                  value={friendlyName}
-                  onChange={(event) => setFriendlyName(event.target.value)}
-                  fullWidth
-                  placeholder="Ex.: Sensor de umidade da estufa"
-                />
-
-                <FormControl fullWidth>
-                  <InputLabel>Horta / área de associação</InputLabel>
-                  <Select
-                    label="Horta / área de associação"
-                    value={selectedArea}
-                    onChange={(event) => setSelectedArea(event.target.value)}
-                  >
-                    {gardenAreas.map((area) => (
-                      <MenuItem key={area} value={area}>
-                        {area}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <Box>
-                  <Button
-                    variant="contained"
-                    onClick={handleLinkDevice}
-                    disabled={!friendlyName.trim() || !pairingCode.trim()}
-                  >
-                    Vincular dispositivo
-                  </Button>
-                </Box>
-
-                {linkedDevices.length > 0 ? (
                   <Stack spacing={1}>
-                    {linkedDevices.map((device) => (
-                      <Alert key={device.id} severity="success" variant="outlined">
-                        <strong>{device.name}</strong> vinculado via {device.method} ({device.code}) em <strong>{device.area}</strong>.
+                    {automationSuggestions.map((suggestion) => (
+                      <Alert key={suggestion.id} severity="info" variant="outlined">
+                        <strong>{suggestion.label}</strong>: {suggestion.description} {suggestion.pedagogicalAlert}
                       </Alert>
                     ))}
                   </Stack>
-                ) : (
-                  <Alert severity="info" variant="outlined">
-                    Nenhum dispositivo vinculado nesta etapa ainda.
-                  </Alert>
-                )}
 
-                <Divider />
-                <FormGroup>
-                  <FormControlLabel control={<Checkbox defaultChecked />} label="Vincular dispositivo IoT agora" />
-                  <FormControlLabel control={<Checkbox defaultChecked />} label="Habilitar modo manual como fallback" />
-                  <FormControlLabel control={<Checkbox defaultChecked />} label="Checklist de ativação inicial" />
-                  <FormControlLabel control={<Checkbox defaultChecked />} label="Tour guiado no dashboard" />
-                  <FormControlLabel control={<Checkbox defaultChecked />} label="Assistente: Como começar hoje" />
-                </FormGroup>
-              </Stack>
-            )}
+                  {linkedDevices.map((device) => (
+                    <Alert key={device.id} severity="success" variant="outlined">
+                      {device.name} vinculado via {device.method} ({device.code}) em {device.area}.
+                    </Alert>
+                  ))}
+                  {automationCreated.map((item) => (
+                    <Alert key={item} severity="success" variant="outlined">
+                      Automação "{item}" criada com sucesso.
+                    </Alert>
+                  ))}
+                </Stack>
+              )}
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-              <Button disabled={activeStep === 0} onClick={() => setActiveStep((prev) => prev - 1)}>
-                Voltar
-              </Button>
-              <Button
-                variant="contained"
-                onClick={() => setActiveStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev))}
-              >
-                {activeStep === steps.length - 1 ? 'Concluir' : 'Próximo'}
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
+              {activeStep === 0 && (
+                <Stack spacing={2}>
+                  <Typography variant="subtitle1">Educação contextual</Typography>
+                  <Alert severity="info" variant="outlined">Dicas inline aparecem em campos críticos para acelerar sua configuração inicial.</Alert>
+                  <Alert severity="info" variant="outlined">Recomendação por etapa: complete um bloco por vez (horta &gt; planta &gt; sensor &gt; automação).</Alert>
+                </Stack>
+              )}
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+                <Button disabled={activeStep === 0} onClick={() => setActiveStep((prev) => prev - 1)}>Voltar</Button>
+                <Button variant="contained" onClick={() => setActiveStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev))}>
+                  {activeStep === steps.length - 1 ? 'Concluir' : 'Próximo'}
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Stack>
       </Container>
     </Page>
   );
