@@ -449,7 +449,7 @@ export default function Onboarding() {
                   ))}
                   {automationCreated.map((item) => (
                     <Alert key={item} severity="success" variant="outlined">
-                      Automação "{item}" criada com sucesso.
+                      Automação &quot;{item}&quot; criada com sucesso.
                     </Alert>
                   ))}
                 </Stack>
