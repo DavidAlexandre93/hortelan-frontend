@@ -18,6 +18,7 @@ import ResetPassword from './pages/ResetPassword';
 import Security from './pages/Security';
 import ProfileSettings from './pages/ProfileSettings';
 import AlertCenter from './pages/AlertCenter';
+import Reports from './pages/Reports';
 import RequireAuth from './components/auth/RequireAuth';
 import RedirectIfAuth from './components/auth/RedirectIfAuth';
 
@@ -43,6 +44,7 @@ export default function Router() {
         { path: 'security', element: <Security /> },
         { path: 'profile', element: <ProfileSettings /> },
         { path: 'alertas', element: <AlertCenter /> },
+        { path: 'relatorios', element: <Reports /> },
       ],
     },
     {

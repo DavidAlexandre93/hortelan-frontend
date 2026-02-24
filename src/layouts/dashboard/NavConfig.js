@@ -52,6 +52,12 @@ const navConfig = [
     path: '/dashboard/alertas',
     icon: getIcon('eva:bell-fill'),
   },
+
+  {
+    title: 'relatórios',
+    path: '/dashboard/relatorios',
+    icon: getIcon('eva:bar-chart-2-fill'),
+  },
   {
     title: 'status page',
     path: '/dashboard/status',
