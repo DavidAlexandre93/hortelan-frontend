@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import SensorsIcon from '@mui/icons-material/Sensors';
 import RouterIcon from '@mui/icons-material/Router';
@@ -355,20 +354,6 @@ function getPlantSensorAlerts(readings) {
   return sensorAlerts;
 }
 
-export default function StatusPage() {
-  const initialManualStatus = useMemo(
-    () =>
-      greenhouseAreas.flatMap((area) => area.plants).reduce((acc, plant) => {
-        acc[plant.id] = plant.manualStatus;
-        return acc;
-      }, {}),
-    []
-  );
-  const [manualPlantStatus, setManualPlantStatus] = useState(initialManualStatus);
-
-  const totalDevices = greenhouseAreas.reduce((acc, area) => acc + area.devices.length, 0);
-  const totalAlerts = greenhouseAreas.reduce((acc, area) => acc + area.alerts.length, 0);
-  const totalPlants = greenhouseAreas.reduce((acc, area) => acc + area.plants.length, 0);
 const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short',
   timeStyle: 'medium',
@@ -482,6 +467,7 @@ export default function StatusPage() {
 
   const totalDevices = greenhouseAreas.reduce((acc, area) => acc + area.devices.length, 0);
   const totalAlerts = greenhouseAreas.reduce((acc, area) => acc + area.alerts.length, 0);
+  const totalPlants = greenhouseAreas.reduce((acc, area) => acc + area.plants.length, 0);
   const totalSensors = greenhouseAreas.reduce(
     (acc, area) => acc + area.devices.filter((device) => device.type === 'sensor').length,
     0
@@ -650,7 +636,6 @@ export default function StatusPage() {
               </Card>
             </Grid>
 
-            {greenhouseAreas.map((area) => {
             {filteredAreas.map((area) => {
               const config = areaStatusConfig[area.status];
               const scopedDevices = area.devices.filter((device) => {
@@ -733,10 +718,11 @@ export default function StatusPage() {
                       </Box>
 
                       <Stack spacing={1} sx={{ mt: 2 }}>
-                        {area.devices.map((device) => {
+                        {scopedDevices.map((device) => {
                           const connectionConfig = connectionStateConfig[device.connectionStatus];
                           const signalConfig = device.signalQuality ? signalQualityConfig[device.signalQuality] : null;
                           const isWireless = device.batteryLevel !== null;
+                          const measurement = measurementsByDevice[device.id];
 
                           return (
                             <Card key={`${area.id}-${device.id}`} variant="outlined" sx={{ bgcolor: 'background.default' }}>
@@ -788,17 +774,14 @@ export default function StatusPage() {
                                       variant="outlined"
                                     />
                                   </Stack>
+
+                                  <Typography variant="body2" color="text.secondary">
+                                    • {measurement ? getMeasurementLabel(device, measurement) : 'Sem leitura'} •{' '}
+                                    {measurement ? dateTimeFormatter.format(new Date(measurement.updatedAt)) : '-'}
+                                  </Typography>
                                 </Stack>
                               </CardContent>
                             </Card>
-                        {scopedDevices.map((device) => {
-                          const measurement = measurementsByDevice[device.id];
-
-                          return (
-                            <Typography key={`${area.id}-${device.id}`} variant="body2" color="text.secondary">
-                              • {device.id} — {device.name} • {measurement ? getMeasurementLabel(device, measurement) : 'Sem leitura'} •{' '}
-                              {measurement ? dateTimeFormatter.format(new Date(measurement.updatedAt)) : '-'}
-                            </Typography>
                           );
                         })}
                       </Stack>
