@@ -28,6 +28,7 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PaidIcon from '@mui/icons-material/Paid';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import Page from '../components/Page';
+import HortelanPromoBanner from '../components/HortelanPromoBanner';
 import productCatalog, { categories } from '../data/productCatalog';
 
 const sortMap = {
@@ -130,6 +131,8 @@ export default function ProductsMarketplace() {
             Explore sementes, substratos, fertilizantes, sensores, kits, irrigação e ferramentas com filtros avançados.
           </Typography>
         </Stack>
+
+        <HortelanPromoBanner sx={{ mb: 3 }} />
 
         <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
           {categories.map((category) => (
