@@ -249,6 +249,45 @@ const evaluateConditionRule = (rule, currentValue) => {
   return currentValue < rule.threshold;
 };
 
+const climaExternoAtual = {
+  local: 'Campinas - SP',
+  atualizadoEm: 'Hoje, 14:30',
+  temperatura: 31,
+  umidade: 42,
+  chuvaChance: 78,
+  vento: 19,
+  insolacao: 4.7,
+  condicao: 'Nuvens carregadas com pancadas isoladas no fim da tarde',
+};
+
+const previsaoClimatica = [
+  { periodo: 'Agora', temp: 31, chuva: 45, condicao: 'Nublado' },
+  { periodo: '18h', temp: 29, chuva: 78, condicao: 'Chuva fraca' },
+  { periodo: '21h', temp: 25, chuva: 62, condicao: 'Chuva moderada' },
+  { periodo: 'Amanhã', temp: 27, chuva: 35, condicao: 'Parcialmente nublado' },
+];
+
+const historicoClimaticoCorrelacionado = [
+  {
+    periodo: 'Semana 14',
+    produtividade: '+4%',
+    clima: 'Temperatura estável (24-27°C) e chuva leve',
+    evento: 'Melhor desenvolvimento vegetativo.',
+  },
+  {
+    periodo: 'Semana 15',
+    produtividade: '-11%',
+    clima: 'Pico de calor (36°C) por 3 dias',
+    evento: 'Murcha no Canteiro B e aumento do consumo de água.',
+  },
+  {
+    periodo: 'Semana 16',
+    produtividade: '+2%',
+    clima: 'Frente fria com mínima de 13°C',
+    evento: 'Crescimento mais lento em mudas recém-transplantadas.',
+  },
+];
+
 export default function DashboardApp() {
   const theme = useTheme();
   const [region, setRegion] = useState('Sudeste');
@@ -726,6 +765,55 @@ export default function DashboardApp() {
 
   const triggeredRules = evaluatedConditionRules.filter((rule) => rule.triggered);
 
+  const recomendacoesClimaticas = [
+    climaExternoAtual.chuvaChance >= 60
+      ? 'Alta chance de chuva: priorize irrigação mínima e preserve água do reservatório.'
+      : 'Baixa chance de chuva: mantenha ciclo normal de irrigação das áreas externas.',
+    climaExternoAtual.temperatura >= 33
+      ? 'Onda de calor detectada: aplicar reforço de irrigação curta no início da tarde.'
+      : 'Sem onda de calor no momento: monitorar somente picos após 14h.',
+    climaExternoAtual.umidade <= 40
+      ? 'Umidade externa baixa: aumentar atenção a estresse hídrico em mudas novas.'
+      : 'Umidade externa adequada para manter transpiração controlada.',
+  ];
+
+  const regrasClimaticas = [
+    {
+      regra: 'Pular rega se previsão de chuva',
+      status: climaExternoAtual.chuvaChance >= 70 ? 'Ativada' : 'Inativa',
+      detalhe:
+        climaExternoAtual.chuvaChance >= 70
+          ? 'A próxima irrigação externa das 18:00 foi suspensa automaticamente.'
+          : 'Sem bloqueio de irrigação por chuva nas próximas horas.',
+    },
+    {
+      regra: 'Reforçar irrigação em onda de calor',
+      status: climaExternoAtual.temperatura >= 34 ? 'Ativada' : 'Monitorando',
+      detalhe:
+        climaExternoAtual.temperatura >= 34
+          ? 'Pulsos extras de 4 min foram sugeridos para os setores externos.'
+          : 'Temperatura alta, mas abaixo do gatilho de onda de calor.',
+    },
+    {
+      regra: 'Ajustar iluminação em dias nublados (fase avançada)',
+      status: climaExternoAtual.insolacao <= 5 ? 'Sugerida' : 'Inativa',
+      detalhe:
+        climaExternoAtual.insolacao <= 5
+          ? 'Adicionar +45 min no ciclo de iluminação suplementar da estufa.'
+          : 'Insolação natural suficiente para manter ciclo atual.',
+    },
+  ];
+
+  const alertasClimaticos = [
+    climaExternoAtual.temperatura >= 35 ? { tipo: 'error', mensagem: 'Alerta de calor extremo: proteger mudas sensíveis e reforçar sombreamento.' } : null,
+    climaExternoAtual.temperatura <= 10
+      ? { tipo: 'warning', mensagem: 'Alerta de frio intenso: avaliar manta térmica para hortas externas.' }
+      : null,
+    climaExternoAtual.chuvaChance >= 70
+      ? { tipo: 'info', mensagem: 'Alerta preventivo de chuva: pausando ciclos de rega externa para evitar encharcamento.' }
+      : null,
+  ].filter(Boolean);
+
   const onThresholdChange = (ruleId) => (event) => {
     const parsedValue = Number(event.target.value);
 
@@ -886,6 +974,133 @@ export default function DashboardApp() {
 
           <Grid item xs={12}>
             <AppSensorAnalytics />
+          </Grid>
+
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" sx={{ mb: 1 }}>
+                  Inteligência climática externa
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Dados externos integrados para ajustar recomendações, irrigação e alertas preventivos.
+                </Typography>
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <Stack spacing={1.5}>
+                      <Chip label={`Local: ${climaExternoAtual.local}`} color="primary" variant="outlined" />
+                      <Typography variant="body2" color="text.secondary">
+                        Atualizado em {climaExternoAtual.atualizadoEm}
+                      </Typography>
+                      <Typography variant="body2">{climaExternoAtual.condicao}</Typography>
+                      <Divider />
+                      <Typography variant="body2">Temperatura externa: {climaExternoAtual.temperatura} °C</Typography>
+                      <Typography variant="body2">Umidade externa: {climaExternoAtual.umidade}%</Typography>
+                      <Typography variant="body2">Previsão de chuva: {climaExternoAtual.chuvaChance}%</Typography>
+                      <Typography variant="body2">Velocidade do vento: {climaExternoAtual.vento} km/h</Typography>
+                      <Typography variant="body2">Insolação: {climaExternoAtual.insolacao} kWh/m²</Typography>
+                    </Stack>
+                  </Grid>
+
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      Impacto no cultivo e recomendações
+                    </Typography>
+                    <Stack spacing={1}>
+                      {recomendacoesClimaticas.map((item) => (
+                        <Alert key={item} severity="success" variant="outlined">
+                          {item}
+                        </Alert>
+                      ))}
+                    </Stack>
+                  </Grid>
+
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      Alertas climáticos ativos
+                    </Typography>
+                    {alertasClimaticos.length === 0 ? (
+                      <Alert severity="success">Sem alertas de frio/calor ou chuva no momento.</Alert>
+                    ) : (
+                      <Stack spacing={1}>
+                        {alertasClimaticos.map((alerta) => (
+                          <Alert key={alerta.mensagem} severity={alerta.tipo}>
+                            {alerta.mensagem}
+                          </Alert>
+                        ))}
+                      </Stack>
+                    )}
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Divider sx={{ my: 0.5 }} />
+                    <Typography variant="subtitle2" sx={{ mb: 1.5, mt: 1 }}>
+                      Regras com clima externo
+                    </Typography>
+                    <Grid container spacing={1.5}>
+                      {regrasClimaticas.map((item) => (
+                        <Grid key={item.regra} item xs={12} md={4}>
+                          <Card variant="outlined" sx={{ height: '100%' }}>
+                            <CardContent>
+                              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                                <Typography variant="subtitle2">{item.regra}</Typography>
+                                <Chip
+                                  size="small"
+                                  label={item.status}
+                                  color={item.status === 'Ativada' ? 'success' : item.status === 'Inativa' ? 'default' : 'warning'}
+                                />
+                              </Stack>
+                              <Typography variant="body2" color="text.secondary">
+                                {item.detalhe}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      Previsão climática de curto prazo
+                    </Typography>
+                    <List disablePadding>
+                      {previsaoClimatica.map((item, index) => (
+                        <Box key={item.periodo}>
+                          <ListItem disableGutters>
+                            <ListItemText
+                              primary={`${item.periodo} • ${item.condicao}`}
+                              secondary={`Temp: ${item.temp}°C • Chuva: ${item.chuva}%`}
+                            />
+                          </ListItem>
+                          {index < previsaoClimatica.length - 1 && <Divider />}
+                        </Box>
+                      ))}
+                    </List>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      Histórico climático correlacionado
+                    </Typography>
+                    <List disablePadding>
+                      {historicoClimaticoCorrelacionado.map((item, index) => (
+                        <Box key={item.periodo}>
+                          <ListItem disableGutters>
+                            <ListItemText
+                              primary={`${item.periodo} • Produtividade ${item.produtividade}`}
+                              secondary={`${item.clima}. ${item.evento}`}
+                            />
+                          </ListItem>
+                          {index < historicoClimaticoCorrelacionado.length - 1 && <Divider />}
+                        </Box>
+                      ))}
+                    </List>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
           </Grid>
 
           <Grid item xs={12}>
