@@ -202,7 +202,10 @@ export const hortelanModules = [
     features: [
       'Feed de posts com texto/foto/vídeo, curtidas e comentários',
       'Grupos por interesse e base de conhecimento colaborativa',
-      'Compartilhamento de configurações e receitas de automação',
+      '13.1 Templates de cultivo: compartilhar configuração por espécie com parâmetros recomendados (umidade, luz e temperatura), rotinas de manejo e calendário sugerido',
+      '13.2 Templates de automação: compartilhar regras prontas, importar template para sua horta e adaptar parâmetros antes de aplicar',
+      '13.3 Receitas de solução de problemas: exemplos como “folhas amareladas em alface”, passo a passo recomendado, insumos sugeridos e evidências/fotos antes e depois',
+      '13.4 Avaliação de templates: curtidas, comentários, taxa de sucesso relatada e ranking de templates populares',
       'Moderação, anti-spam, reputação, selos e desafios',
     ],
   },
