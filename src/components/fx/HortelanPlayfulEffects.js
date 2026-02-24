@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 
 const FIRST_VISIT_KEY = 'hortelan:first-visit-effects-done';
 const MAX_CURSOR_TRAIL = 14;
+const ORBITERS = ['🛰️', '📡', '🤖', '🧠', '🌿', '💧'];
+
+function randomBetween(min, max) {
+  return min + Math.random() * (max - min);
+}
 
 function makeParticle(x, y, className, symbol) {
   const particle = document.createElement('span');
@@ -60,6 +65,22 @@ export default function HortelanPlayfulEffects() {
       node.style.setProperty('--hortelan-reveal-delay', `${Math.min(index * 30, 320)}ms`);
     });
 
+    const atmosphereLayer = document.createElement('div');
+    atmosphereLayer.className = 'hortelan-atmosphere-layer';
+    document.body.appendChild(atmosphereLayer);
+
+    const orbitNodes = ORBITERS.map((symbol, index) => {
+      const orbiter = document.createElement('span');
+      orbiter.className = 'hortelan-orbiter';
+      orbiter.textContent = symbol;
+      orbiter.style.setProperty('--hortelan-orbit-duration', `${12 + index * 2.4}s`);
+      orbiter.style.setProperty('--hortelan-orbit-radius', `${80 + index * 18}px`);
+      orbiter.style.setProperty('--hortelan-orbit-angle', `${index * (360 / ORBITERS.length)}deg`);
+      orbiter.style.setProperty('--hortelan-orbit-size', `${1.1 + index * 0.08}rem`);
+      atmosphereLayer.appendChild(orbiter);
+      return orbiter;
+    });
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -108,12 +129,23 @@ export default function HortelanPlayfulEffects() {
       setScrollProgress(Math.max(0, Math.min(currentProgress, 100)));
 
       document.body.style.setProperty('--hortelan-scroll-depth', `${Math.min(window.scrollY * 0.08, 32)}px`);
+      document.body.style.setProperty('--hortelan-scroll-energy', `${Math.min(currentProgress / 100, 1)}`);
 
       if (Math.random() > 0.86) {
         const x = Math.random() * window.innerWidth;
         const y = window.innerHeight - 40 - Math.random() * 180;
         const symbol = Math.random() > 0.5 ? '🍀' : '💧';
         makeParticle(x, y, 'hortelan-particle hortelan-particle--scroll', symbol);
+      }
+
+      if (Math.random() > 0.8) {
+        const raindrop = document.createElement('span');
+        raindrop.className = 'hortelan-rain-drop';
+        raindrop.textContent = Math.random() > 0.5 ? '💧' : '🫧';
+        raindrop.style.left = `${randomBetween(8, 92)}vw`;
+        raindrop.style.animationDuration = `${randomBetween(1.4, 2.4)}s`;
+        atmosphereLayer.appendChild(raindrop);
+        window.setTimeout(() => raindrop.remove(), 2600);
       }
 
       ticking = false;
@@ -132,7 +164,7 @@ export default function HortelanPlayfulEffects() {
     };
 
     const onClick = (event) => {
-      const symbols = ['🌿', '✨', '💧', '🌻', '🍓', '🥕'];
+      const symbols = ['🌿', '✨', '💧', '🌻', '🍓', '🥕', '📶', '🤖', '🛰️'];
       const symbol = symbols[Math.floor(Math.random() * symbols.length)];
 
       for (let i = 0; i < 5; i += 1) {
@@ -147,6 +179,15 @@ export default function HortelanPlayfulEffects() {
       if (clickable) {
         clickable.classList.remove('hortelan-click-pulse');
         window.requestAnimationFrame(() => clickable.classList.add('hortelan-click-pulse'));
+      }
+
+      if (Math.random() > 0.42) {
+        const ripple = document.createElement('span');
+        ripple.className = 'hortelan-water-ripple';
+        ripple.style.left = `${event.clientX}px`;
+        ripple.style.top = `${event.clientY}px`;
+        atmosphereLayer.appendChild(ripple);
+        window.setTimeout(() => ripple.remove(), 900);
       }
     };
 
@@ -163,11 +204,14 @@ export default function HortelanPlayfulEffects() {
       window.removeEventListener('click', onClick);
       observer.disconnect();
       trailDots.forEach((dot) => dot.remove());
+      orbitNodes.forEach((node) => node.remove());
+      atmosphereLayer.remove();
       sections.forEach((section) => {
         section.classList.remove('hortelan-scroll-reveal', 'hortelan-scroll-reveal--visible');
         section.style.removeProperty('--hortelan-reveal-delay');
       });
       document.body.style.removeProperty('--hortelan-scroll-depth');
+      document.body.style.removeProperty('--hortelan-scroll-energy');
     };
   }, []);
 
@@ -182,6 +226,57 @@ export default function HortelanPlayfulEffects() {
           body {
             background-position-y: var(--hortelan-scroll-depth, 0px);
             transition: background-position 180ms linear;
+          }
+
+          body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: calc(0.08 + var(--hortelan-scroll-energy, 0) * 0.16);
+            background: radial-gradient(circle at 10% 20%, rgba(111, 140, 255, 0.2), transparent 42%),
+              radial-gradient(circle at 80% 30%, rgba(23, 185, 120, 0.2), transparent 40%),
+              radial-gradient(circle at 35% 75%, rgba(18, 176, 201, 0.18), transparent 46%);
+            transition: opacity 180ms linear;
+          }
+
+          .hortelan-atmosphere-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1496;
+            overflow: hidden;
+          }
+
+          .hortelan-orbiter {
+            position: absolute;
+            left: 50%;
+            top: 18%;
+            font-size: var(--hortelan-orbit-size, 1.2rem);
+            animation: hortelan-orbit var(--hortelan-orbit-duration, 14s) linear infinite;
+            transform-origin: 0 0;
+            filter: drop-shadow(0 2px 8px rgba(18, 176, 201, 0.4));
+            opacity: 0.85;
+          }
+
+          .hortelan-rain-drop {
+            position: absolute;
+            top: -10%;
+            font-size: 1.05rem;
+            opacity: 0.8;
+            animation: hortelan-rain-fall 1.9s linear forwards;
+          }
+
+          .hortelan-water-ripple {
+            position: fixed;
+            width: 16px;
+            height: 16px;
+            transform: translate(-50%, -50%);
+            border-radius: 999px;
+            border: 2px solid rgba(18, 176, 201, 0.6);
+            box-shadow: 0 0 0 0 rgba(18, 176, 201, 0.3);
+            animation: hortelan-ripple 900ms ease-out forwards;
           }
 
           .hortelan-scroll-progress-track {
@@ -285,10 +380,49 @@ export default function HortelanPlayfulEffects() {
             }
           }
 
+          @keyframes hortelan-orbit {
+            from {
+              transform: rotate(var(--hortelan-orbit-angle, 0deg)) translateX(var(--hortelan-orbit-radius, 100px)) rotate(0deg);
+            }
+            to {
+              transform: rotate(calc(var(--hortelan-orbit-angle, 0deg) + 1turn)) translateX(var(--hortelan-orbit-radius, 100px)) rotate(-1turn);
+            }
+          }
+
+          @keyframes hortelan-rain-fall {
+            0% {
+              transform: translateY(-4vh) translateX(0) rotate(0deg);
+              opacity: 0;
+            }
+            20% {
+              opacity: 0.9;
+            }
+            100% {
+              transform: translateY(108vh) translateX(22px) rotate(8deg);
+              opacity: 0;
+            }
+          }
+
+          @keyframes hortelan-ripple {
+            0% {
+              transform: translate(-50%, -50%) scale(0.35);
+              opacity: 0.9;
+            }
+            100% {
+              transform: translate(-50%, -50%) scale(8);
+              opacity: 0;
+            }
+          }
+
           @media (prefers-reduced-motion: reduce) {
             .hortelan-scroll-progress-track,
             .hortelan-particle,
-            .hortelan-cursor-trail-dot {
+            .hortelan-cursor-trail-dot,
+            .hortelan-atmosphere-layer {
+              display: none;
+            }
+
+            body::before {
               display: none;
             }
           }
