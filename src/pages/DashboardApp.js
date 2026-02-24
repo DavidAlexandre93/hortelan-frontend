@@ -178,6 +178,16 @@ const pendingTasks = [
   { id: 'pt-5', titulo: 'Planejar poda de manutenção', prioridade: 'Baixa', horta: 'Estufa A' },
 ];
 
+const diasSemana = [
+  { value: 'seg', label: 'Seg' },
+  { value: 'ter', label: 'Ter' },
+  { value: 'qua', label: 'Qua' },
+  { value: 'qui', label: 'Qui' },
+  { value: 'sex', label: 'Sex' },
+  { value: 'sab', label: 'Sáb' },
+  { value: 'dom', label: 'Dom' },
+];
+
 export default function DashboardApp() {
   const theme = useTheme();
   const [region, setRegion] = useState('Sudeste');
@@ -198,6 +208,15 @@ export default function DashboardApp() {
     tarefasPendentes: true,
   });
   const [novaTarefaPorPlanta, setNovaTarefaPorPlanta] = useState({});
+  const [programacao, setProgramacao] = useState({
+    irrigacaoHora: '06:00',
+    iluminacaoInicio: '07:00',
+    iluminacaoFim: '19:00',
+    ventilacaoIntervalo: 30,
+    ventilacaoDuracao: 8,
+    recorrencia: ['seg', 'qua', 'sex'],
+  });
+  const [agendamentosAtivos, setAgendamentosAtivos] = useState([]);
 
   const opcoesEspecie = [
     'Alface Crespa',
@@ -427,6 +446,33 @@ export default function DashboardApp() {
           : planta
       )
     );
+  };
+
+  const atualizarProgramacao = (field, value) => {
+    setProgramacao((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const alternarDiaRecorrencia = (dia) => {
+    setProgramacao((prev) => ({
+      ...prev,
+      recorrencia: prev.recorrencia.includes(dia)
+        ? prev.recorrencia.filter((item) => item !== dia)
+        : [...prev.recorrencia, dia],
+    }));
+  };
+
+  const salvarProgramacao = () => {
+    if (!programacao.irrigacaoHora || !programacao.iluminacaoInicio || !programacao.iluminacaoFim || programacao.recorrencia.length === 0) {
+      return;
+    }
+
+    setAgendamentosAtivos((prev) => [
+      {
+        id: faker.datatype.uuid(),
+        ...programacao,
+      },
+      ...prev,
+    ]);
   };
 
   const janelaAtual = regionalSeasonality[region][novaPlanta.especie] || [];
@@ -766,6 +812,136 @@ export default function DashboardApp() {
                     </Alert>
                   ))}
                 </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" sx={{ mb: 1 }}>
+                  Programador de automações
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                  Configure rega por horário, iluminação por ciclo, ventilação periódica e calendários recorrentes.
+                </Typography>
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Rega por horário"
+                      type="time"
+                      value={programacao.irrigacaoHora}
+                      onChange={(event) => atualizarProgramacao('irrigacaoHora', event.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Iluminação - início"
+                      type="time"
+                      value={programacao.iluminacaoInicio}
+                      onChange={(event) => atualizarProgramacao('iluminacaoInicio', event.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Iluminação - fim"
+                      type="time"
+                      value={programacao.iluminacaoFim}
+                      onChange={(event) => atualizarProgramacao('iluminacaoFim', event.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Ventilação (intervalo min)"
+                      type="number"
+                      value={programacao.ventilacaoIntervalo}
+                      onChange={(event) => atualizarProgramacao('ventilacaoIntervalo', Number(event.target.value))}
+                      inputProps={{ min: 5 }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Ventilação (duração min)"
+                      type="number"
+                      value={programacao.ventilacaoDuracao}
+                      onChange={(event) => atualizarProgramacao('ventilacaoDuracao', Number(event.target.value))}
+                      inputProps={{ min: 1 }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={9}>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      Calendário recorrente
+                    </Typography>
+                    <Stack direction="row" flexWrap="wrap" gap={1}>
+                      {diasSemana.map((dia) => (
+                        <Chip
+                          key={dia.value}
+                          clickable
+                          color={programacao.recorrencia.includes(dia.value) ? 'primary' : 'default'}
+                          variant={programacao.recorrencia.includes(dia.value) ? 'filled' : 'outlined'}
+                          label={dia.label}
+                          onClick={() => alternarDiaRecorrencia(dia.value)}
+                        />
+                      ))}
+                    </Stack>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Button variant="contained" onClick={salvarProgramacao}>
+                      Salvar programação
+                    </Button>
+                  </Grid>
+                </Grid>
+
+                <Card variant="outlined" sx={{ mt: 3 }}>
+                  <CardContent>
+                    <Typography variant="subtitle1" sx={{ mb: 1.5 }}>
+                      Programações ativas
+                    </Typography>
+                    {agendamentosAtivos.length === 0 ? (
+                      <Typography variant="body2" color="text.secondary">
+                        Nenhuma programação salva ainda.
+                      </Typography>
+                    ) : (
+                      <Stack spacing={1.2}>
+                        {agendamentosAtivos.map((item) => (
+                          <Card key={item.id} variant="outlined">
+                            <CardContent sx={{ py: 1.5 }}>
+                              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} justifyContent="space-between">
+                                <Typography variant="body2">
+                                  Rega às <strong>{item.irrigacaoHora}</strong> • Luz de <strong>{item.iluminacaoInicio}</strong> até{' '}
+                                  <strong>{item.iluminacaoFim}</strong>
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  Ventilação a cada {item.ventilacaoIntervalo} min por {item.ventilacaoDuracao} min
+                                </Typography>
+                              </Stack>
+                              <Stack direction="row" flexWrap="wrap" gap={0.8} sx={{ mt: 1 }}>
+                                {item.recorrencia.map((dia) => (
+                                  <Chip key={`${item.id}-${dia}`} size="small" label={diasSemana.find((opt) => opt.value === dia)?.label || dia} />
+                                ))}
+                              </Stack>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </Stack>
+                    )}
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
           </Grid>
