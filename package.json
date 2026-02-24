@@ -11,6 +11,7 @@
     "test": "echo \"No test runner configured\" && exit 0",
     "lint": "eslint --ext .js,.jsx ./src",
     "lint:fix": "eslint --fix --ext .js,.jsx ./src",
+    "audit:frontend": "node scripts/frontend-audit.mjs",
     "clear-all": "rm -rf build node_modules dist",
     "re-start": "rm -rf build node_modules dist && npm install && npm run dev",
     "re-build": "rm -rf build node_modules dist && npm install && npm run build",
