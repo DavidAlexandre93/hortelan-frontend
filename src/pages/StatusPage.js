@@ -167,6 +167,10 @@ function randomItem(items) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
+  dateStyle: 'short',
+  timeStyle: 'medium',
+});
 export default function StatusPage() {
   const [selectedArea, setSelectedArea] = useState('all');
   const [events, setEvents] = useState([]);
@@ -344,6 +348,15 @@ const getPlantSensorIncidents = (plant, area) => {
 const severityRank = { high: 3, medium: 2, low: 1 };
 
 export default function StatusPage() {
+  const initialManualStatus = useMemo(
+    () =>
+      greenhouseAreas.flatMap((area) => area.plants).reduce((acc, plant) => {
+        acc[plant.id] = plant.manualStatus;
+        return acc;
+      }, {}),
+    []
+  );
+  const [manualPlantStatus, setManualPlantStatus] = useState(initialManualStatus);
   const [measurementsByDevice, setMeasurementsByDevice] = useState(() => buildInitialMeasurements());
   const [lastRefreshAt, setLastRefreshAt] = useState(new Date().toISOString());
   const [selectedArea, setSelectedArea] = useState('all');
@@ -870,6 +883,7 @@ export default function StatusPage() {
                             </Card>
                           );
                         })}
+
                         {scopedDevices.map((device) => {
                           const measurement = measurementsByDevice[device.id];
 
