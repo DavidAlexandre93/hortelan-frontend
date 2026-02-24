@@ -21,12 +21,14 @@ import { LoadingButton } from "@mui/lab";
 import Iconify from "../../../components/Iconify";
 import { FormProvider, RHFTextField } from "../../../components/hook-form";
 import { evaluatePasswordPolicy } from "../../../auth/securityPolicy";
+import { registerWithBackend } from "../../../services/authApi";
 
 // ----------------------------------------------------------------------
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   const RegisterSchema = Yup.object().shape({
     name: Yup.string().required("Nome é obrigatório"),
@@ -72,14 +74,22 @@ export default function RegisterForm() {
     formState: { isSubmitting, errors },
   } = methods;
 
-  const onSubmit = async ({ email }) => {
-    setVerificationEmail(email);
-    reset();
+  const onSubmit = async ({ name, email, phone, password, acceptedTerms }) => {
+    setSubmitError("");
+
+    try {
+      await registerWithBackend({ name, email, phone, password, acceptedTerms });
+      setVerificationEmail(email);
+      reset();
+    } catch (error) {
+      setSubmitError(error.message || "Não foi possível concluir o cadastro.");
+    }
   };
 
   if (verificationEmail) {
     return (
       <Stack spacing={3}>
+        {submitError && <Alert severity="error">{submitError}</Alert>}
         <Alert severity="success">
           Cadastro realizado com sucesso! Enviamos um link de verificação para{" "}
           <strong>{verificationEmail}</strong>. Confirme seu e-mail para ativar
@@ -101,6 +111,7 @@ export default function RegisterForm() {
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
+        {submitError && <Alert severity="error">{submitError}</Alert>}
         <RHFTextField name="name" label="Nome completo" />
 
         <RHFTextField name="email" label="E-mail" />

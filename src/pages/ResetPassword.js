@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
@@ -8,6 +8,7 @@ import { LoadingButton } from '@mui/lab';
 import Page from '../components/Page';
 import { FormProvider, RHFTextField } from '../components/hook-form';
 import { resetPasswordWithToken, validatePasswordResetToken } from '../auth/session';
+import { resetPasswordWithBackend, validateResetTokenWithBackend } from '../services/authApi';
 import { evaluatePasswordPolicy } from '../auth/securityPolicy';
 
 export default function ResetPassword() {
@@ -16,7 +17,35 @@ export default function ResetPassword() {
 
   const token = searchParams.get('token') || '';
 
-  const tokenValidation = useMemo(() => validatePasswordResetToken(token), [token]);
+  const [tokenValidation, setTokenValidation] = useState({ valid: Boolean(token), error: token ? '' : 'Token inválido' });
+
+  useEffect(() => {
+    let active = true;
+
+    const validateToken = async () => {
+      if (!token) {
+        setTokenValidation({ valid: false, error: 'Token inválido' });
+        return;
+      }
+
+      try {
+        const result = await validateResetTokenWithBackend(token);
+        if (active) {
+          setTokenValidation(result);
+        }
+      } catch (error) {
+        if (active) {
+          setTokenValidation(validatePasswordResetToken(token));
+        }
+      }
+    };
+
+    validateToken();
+
+    return () => {
+      active = false;
+    };
+  }, [token]);
 
   const ResetPasswordSchema = Yup.object().shape({
     password: Yup.string()
@@ -38,8 +67,17 @@ export default function ResetPassword() {
   } = methods;
 
   const onSubmit = async ({ password }) => {
-    const result = resetPasswordWithToken({ token, newPassword: password });
-    setSubmitStatus(result.error ? { type: 'error', message: result.error } : { type: 'success' });
+    try {
+      await resetPasswordWithBackend({ token, password });
+      setSubmitStatus({ type: 'success' });
+    } catch (error) {
+      const fallback = resetPasswordWithToken({ token, newPassword: password });
+      setSubmitStatus(
+        fallback.error
+          ? { type: 'error', message: error.message || fallback.error }
+          : { type: 'success' }
+      );
+    }
   };
 
   return (

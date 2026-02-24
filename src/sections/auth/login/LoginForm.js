@@ -58,7 +58,7 @@ export default function LoginForm() {
   const onSubmit = async ({ email, password, remember, trustDevice, deviceName, twoFactorCode }) => {
     setSubmitError('');
 
-    const result = login({
+    const result = await login({
       email,
       password,
       remember,
