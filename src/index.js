@@ -10,6 +10,7 @@ import * as Sentry from '@sentry/react';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import { tryLoadAndStartRecorder } from '@alwaysmeticulous/recorder-loader';
+import { initReliabilityTelemetry } from './services/platformReliability';
 
 // ----------------------------------------------------------------------
 
@@ -40,6 +41,7 @@ function isProduction() {
 }
 
 startApp();
+initReliabilityTelemetry();
 
 Sentry.init({
   dsn: 'https://f7d0115af398cb54893ae4664e744519@o4506036623114240.ingest.sentry.io/4506036634976256',
