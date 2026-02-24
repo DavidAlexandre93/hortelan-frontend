@@ -9,7 +9,6 @@ import * as Sentry from '@sentry/react';
 //
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-import reportWebVitals from './reportWebVitals';
 import { tryLoadAndStartRecorder } from '@alwaysmeticulous/recorder-loader';
 
 // ----------------------------------------------------------------------
@@ -37,7 +36,7 @@ async function startApp() {
 }
 
 function isProduction() {
-  return window.location.hostname.indexOf('https://hortelan-frontend.vercel.app/dashboard/app') > -1;
+  return window.location.hostname.includes('hortelan-frontend.vercel.app');
 }
 
 startApp();
@@ -70,4 +69,3 @@ if (rootElement.hasChildNodes()) {
 }
 
 serviceWorker.unregister();
-reportWebVitals();
