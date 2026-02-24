@@ -133,6 +133,44 @@ const historyTypeLabel = {
   photo: 'Foto',
 };
 
+const institutionalUnits = [
+  {
+    unit: 'Escola Municipal Aurora',
+    profile: 'Coordenador',
+    gardens: 6,
+    activeParticipants: 128,
+    resourcesUsage: 'Água 1.240 L • Energia 93 kWh',
+    productionHarvest: '84 kg colhidos no mês',
+    sustainabilityEducation: '12 oficinas • 96% de presença média',
+  },
+  {
+    unit: 'Condomínio Jardim das Flores',
+    profile: 'Operador local',
+    gardens: 4,
+    activeParticipants: 42,
+    resourcesUsage: 'Água 690 L • Energia 41 kWh',
+    productionHarvest: '38 kg colhidos no mês',
+    sustainabilityEducation: '8 mutirões • 72 famílias envolvidas',
+  },
+  {
+    unit: 'Projeto Social Semeando Futuro',
+    profile: 'Monitor',
+    gardens: 5,
+    activeParticipants: 67,
+    resourcesUsage: 'Água 910 L • Energia 58 kWh',
+    productionHarvest: '53 kg colhidos no mês',
+    sustainabilityEducation: '15 aulas práticas • 4 trilhas ativas',
+  },
+];
+
+const institutionalProfiles = ['Coordenador', 'Monitor', 'Operador local', 'Visualizador/Gestor'];
+
+const educationalModuleFutureScope = [
+  'Trilhas de atividades por faixa etária e objetivo pedagógico',
+  'Conteúdo pedagógico alinhado à BNCC e metas ESG institucionais',
+  'Registro de atividades em sala/projeto com fotos, presença e evidências',
+];
+
 function downloadFile(content, filename, mimeType) {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
@@ -262,6 +300,7 @@ export default function Reports() {
                 <Tab value="operacional" label="Relatórios operacionais" />
                 <Tab value="cultivo" label="Relatórios de cultivo" />
                 <Tab value="manutencao" label="Relatórios de manutenção" />
+                <Tab value="institucional" label="Relatórios institucionais" />
                 <Tab value="historico" icon={<TimelineRoundedIcon />} iconPosition="start" label="Histórico unificado" />
               </Tabs>
 
@@ -334,6 +373,62 @@ export default function Reports() {
                     </Grid>
                   ))}
                 </Grid>
+              )}
+
+              {tab === 'institucional' && (
+                <Stack spacing={2}>
+                  <Alert severity="success">
+                    Visão institucional com múltiplas unidades (escolas, condomínios, empresas e projetos sociais) em um painel consolidado.
+                  </Alert>
+
+                  <Card variant="outlined">
+                    <CardContent>
+                      <Stack spacing={1}>
+                        <Typography variant="h6">Perfis institucionais</Typography>
+                        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                          {institutionalProfiles.map((profile) => (
+                            <Chip key={profile} label={profile} color="primary" variant="outlined" />
+                          ))}
+                        </Stack>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+
+                  <Grid container spacing={2}>
+                    {institutionalUnits.map((row) => (
+                      <Grid item xs={12} md={4} key={row.unit}>
+                        <Card variant="outlined" sx={{ height: '100%' }}>
+                          <CardContent>
+                            <Stack spacing={1}>
+                              <Typography variant="h6">{row.unit}</Typography>
+                              <Chip label={`Perfil responsável: ${row.profile}`} size="small" sx={{ alignSelf: 'flex-start' }} />
+                              <Typography>Hortas monitoradas: {row.gardens}</Typography>
+                              <Typography>Engajamento: {row.activeParticipants} participantes ativos</Typography>
+                              <Typography>Uso de recursos: {row.resourcesUsage}</Typography>
+                              <Typography>Produção/colheita: {row.productionHarvest}</Typography>
+                              <Typography>Sustentabilidade/educação: {row.sustainabilityEducation}</Typography>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+
+                  <Card variant="outlined">
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>
+                        Módulo educacional (fase futura)
+                      </Typography>
+                      <List dense>
+                        {educationalModuleFutureScope.map((item) => (
+                          <ListItem key={item} sx={{ px: 0 }}>
+                            <ListItemText primary={`• ${item}`} />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </CardContent>
+                  </Card>
+                </Stack>
               )}
 
               {tab === 'historico' && (
