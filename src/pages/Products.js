@@ -133,34 +133,142 @@ export default function ProductsMarketplace() {
       const heroTitle = selector('.gsap-hero-title')[0];
       const heroSubtitle = selector('.gsap-hero-subtitle')[0];
       const heroBanner = selector('.gsap-hero-banner')[0];
+      const heroWrapper = selector('.gsap-hero-banner-wrapper')[0];
       const chips = selector('.gsap-category-chip');
       const storyCards = selector('.gsap-story-card');
-      const storySection = selector('.gsap-story-section')[0];
+      const storyRows = selector('.gsap-product-row');
+      const glowButtons = selector('.gsap-glow-button');
+      const kineticOrbs = selector('.gsap-float-orb');
+      const revealSections = selector('.gsap-reveal-section');
+      const cleanupCallbacks = [];
+      const animations = [];
 
       const animateIn = (element, delay, offset = 24, duration = 700) => {
         if (!element) return;
-        element.animate(
-          [
-            { opacity: 0, transform: `translateY(${offset}px)` },
-            { opacity: 1, transform: 'translateY(0px)' },
-          ],
-          { duration, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', delay, fill: 'forwards' }
+        animations.push(
+          element.animate(
+            [
+              { opacity: 0, transform: `translateY(${offset}px)` },
+              { opacity: 1, transform: 'translateY(0px)' },
+            ],
+            { duration, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', delay, fill: 'forwards' }
+          )
         );
+      };
+
+      const addMagneticHover = (element, strength = 8) => {
+        if (!element) return;
+        const onMove = (event) => {
+          const rect = element.getBoundingClientRect();
+          const x = ((event.clientX - rect.left) / rect.width - 0.5) * strength;
+          const y = ((event.clientY - rect.top) / rect.height - 0.5) * strength;
+          element.style.transform = `translate(${x}px, ${y}px)`;
+        };
+
+        const onLeave = () => {
+          element.style.transform = 'translate(0px, 0px)';
+        };
+
+        element.addEventListener('pointermove', onMove);
+        element.addEventListener('pointerleave', onLeave);
+        cleanupCallbacks.push(() => {
+          element.removeEventListener('pointermove', onMove);
+          element.removeEventListener('pointerleave', onLeave);
+          element.style.transform = '';
+        });
       };
 
       animateIn(heroTitle, 0, 34);
       animateIn(heroSubtitle, 140, 24);
       animateIn(heroBanner, 260, 22);
-      chips.forEach((chip, index) => animateIn(chip, 310 + index * 35, 12));
+      chips.forEach((chip, index) => {
+        animateIn(chip, 310 + index * 35, 12);
+        addMagneticHover(chip, 6);
+      });
+      storyCards.forEach((card, index) => animateIn(card, 520 + index * 120, 32, 800));
 
-      if (storySection) {
-        storyCards.forEach((card, index) => animateIn(card, 520 + index * 120, 32, 800));
+      kineticOrbs.forEach((orb, index) => {
+        animations.push(
+          orb.animate(
+            [
+              { transform: 'translate3d(0px, 0px, 0px) scale(1)', opacity: 0.3 },
+              { transform: `translate3d(${index % 2 === 0 ? 16 : -16}px, -20px, 0px) scale(1.16)`, opacity: 0.65 },
+              { transform: 'translate3d(0px, 0px, 0px) scale(1)', opacity: 0.3 },
+            ],
+            { duration: 2800 + index * 700, easing: 'ease-in-out', iterations: Infinity }
+          )
+        );
+      });
+
+      glowButtons.forEach((button, index) => {
+        animations.push(
+          button.animate(
+            [
+              { boxShadow: '0 0 0 rgba(34, 197, 94, 0)', transform: 'translateY(0px)' },
+              { boxShadow: '0 12px 28px rgba(34, 197, 94, 0.35)', transform: 'translateY(-1px)' },
+              { boxShadow: '0 0 0 rgba(34, 197, 94, 0)', transform: 'translateY(0px)' },
+            ],
+            { duration: 2100 + index * 220, easing: 'ease-in-out', iterations: Infinity }
+          )
+        );
+      });
+
+      storyRows.forEach((row) => addMagneticHover(row, 12));
+
+      if (heroWrapper) {
+        const onHeroMove = (event) => {
+          const rect = heroWrapper.getBoundingClientRect();
+          const x = ((event.clientX - rect.left) / rect.width - 0.5) * 10;
+          const y = ((event.clientY - rect.top) / rect.height - 0.5) * 8;
+          heroWrapper.style.transform = `perspective(1400px) rotateX(${-y}deg) rotateY(${x}deg)`;
+        };
+
+        const onHeroLeave = () => {
+          heroWrapper.style.transform = 'perspective(1400px) rotateX(0deg) rotateY(0deg)';
+        };
+
+        heroWrapper.addEventListener('pointermove', onHeroMove);
+        heroWrapper.addEventListener('pointerleave', onHeroLeave);
+        cleanupCallbacks.push(() => {
+          heroWrapper.removeEventListener('pointermove', onHeroMove);
+          heroWrapper.removeEventListener('pointerleave', onHeroLeave);
+          heroWrapper.style.transform = '';
+        });
       }
 
+      const observer =
+        typeof IntersectionObserver !== 'undefined'
+          ? new IntersectionObserver(
+              (entries) => {
+                entries.forEach((entry) => {
+                  if (!entry.isIntersecting) return;
+                  animations.push(
+                    entry.target.animate(
+                      [
+                        { opacity: 0, transform: 'translateY(24px) scale(0.98)' },
+                        { opacity: 1, transform: 'translateY(0px) scale(1)' },
+                      ],
+                      { duration: 700, fill: 'forwards', easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' }
+                    )
+                  );
+                  observer.unobserve(entry.target);
+                });
+              },
+              { threshold: 0.22 }
+            )
+          : null;
+
+      revealSections.forEach((section) => {
+        if (!observer) return;
+        section.style.opacity = '0';
+        observer.observe(section);
+      });
+
       return () => {
+        cleanupCallbacks.forEach((cleanup) => cleanup());
+        animations.forEach((animation) => animation.cancel());
+        if (observer) observer.disconnect();
         if (!root) return;
-        const animatedElements = [heroTitle, heroSubtitle, heroBanner, ...chips, ...storyCards].filter(Boolean);
-        animatedElements.forEach((element) => element.getAnimations().forEach((animation) => animation.cancel()));
       };
     },
     { scope: rootRef }
@@ -168,7 +276,9 @@ export default function ProductsMarketplace() {
 
   return (
     <Page title="Marketplace Hortelan Agtech Ltda">
-      <Container ref={rootRef}>
+      <Container ref={rootRef} sx={{ position: 'relative', overflow: 'hidden' }}>
+        <Box className="gsap-float-orb" sx={{ position: 'absolute', top: 120, right: -24, width: 120, height: 120, borderRadius: '50%', bgcolor: 'success.light', filter: 'blur(18px)', opacity: 0.28, pointerEvents: 'none' }} />
+        <Box className="gsap-float-orb" sx={{ position: 'absolute', top: 340, left: -34, width: 140, height: 140, borderRadius: '50%', bgcolor: 'primary.light', filter: 'blur(22px)', opacity: 0.24, pointerEvents: 'none' }} />
         <Stack spacing={1} sx={{ mb: 3 }}>
           <Typography className="gsap-hero-title" variant="h4">
             <GSAPTypingText
@@ -215,7 +325,7 @@ export default function ProductsMarketplace() {
           ))}
         </Stack>
 
-        <Paper sx={{ p: 2, mb: 3 }}>
+        <Paper className="gsap-reveal-section" sx={{ p: 2, mb: 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
               <TextField
@@ -295,7 +405,7 @@ export default function ProductsMarketplace() {
                 </Typography>
                 <Stack spacing={1.5}>
                   {filteredProducts.map((product) => (
-                    <Paper key={product.id} variant="outlined" sx={{ p: 1.5 }}>
+                    <Paper key={product.id} className="gsap-product-row" variant="outlined" sx={{ p: 1.5, transition: 'transform 220ms ease' }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
                         <Box>
                           <Typography variant="subtitle2">{product.nome}</Typography>
@@ -305,10 +415,10 @@ export default function ProductsMarketplace() {
                           <Typography variant="body2">R$ {product.preco.toFixed(2)}</Typography>
                         </Box>
                         <Stack direction="row" spacing={1}>
-                          <Button size="small" onClick={() => setSelectedProductId(product.id)}>
+                          <Button size="small" className="gsap-glow-button" onClick={() => setSelectedProductId(product.id)}>
                             Detalhes
                           </Button>
-                          <Button size="small" variant="contained" onClick={() => addToCart(product.id)}>
+                          <Button size="small" variant="contained" className="gsap-glow-button" onClick={() => addToCart(product.id)}>
                             Adicionar
                           </Button>
                         </Stack>
@@ -375,7 +485,7 @@ export default function ProductsMarketplace() {
           </Grid>
         </Grid>
 
-        <Grid container spacing={3} sx={{ mt: 1 }}>
+        <Grid className="gsap-reveal-section" container spacing={3} sx={{ mt: 1 }}>
           <Grid item xs={12} md={5}>
             <Card>
               <CardContent>
@@ -422,7 +532,7 @@ export default function ProductsMarketplace() {
                   onChange={(event) => setCep(event.target.value)}
                   sx={{ mt: 2 }}
                 />
-                <Button fullWidth variant="outlined" sx={{ mt: 2 }}>
+                <Button fullWidth className="gsap-glow-button" variant="outlined" sx={{ mt: 2 }}>
                   Salvar carrinho
                 </Button>
 
@@ -482,7 +592,7 @@ export default function ProductsMarketplace() {
                 <Alert icon={<PaidIcon />} severity="info" sx={{ mt: 2 }}>
                   Resumo do pedido: {cartItemsDetailed.length} itens, total de R$ {total.toFixed(2)}.
                 </Alert>
-                <Button fullWidth variant="contained" sx={{ mt: 2 }}>
+                <Button fullWidth className="gsap-glow-button" variant="contained" sx={{ mt: 2 }}>
                   Confirmar pedido
                 </Button>
               </CardContent>
@@ -490,7 +600,7 @@ export default function ProductsMarketplace() {
           </Grid>
         </Grid>
 
-        <Grid container spacing={3} sx={{ mt: 1, mb: 4 }}>
+        <Grid className="gsap-reveal-section" container spacing={3} sx={{ mt: 1, mb: 4 }}>
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
