@@ -8,6 +8,7 @@ import { LoadingButton } from '@mui/lab';
 import Page from '../components/Page';
 import { FormProvider, RHFTextField } from '../components/hook-form';
 import { requestPasswordReset } from '../auth/session';
+import { requestResetWithBackend } from '../services/authApi';
 
 export default function ForgotPassword() {
   const [response, setResponse] = useState(null);
@@ -27,8 +28,13 @@ export default function ForgotPassword() {
   } = methods;
 
   const onSubmit = async ({ email }) => {
-    const result = requestPasswordReset(email);
-    setResponse(result);
+    try {
+      const result = await requestResetWithBackend(email);
+      setResponse(result);
+    } catch (error) {
+      const fallback = requestPasswordReset(email);
+      setResponse({ ...fallback, message: error.message || fallback.message });
+    }
   };
 
   return (

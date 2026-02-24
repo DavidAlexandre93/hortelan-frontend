@@ -34,6 +34,25 @@ yarn dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 
+## Backend API
+
+O frontend agora tenta autenticar usando os endpoints do backend via `VITE_API_BASE_URL`.
+
+Crie um arquivo `.env` com:
+
+```bash
+VITE_API_BASE_URL=http://localhost:3001
+```
+
+Endpoints utilizados no frontend:
+
+- `POST /auth/login`
+- `POST /auth/social-login`
+- `POST /auth/register`
+- `POST /auth/forgot-password`
+- `GET /auth/validate-reset-token?token=...`
+- `POST /auth/reset-password`
+
 
 ## Blockchain + SSR
 

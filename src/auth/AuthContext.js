@@ -25,6 +25,7 @@ import {
   updateAuthenticatedUserProfile,
   updateTwoFactorSettings,
 } from './session';
+import { loginWithBackend, socialLoginWithBackend } from '../services/authApi';
 
 export const AuthContext = createContext(null);
 
@@ -53,16 +54,30 @@ export function AuthProvider({ children }) {
     refreshAuthState();
   }, [refreshAuthState]);
 
-  const login = useCallback(({ email, password, remember, trustDevice, deviceName, challengeId, twoFactorCode }) => {
-    const result = loginWithEmailAndPassword({
-      email,
-      password,
-      remember,
-      trustDevice,
-      deviceName,
-      challengeId,
-      twoFactorCode,
-    });
+  const login = useCallback(async ({ email, password, remember, trustDevice, deviceName, challengeId, twoFactorCode }) => {
+    let result;
+
+    try {
+      result = await loginWithBackend({
+        email,
+        password,
+        remember,
+        trustDevice,
+        deviceName,
+        challengeId,
+        twoFactorCode,
+      });
+    } catch (error) {
+      result = loginWithEmailAndPassword({
+        email,
+        password,
+        remember,
+        trustDevice,
+        deviceName,
+        challengeId,
+        twoFactorCode,
+      });
+    }
 
     if (result.error || result.requiresTwoFactor) {
       return result;
@@ -87,8 +102,14 @@ export function AuthProvider({ children }) {
     refreshAuthState();
   }, [refreshAuthState]);
 
-  const loginWithSocial = useCallback(({ provider, remember, trustDevice, deviceName }) => {
-    const result = loginWithSocialProvider({ provider, remember, trustDevice, deviceName });
+  const loginWithSocial = useCallback(async ({ provider, remember, trustDevice, deviceName }) => {
+    let result;
+
+    try {
+      result = await socialLoginWithBackend({ provider, remember, trustDevice, deviceName });
+    } catch (error) {
+      result = loginWithSocialProvider({ provider, remember, trustDevice, deviceName });
+    }
 
     if (result.error || result.requiresTwoFactor) {
       return result;
