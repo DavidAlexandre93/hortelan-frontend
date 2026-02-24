@@ -63,6 +63,7 @@ const navConfig = [
     path: '/dashboard/assinaturas',
     icon: getIcon('eva:credit-card-fill'),
   },
+  {
     title: 'central de ajuda',
     path: '/dashboard/suporte',
     icon: getIcon('eva:question-mark-circle-fill'),

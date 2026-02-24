@@ -1,3 +1,5 @@
+import { evaluatePasswordPolicy } from './securityPolicy';
+
 const AUTH_STORAGE_KEY = 'hortelan-auth';
 const SESSION_STORAGE_KEY = 'hortelan-auth-session-id';
 const ACTIVE_SESSIONS_KEY = 'hortelan-active-sessions';
@@ -9,10 +11,16 @@ const MFA_CHALLENGES_KEY = 'hortelan-mfa-challenges';
 const TRUSTED_DEVICES_KEY = 'hortelan-trusted-devices';
 const CONSENTS_KEY = 'hortelan-consents';
 const ACCOUNT_DELETION_REQUESTS_KEY = 'hortelan-account-deletion-requests';
+const CONSENT_LOGS_KEY = 'hortelan-consent-logs';
+const LOGIN_RATE_LIMIT_KEY = 'hortelan-login-rate-limit';
 const DEVICE_STORAGE_KEY = 'hortelan-device-id';
 const RESET_TOKEN_EXPIRY_MINUTES = 30;
 const MFA_CODE_EXPIRY_MINUTES = 5;
 const TRUSTED_DEVICE_EXPIRY_DAYS = 30;
+const SESSION_IDLE_TIMEOUT_MINUTES = 30;
+const LOGIN_RATE_LIMIT_WINDOW_MINUTES = 10;
+const LOGIN_RATE_LIMIT_MAX_ATTEMPTS = 5;
+const DATA_RETENTION_DAYS = 365;
 
 const GARDEN_ROLE_DEFAULT_PERMISSIONS = {
   owner: { automation: true, purchases: true, reports: true, community: true },
@@ -229,9 +237,12 @@ const INITIAL_MFA_SETTINGS = {
 
 const INITIAL_CONSENTS = {
   'admin-1': {
+    cookies: true,
     marketing: false,
     analytics: true,
     communications: true,
+    notifications: false,
+    privacyMode: 'balanced',
     updatedAt: new Date().toISOString(),
   },
 };
@@ -320,6 +331,82 @@ const saveAccountDeletionRequestsStore = (requests) => {
   localStorage.setItem(ACCOUNT_DELETION_REQUESTS_KEY, JSON.stringify(requests));
 };
 
+
+const getConsentLogsStore = () => getLocalJson(CONSENT_LOGS_KEY, []);
+
+const saveConsentLogsStore = (logs) => {
+  localStorage.setItem(CONSENT_LOGS_KEY, JSON.stringify(logs));
+};
+
+const getLoginRateLimitStore = () => getLocalJson(LOGIN_RATE_LIMIT_KEY, {});
+
+const saveLoginRateLimitStore = (store) => {
+  localStorage.setItem(LOGIN_RATE_LIMIT_KEY, JSON.stringify(store));
+};
+
+const getRateLimitStatus = (email) => {
+  const normalizedEmail = `${email || ''}`.trim().toLowerCase();
+
+  if (!normalizedEmail) {
+    return { blocked: false, remainingAttempts: LOGIN_RATE_LIMIT_MAX_ATTEMPTS };
+  }
+
+  const store = getLoginRateLimitStore();
+  const attempt = store[normalizedEmail] || { failedAttempts: [], blockedUntil: null };
+  const now = Date.now();
+  const windowStart = now - LOGIN_RATE_LIMIT_WINDOW_MINUTES * 60 * 1000;
+  const failedAttempts = (attempt.failedAttempts || []).filter((ts) => ts > windowStart);
+  const blockedUntilMs = attempt.blockedUntil ? new Date(attempt.blockedUntil).getTime() : null;
+
+  if (blockedUntilMs && blockedUntilMs > now) {
+    const remainingSeconds = Math.ceil((blockedUntilMs - now) / 1000);
+    return { blocked: true, remainingSeconds, remainingAttempts: 0 };
+  }
+
+  return {
+    blocked: false,
+    remainingAttempts: Math.max(LOGIN_RATE_LIMIT_MAX_ATTEMPTS - failedAttempts.length, 0),
+  };
+};
+
+const registerFailedLoginAttempt = (email) => {
+  const normalizedEmail = `${email || ''}`.trim().toLowerCase();
+
+  if (!normalizedEmail) {
+    return;
+  }
+
+  const now = Date.now();
+  const windowStart = now - LOGIN_RATE_LIMIT_WINDOW_MINUTES * 60 * 1000;
+  const store = getLoginRateLimitStore();
+  const current = store[normalizedEmail] || { failedAttempts: [], blockedUntil: null };
+  const failedAttempts = (current.failedAttempts || []).filter((ts) => ts > windowStart);
+  failedAttempts.push(now);
+
+  const shouldBlock = failedAttempts.length >= LOGIN_RATE_LIMIT_MAX_ATTEMPTS;
+  store[normalizedEmail] = {
+    failedAttempts,
+    blockedUntil: shouldBlock ? new Date(now + LOGIN_RATE_LIMIT_WINDOW_MINUTES * 60 * 1000).toISOString() : null,
+  };
+
+  saveLoginRateLimitStore(store);
+};
+
+const clearLoginRateLimit = (email) => {
+  const normalizedEmail = `${email || ''}`.trim().toLowerCase();
+
+  if (!normalizedEmail) {
+    return;
+  }
+
+  const store = getLoginRateLimitStore();
+
+  if (store[normalizedEmail]) {
+    delete store[normalizedEmail];
+    saveLoginRateLimitStore(store);
+  }
+};
+
 const appendPasswordHistory = ({ user, method, changedBy }) => {
   const history = getPasswordHistory();
   history.push({
@@ -347,7 +434,29 @@ const getCurrentSession = () => {
     return null;
   }
 
-  return getActiveSessions().find((session) => session.id === sessionId) || null;
+  const sessions = getActiveSessions();
+  const session = sessions.find((item) => item.id === sessionId);
+
+  if (!session) {
+    return null;
+  }
+
+  const lastActivityMs = new Date(session.lastActiveAt || session.createdAt).getTime();
+  const timedOut = Date.now() - lastActivityMs > SESSION_IDLE_TIMEOUT_MINUTES * 60 * 1000;
+
+  if (timedOut) {
+    saveActiveSessions(sessions.filter((item) => item.id !== sessionId));
+    clearCurrentSessionId();
+    return null;
+  }
+
+  const updatedSession = {
+    ...session,
+    lastActiveAt: new Date().toISOString(),
+  };
+
+  saveActiveSessions(sessions.map((item) => (item.id === sessionId ? updatedSession : item)));
+  return updatedSession;
 };
 
 const getCurrentDeviceId = () => {
@@ -463,10 +572,24 @@ export const loginWithEmailAndPassword = ({
   challengeId,
   twoFactorCode,
 }) => {
+  const rateLimit = getRateLimitStatus(email);
+
+  if (rateLimit.blocked) {
+    return {
+      error: `Muitas tentativas de login. Tente novamente em ${rateLimit.remainingSeconds}s.`,
+      rateLimit,
+    };
+  }
+
   const user = getUserByCredentials({ email, password });
 
   if (!user) {
-    return { error: 'Credenciais inválidas. Use admin@hortelan.com / admin123.' };
+    registerFailedLoginAttempt(email);
+    const nextRateLimit = getRateLimitStatus(email);
+    return {
+      error: `Credenciais inválidas. Tentativas restantes: ${nextRateLimit.remainingAttempts}.`,
+      rateLimit: nextRateLimit,
+    };
   }
 
   if (user.isActive === false) {
@@ -506,6 +629,15 @@ export const loginWithEmailAndPassword = ({
     userAgent: navigator.userAgent,
     authMethod: 'password',
     trustedDeviceId: currentDeviceId,
+    deviceBinding: {
+      deviceId: currentDeviceId,
+      userAgent: navigator.userAgent,
+      status: 'active',
+      revokedAt: null,
+      revokedReason: null,
+      credentialVersion: 1,
+      credentialRotatedAt: now,
+    },
   };
 
   const sessions = getActiveSessions().filter((session) => session.userId !== user.id || session.id !== sessionId);
@@ -517,6 +649,8 @@ export const loginWithEmailAndPassword = ({
   const safeUser = buildSafeUser(user);
 
   persistAuthUser(safeUser, remember);
+
+  clearLoginRateLimit(email);
 
   if (trustDevice) {
     const currentName = deviceName?.trim() || getDefaultDeviceName();
@@ -531,6 +665,11 @@ export const loginWithEmailAndPassword = ({
       expiresAt,
       lastUsedAt: now,
       userAgent: navigator.userAgent,
+      status: 'active',
+      revokedAt: null,
+      revokedReason: null,
+      credentialVersion: 1,
+      credentialRotatedAt: now,
     });
     saveTrustedDevicesStore(devices);
   }
@@ -588,18 +727,24 @@ export const getUserConsents = () => {
 
   if (!user) {
     return {
+      cookies: false,
       marketing: false,
       analytics: false,
       communications: false,
+      notifications: false,
+      privacyMode: 'restricted',
       updatedAt: null,
     };
   }
 
   return (
     getConsentsMap()[user.id] || {
+      cookies: true,
       marketing: false,
       analytics: true,
       communications: true,
+      notifications: false,
+      privacyMode: 'balanced',
       updatedAt: null,
     }
   );
@@ -620,6 +765,17 @@ export const updateUserConsents = (nextConsents) => {
   };
 
   saveConsentsMap(consents);
+
+  const consentLogs = getConsentLogsStore();
+  consentLogs.push({
+    id: `consent-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    userId: user.id,
+    changedAt: new Date().toISOString(),
+    payload: nextConsents,
+    effectiveConsents: consents[user.id],
+  });
+  saveConsentLogsStore(consentLogs);
+
   return { success: true, consents: consents[user.id] };
 };
 
@@ -649,6 +805,7 @@ export const requestAccountDeletion = ({ reason }) => {
     reason: reason?.trim() || 'Não informado',
     requestedAt: now,
     status: 'pending',
+    retentionUntil: new Date(Date.now() + DATA_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString(),
   });
   saveAccountDeletionRequestsStore(requests);
 
@@ -708,6 +865,8 @@ export const exportCurrentUserData = () => {
     trustedDevices: getTrustedDevicesStore().filter((device) => device.userId === fullUser.id),
     passwordHistory: getPasswordHistory().filter((entry) => entry.userId === fullUser.id),
     accountDeletionRequest: getAccountDeletionRequestsStore().find((request) => request.userId === fullUser.id) || null,
+    consentLogs: getConsentLogsStore().filter((entry) => entry.userId === fullUser.id),
+    retentionPolicy: getDataRetentionPolicy(),
     profile: {
       bio: fullUser.bio || '',
       preferences: fullUser.preferences || null,
@@ -887,6 +1046,12 @@ export const resetPasswordWithToken = ({ token, newPassword }) => {
     return { error: 'Usuário não encontrado para este token.' };
   }
 
+  const passwordValidation = evaluatePasswordPolicy(newPassword);
+
+  if (!passwordValidation.valid) {
+    return { error: `Senha fora da política: ${passwordValidation.errors[0]}` };
+  }
+
   const updatedUsers = users.map((item) => (item.id === user.id ? { ...item, password: newPassword } : item));
   saveUsers(updatedUsers);
 
@@ -906,6 +1071,77 @@ export const resetPasswordWithToken = ({ token, newPassword }) => {
 
 export const getPasswordChangeHistory = () =>
   getPasswordHistory().sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
+
+
+
+export const getConsentAuditLogs = () => {
+  const user = getAuthenticatedUser();
+
+  if (!user) {
+    return [];
+  }
+
+  return getConsentLogsStore()
+    .filter((entry) => entry.userId === user.id)
+    .sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
+};
+
+export const getDataRetentionPolicy = () => ({
+  retentionDays: DATA_RETENTION_DAYS,
+  deletionWindowDays: 30,
+  legalBasis: 'LGPD Art. 16',
+});
+
+export const rotateTrustedDeviceCredential = (trustedDeviceId) => {
+  const user = getAuthenticatedUser();
+
+  if (!user) {
+    return { error: 'Usuário não autenticado.' };
+  }
+
+  const rotatedAt = new Date().toISOString();
+  const devices = getTrustedDevicesStore().map((device) => {
+    if (device.userId === user.id && device.id === trustedDeviceId) {
+      return {
+        ...device,
+        credentialVersion: Number(device.credentialVersion || 1) + 1,
+        credentialRotatedAt: rotatedAt,
+      };
+    }
+
+    return device;
+  });
+
+  saveTrustedDevicesStore(devices);
+  return { success: true };
+};
+
+export const revokeCompromisedDevice = (trustedDeviceId, reason = 'Comprometimento reportado') => {
+  const user = getAuthenticatedUser();
+
+  if (!user) {
+    return { error: 'Usuário não autenticado.' };
+  }
+
+  const devices = getTrustedDevicesStore().map((device) => {
+    if (device.userId === user.id && device.id === trustedDeviceId) {
+      return {
+        ...device,
+        status: 'compromised',
+        revokedAt: new Date().toISOString(),
+        revokedReason: reason,
+        expiresAt: new Date().toISOString(),
+      };
+    }
+
+    return device;
+  });
+
+  saveTrustedDevicesStore(devices);
+  return { success: true };
+};
+
+export const getPasswordPolicy = () => evaluatePasswordPolicy('');
 
 export const isAuthenticated = () => Boolean(getAuthenticatedUser());
 

@@ -8,6 +8,7 @@ import { LoadingButton } from '@mui/lab';
 import Page from '../components/Page';
 import { FormProvider, RHFTextField } from '../components/hook-form';
 import { resetPasswordWithToken, validatePasswordResetToken } from '../auth/session';
+import { evaluatePasswordPolicy } from '../auth/securityPolicy';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -18,7 +19,9 @@ export default function ResetPassword() {
   const tokenValidation = useMemo(() => validatePasswordResetToken(token), [token]);
 
   const ResetPasswordSchema = Yup.object().shape({
-    password: Yup.string().min(6, 'A senha deve ter pelo menos 6 caracteres').required('Senha é obrigatória'),
+    password: Yup.string()
+      .required('Senha é obrigatória')
+      .test('password-policy', 'Senha deve seguir a política de segurança', (value) => evaluatePasswordPolicy(value).valid),
     confirmPassword: Yup.string()
       .oneOf([Yup.ref('password')], 'As senhas precisam ser iguais')
       .required('Confirmação obrigatória'),
@@ -61,6 +64,9 @@ export default function ResetPassword() {
                 )}
 
                 <RHFTextField name="password" label="Nova senha" type="password" />
+                <Typography variant="caption" color="text.secondary">
+                  Use ao menos 8 caracteres com maiúscula, minúscula, número e símbolo.
+                </Typography>
                 <RHFTextField name="confirmPassword" label="Confirmar nova senha" type="password" />
 
                 <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
