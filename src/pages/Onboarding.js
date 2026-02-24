@@ -36,6 +36,52 @@ const pairingMethods = [
 ];
 const gardenAreas = ['Horta principal', 'Estufa interna', 'Setor de mudas', 'Jardim vertical'];
 
+const cultivationTypeTemplates = [
+  {
+    id: 'folhosas-canteiro',
+    label: 'Folhosas em canteiro',
+    description: 'Modelo para alface, rúcula e couve com rotação simples.',
+    gardenName: 'Canteiro de folhosas',
+    initialPlants: 'alface, rúcula, couve',
+    structures: [
+      { type: 'Canteiro', name: 'Canteiro principal', capacity: '180', material: 'Madeira', sensor: 'sensor_umidade_01', actuator: 'valvula_setor_01' },
+    ],
+  },
+  {
+    id: 'ervas-vasos',
+    label: 'Ervas em vasos',
+    description: 'Template compacto para plantas aromáticas de ciclo rápido.',
+    gardenName: 'Horta de ervas',
+    initialPlants: 'manjericão, hortelã, salsinha',
+    structures: [
+      { type: 'Vaso', name: 'Vaso aromáticas A', capacity: '18', material: 'Cerâmica', sensor: 'sensor_umidade_ervas', actuator: 'bomba_irrigacao_01' },
+      { type: 'Vaso', name: 'Vaso aromáticas B', capacity: '18', material: 'Cerâmica', sensor: 'sensor_umidade_ervas_02', actuator: '' },
+    ],
+  },
+  {
+    id: 'frutiferas-torre',
+    label: 'Frutíferas em torre',
+    description: 'Modelo vertical para tomate-cereja e pimentas em pequenos espaços.',
+    gardenName: 'Torre frutífera',
+    initialPlants: 'tomate-cereja, pimenta, morango',
+    structures: [
+      { type: 'Torre', name: 'Torre vertical A1', capacity: '75', material: 'Plástico', sensor: 'sensor_nutrientes_01', actuator: 'dosador_nutrientes_01' },
+    ],
+  },
+];
+
+const speciesTemplates = [
+  { id: 'alface-crespa', label: 'Alface', plants: 'alface crespa, cebolinha', structure: { type: 'Canteiro', name: 'Canteiro alface', capacity: '120', material: 'Madeira' } },
+  { id: 'manjericao', label: 'Manjericão', plants: 'manjericão genovês, orégano', structure: { type: 'Vaso', name: 'Vaso manjericão', capacity: '15', material: 'Cerâmica' } },
+  { id: 'tomate-cereja', label: 'Tomate-cereja', plants: 'tomate-cereja, manjericão', structure: { type: 'Módulo', name: 'Módulo tomate', capacity: '45', material: 'Plástico' } },
+];
+
+const environmentTemplates = [
+  { id: 'indoor', label: 'Indoor', environment: 'interno', space: 'estufa', sunlight: 'media', location: 'Ambiente interno com iluminação complementar' },
+  { id: 'varanda', label: 'Varanda', environment: 'externo', space: 'varanda', sunlight: 'alta', location: 'Varanda residencial' },
+  { id: 'hidroponia', label: 'Hidroponia', environment: 'interno', space: 'estufa', sunlight: 'alta', location: 'Bancada hidropônica' },
+];
+
 const createStructure = () => ({
   type: 'Vaso',
   name: '',
@@ -49,6 +95,15 @@ export default function Onboarding() {
   const [activeStep, setActiveStep] = useState(0);
   const [structures, setStructures] = useState([createStructure()]);
   const [pairingMethod, setPairingMethod] = useState('qr');
+  const [gardenName, setGardenName] = useState('Minha horta principal');
+  const [initialPlants, setInitialPlants] = useState('');
+  const [location, setLocation] = useState('');
+  const [environment, setEnvironment] = useState('externo');
+  const [spaceType, setSpaceType] = useState('varanda');
+  const [sunlight, setSunlight] = useState('media');
+  const [selectedCultivationTemplate, setSelectedCultivationTemplate] = useState(cultivationTypeTemplates[0].id);
+  const [selectedSpeciesTemplate, setSelectedSpeciesTemplate] = useState(speciesTemplates[0].id);
+  const [selectedEnvironmentTemplate, setSelectedEnvironmentTemplate] = useState(environmentTemplates[0].id);
   const [friendlyName, setFriendlyName] = useState('');
   const [pairingCode, setPairingCode] = useState('');
   const [selectedArea, setSelectedArea] = useState(gardenAreas[0]);
@@ -73,6 +128,37 @@ export default function Onboarding() {
   };
 
   const selectedPairingMethod = pairingMethods.find((method) => method.value === pairingMethod);
+
+  const applyCultivationTemplate = () => {
+    const template = cultivationTypeTemplates.find((item) => item.id === selectedCultivationTemplate);
+    if (!template) return;
+
+    setGardenName(template.gardenName);
+    setInitialPlants(template.initialPlants);
+    setStructures(template.structures.map((structure) => ({ ...createStructure(), ...structure })));
+  };
+
+  const applySpeciesTemplate = () => {
+    const template = speciesTemplates.find((item) => item.id === selectedSpeciesTemplate);
+    if (!template) return;
+
+    setInitialPlants(template.plants);
+    setStructures((prev) => {
+      const [first, ...rest] = prev;
+      const nextFirst = { ...first, ...template.structure };
+      return [nextFirst, ...rest];
+    });
+  };
+
+  const applyEnvironmentTemplate = () => {
+    const template = environmentTemplates.find((item) => item.id === selectedEnvironmentTemplate);
+    if (!template) return;
+
+    setEnvironment(template.environment);
+    setSpaceType(template.space);
+    setSunlight(template.sunlight);
+    setLocation(template.location);
+  };
 
   const handleLinkDevice = () => {
     if (!friendlyName.trim() || !pairingCode.trim()) {
@@ -134,9 +220,72 @@ export default function Onboarding() {
 
             {activeStep === 1 && (
               <Stack spacing={2}>
-                <TextField label="Nome da horta" defaultValue="Minha horta principal" fullWidth />
-                <TextField label="Plantas iniciais" helperText="Ex.: hortelã, alface, manjericão" fullWidth />
-                <TextField label="Localização" fullWidth />
+                <Card variant="outlined">
+                  <CardContent>
+                    <Stack spacing={1.5}>
+                      <Typography variant="subtitle2">Modelos prontos por tipo de cultivo</Typography>
+                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+                        <FormControl fullWidth>
+                          <InputLabel>Tipo de cultivo</InputLabel>
+                          <Select
+                            label="Tipo de cultivo"
+                            value={selectedCultivationTemplate}
+                            onChange={(event) => setSelectedCultivationTemplate(event.target.value)}
+                          >
+                            {cultivationTypeTemplates.map((template) => (
+                              <MenuItem key={template.id} value={template.id}>
+                                {template.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                        <Button variant="outlined" onClick={applyCultivationTemplate}>
+                          Aplicar modelo
+                        </Button>
+                      </Stack>
+                      <Typography variant="caption" color="text.secondary">
+                        {cultivationTypeTemplates.find((template) => template.id === selectedCultivationTemplate)?.description}
+                      </Typography>
+                    </Stack>
+                  </CardContent>
+                </Card>
+
+                <Card variant="outlined">
+                  <CardContent>
+                    <Stack spacing={1.5}>
+                      <Typography variant="subtitle2">Templates por espécie</Typography>
+                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+                        <FormControl fullWidth>
+                          <InputLabel>Espécie foco</InputLabel>
+                          <Select
+                            label="Espécie foco"
+                            value={selectedSpeciesTemplate}
+                            onChange={(event) => setSelectedSpeciesTemplate(event.target.value)}
+                          >
+                            {speciesTemplates.map((template) => (
+                              <MenuItem key={template.id} value={template.id}>
+                                {template.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                        <Button variant="outlined" onClick={applySpeciesTemplate}>
+                          Aplicar template
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  </CardContent>
+                </Card>
+
+                <TextField label="Nome da horta" value={gardenName} onChange={(event) => setGardenName(event.target.value)} fullWidth />
+                <TextField
+                  label="Plantas iniciais"
+                  helperText="Ex.: hortelã, alface, manjericão"
+                  value={initialPlants}
+                  onChange={(event) => setInitialPlants(event.target.value)}
+                  fullWidth
+                />
+                <TextField label="Localização" value={location} onChange={(event) => setLocation(event.target.value)} fullWidth />
 
                 <Divider sx={{ pt: 1 }}>Estruturas de cultivo</Divider>
                 <Typography variant="body2" color="text.secondary">
@@ -238,16 +387,43 @@ export default function Onboarding() {
 
             {activeStep === 2 && (
               <Stack spacing={2}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Stack spacing={1.5}>
+                      <Typography variant="subtitle2">Templates por ambiente</Typography>
+                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+                        <FormControl fullWidth>
+                          <InputLabel>Template de ambiente</InputLabel>
+                          <Select
+                            label="Template de ambiente"
+                            value={selectedEnvironmentTemplate}
+                            onChange={(event) => setSelectedEnvironmentTemplate(event.target.value)}
+                          >
+                            {environmentTemplates.map((template) => (
+                              <MenuItem key={template.id} value={template.id}>
+                                {template.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                        <Button variant="outlined" onClick={applyEnvironmentTemplate}>
+                          Aplicar ambiente
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  </CardContent>
+                </Card>
+
                 <FormControl fullWidth>
                   <InputLabel>Ambiente</InputLabel>
-                  <Select label="Ambiente" defaultValue="externo">
+                  <Select label="Ambiente" value={environment} onChange={(event) => setEnvironment(event.target.value)}>
                     <MenuItem value="interno">Interno</MenuItem>
                     <MenuItem value="externo">Externo</MenuItem>
                   </Select>
                 </FormControl>
                 <FormControl fullWidth>
                   <InputLabel>Tipo de espaço</InputLabel>
-                  <Select label="Tipo de espaço" defaultValue="varanda">
+                  <Select label="Tipo de espaço" value={spaceType} onChange={(event) => setSpaceType(event.target.value)}>
                     <MenuItem value="varanda">Varanda</MenuItem>
                     <MenuItem value="quintal">Quintal</MenuItem>
                     <MenuItem value="estufa">Estufa</MenuItem>
@@ -255,7 +431,7 @@ export default function Onboarding() {
                 </FormControl>
                 <FormControl fullWidth>
                   <InputLabel>Incidência solar</InputLabel>
-                  <Select label="Incidência solar" defaultValue="media">
+                  <Select label="Incidência solar" value={sunlight} onChange={(event) => setSunlight(event.target.value)}>
                     <MenuItem value="baixa">Baixa</MenuItem>
                     <MenuItem value="media">Média</MenuItem>
                     <MenuItem value="alta">Alta</MenuItem>
