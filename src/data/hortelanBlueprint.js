@@ -121,9 +121,12 @@ export const hortelanModules = [
     features: [
       'Ação manual de bomba de água, válvula/solenoide, iluminação grow/LED, ventilação/exaustor e nebulização',
       'Regras por sensor, horário, combinação e planta/zona',
+      'Teste de automação em modo simulação sem executar no campo',
+      'Verificação automática de conflitos entre regras e agendamentos',
+      'Previsão de execução com estimativa de horário, duração e consumo',
       'Dosador (fase avançada) para fertirrigação e ajuste de pH por receita',
       'Janela de segurança e limite de irrigações por dia',
-      'Simulação, histórico de execução, modo férias/economia/emergência',
+      'Histórico de execução, modo férias/economia/emergência e trilha de auditoria',
     ],
   },
   {
