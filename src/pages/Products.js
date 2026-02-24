@@ -123,10 +123,10 @@ export default function ProductsMarketplace() {
   ];
 
   return (
-    <Page title="Marketplace Hortelan">
+    <Page title="Marketplace Hortelan Agtech Ltda">
       <Container>
         <Stack spacing={1} sx={{ mb: 3 }}>
-          <Typography variant="h4">Catálogo de produtos Hortelan</Typography>
+          <Typography variant="h4">Catálogo de produtos Hortelan Agtech Ltda</Typography>
           <Typography color="text.secondary">
             Explore sementes, substratos, fertilizantes, sensores, kits, irrigação e ferramentas com filtros avançados.
           </Typography>
@@ -268,7 +268,7 @@ export default function ProductsMarketplace() {
                     {selectedProduct.descricaoTecnica}
                   </Typography>
                   <Typography variant="body2" color="primary" sx={{ mb: 2 }}>
-                    Compatibilidade Hortelan: {selectedProduct.compatibilidadeHortelan}
+                    Compatibilidade Hortelan Agtech Ltda: {selectedProduct.compatibilidadeHortelan}
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
                     <Chip icon={<Inventory2Icon />} label={`Estoque: ${selectedProduct.estoque}`} />

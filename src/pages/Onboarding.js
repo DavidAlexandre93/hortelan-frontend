@@ -223,7 +223,7 @@ export default function Onboarding() {
       <Container maxWidth="md">
         <Stack spacing={3}>
           <Box>
-            <Typography variant="h4">Onboarding guiado Hortelan</Typography>
+            <Typography variant="h4">Onboarding guiado Hortelan Agtech Ltda</Typography>
             <Typography variant="body2" color="text.secondary">
               Passo a passo para criar sua primeira horta, cadastrar plantas, parear dispositivo e ativar automações.
             </Typography>

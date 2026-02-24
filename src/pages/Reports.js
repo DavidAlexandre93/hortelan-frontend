@@ -209,15 +209,15 @@ export default function Reports() {
       ...cultivationRows.map((row) => `cultivo,-,${row.plant},produtividade_kg,${row.productivityKg}`),
     ];
 
-    downloadFile(csvLines.join('\n'), `relatorio-hortelan-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
+    downloadFile(csvLines.join('\n'), `relatorio-hortelan-agtech-ltda-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
   };
 
   const exportPdfSummary = () => {
     const summaryHtml = `
       <html>
-        <head><title>Resumo de Relatórios Hortelan</title></head>
+        <head><title>Resumo de Relatórios Hortelan Agtech Ltda</title></head>
         <body style="font-family: Arial, sans-serif; padding: 24px;">
-          <h1>Resumo de Relatórios Hortelan</h1>
+          <h1>Resumo de Relatórios Hortelan Agtech Ltda</h1>
           <p>Gerado em ${new Date().toLocaleString('pt-BR')}.</p>
           <h2>Operacional</h2>
           <ul>

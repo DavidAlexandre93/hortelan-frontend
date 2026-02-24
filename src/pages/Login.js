@@ -184,7 +184,7 @@ export default function Login() {
               <Cable sx={{ transform: `scaleX(1) rotate(${cableWave}deg)` }} />
             </DecorativeScene>
             <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
-              Olá, bem-vindo de volta ao Hortelan
+              Olá, bem-vindo de volta à Hortelan Agtech Ltda
             </Typography>
             <img src="/static/illustrations/illustration_login.png" alt="login" style={{ position: 'relative', zIndex: 2 }} />
           </SectionStyle>
@@ -193,7 +193,7 @@ export default function Login() {
         <Container maxWidth="sm">
           <ContentStyle>
             <Typography variant="h4" gutterBottom>
-              Entrar no Hortelan
+              Entrar na Hortelan Agtech Ltda
             </Typography>
 
             <Typography sx={{ color: 'text.secondary', mb: 1 }}>Use seu e-mail e senha para continuar.</Typography>
