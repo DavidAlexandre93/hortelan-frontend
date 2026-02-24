@@ -12,15 +12,20 @@ import useAuth from './auth/useAuth';
 import CookieConsentBanner from './components/privacy/CookieConsentBanner';
 import HortelanPlayfulEffects from './components/fx/HortelanPlayfulEffects';
 import HarvestSplashScreen from './components/fx/HarvestSplashScreen';
+import { useState } from 'react';
 
 function AppContent() {
   const { consents } = useAuth();
+  const [splashFinished, setSplashFinished] = useState(false);
+
+  if (!splashFinished) {
+    return <HarvestSplashScreen onComplete={() => setSplashFinished(true)} />;
+  }
 
   return (
     <>
       <ScrollToTop />
       <BaseOptionChartStyle />
-      <HarvestSplashScreen />
       <HortelanPlayfulEffects />
       <Router />
       <CookieConsentBanner />

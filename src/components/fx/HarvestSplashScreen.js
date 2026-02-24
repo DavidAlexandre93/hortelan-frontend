@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { motion, useReducedMotion } from '../../lib/motionReact';
 import useGSAP from '../../hooks/useGSAP';
 
-export default function HarvestSplashScreen() {
+export default function HarvestSplashScreen({ onComplete }) {
   const rootRef = useRef(null);
   const shouldReduceMotion = useReducedMotion();
   const [hidden, setHidden] = useState(false);
@@ -101,6 +101,14 @@ export default function HarvestSplashScreen() {
     { dependencies: [hidden, shouldReduceMotion], scope: rootRef }
   );
 
+  useGSAP(
+    () => {
+      if (!hidden) return;
+      onComplete?.();
+    },
+    { dependencies: [hidden, onComplete] }
+  );
+
   if (hidden) return null;
 
   return (
@@ -130,7 +138,7 @@ export default function HarvestSplashScreen() {
             position: fixed;
             inset: 0;
             z-index: 2000;
-            pointer-events: none;
+            pointer-events: all;
           }
 
           .harvest-splash-overlay {
