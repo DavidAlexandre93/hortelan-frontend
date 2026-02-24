@@ -9,6 +9,50 @@ export const wowFeatures = [
   'Programa de pontos e recompensas',
 ];
 
+export const gamificationBlueprint = [
+  {
+    id: '15.1',
+    title: 'Programa de pontos',
+    items: [
+      'Pontos por uso da plataforma',
+      'Pontos por concluir tarefas',
+      'Pontos por contribuição na comunidade',
+      'Pontos por compras',
+    ],
+  },
+  {
+    id: '15.2',
+    title: 'Badges e conquistas',
+    items: [
+      'Primeira colheita',
+      '30 dias sem falha de manutenção',
+      'Automação criada',
+      'Ajuda comunitária (Q&A)',
+      'Meta de sustentabilidade',
+    ],
+  },
+  {
+    id: '15.3',
+    title: 'Cupons',
+    items: [
+      'Cupom promocional',
+      'Cupom por pontuação',
+      'Cupom por campanha/evento',
+      'Validade e regras de uso',
+    ],
+  },
+  {
+    id: '15.4',
+    title: 'Desafios',
+    items: [
+      'Desafios sazonais (ex.: cultivar temperos em 30 dias)',
+      'Missões semanais',
+      'Ranking de participação',
+      'Recompensas digitais/físicas',
+    ],
+  },
+];
+
 export const releaseRoadmap = [
   {
     name: 'Release 1 (MVP Web)',
@@ -211,10 +255,10 @@ export const hortelanModules = [
     title: 'Gamificação e Recompensas',
     tags: ['Release 3', 'Engajamento'],
     features: [
-      'Pontos por tarefas, saúde da horta, comunidade e ajuda a terceiros',
-      'Níveis, missões, badges e metas semanais',
-      'Ranking opcional e histórico de recompensas',
-      'Cupons, conteúdo premium e benefícios de parceiros',
+      'Programa de pontos: uso da plataforma, conclusão de tarefas, contribuição na comunidade e compras',
+      'Badges e conquistas: primeira colheita, 30 dias sem falha, automação criada, ajuda em Q&A e metas sustentáveis',
+      'Cupons: promocionais, por pontuação e por campanhas/eventos com validade e regras de uso',
+      'Desafios sazonais e missões semanais com ranking de participação e recompensas digitais/físicas',
     ],
   },
   {
