@@ -382,10 +382,11 @@ export const hortelanModules = [
     title: 'Integrações Externas',
     tags: ['Release 3', 'Ecossistema'],
     features: [
-      'Página de integrações para conectar/desconectar serviços',
-      'Permissões e testes de integração',
-      'Clima, WhatsApp, CRM, pagamento e ERPs',
-      'Home Assistant, webhooks e assistentes de voz',
+      '23.1 Clima e geodados: APIs de clima e dados regionais de sazonalidade',
+      '23.2 Pagamento: gateway de pagamento e antifraude para e-commerce robusto',
+      '23.3 Logística: frete/rastreamento e Correios/transportadoras quando loja ativa',
+      '23.4 Mensageria: e-mail transacional, push notifications e WhatsApp/SMS em roadmap futuro',
+      '23.5 IoT/ecossistema: suporte multi-fabricante e API pública para parceiros em fase avançada',
     ],
   },
   {
