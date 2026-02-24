@@ -178,6 +178,47 @@ const pendingTasks = [
   { id: 'pt-5', titulo: 'Planejar poda de manutenção', prioridade: 'Baixa', horta: 'Estufa A' },
 ];
 
+const conditionRuleTemplates = [
+  {
+    id: 'regra-umidade',
+    label: 'Se umidade do solo < X, ligar bomba',
+    sensor: 'umidadeSolo',
+    sensorLabel: 'Umidade do solo',
+    thresholdLabel: 'Limite de umidade (%)',
+    comparator: 'lt',
+    threshold: 60,
+    actionLabel: 'Ligar bomba de irrigação',
+  },
+  {
+    id: 'regra-temperatura',
+    label: 'Se temperatura > Y, ligar ventilação',
+    sensor: 'temperatura',
+    sensorLabel: 'Temperatura',
+    thresholdLabel: 'Limite de temperatura (°C)',
+    comparator: 'gt',
+    threshold: 28,
+    actionLabel: 'Ligar ventilação',
+  },
+  {
+    id: 'regra-reservatorio',
+    label: 'Se reservatório baixo, enviar alerta',
+    sensor: 'reservatorio',
+    sensorLabel: 'Nível do reservatório',
+    thresholdLabel: 'Nível mínimo do reservatório (%)',
+    comparator: 'lt',
+    threshold: 30,
+    actionLabel: 'Enviar alerta para responsáveis',
+  },
+];
+
+const evaluateConditionRule = (rule, currentValue) => {
+  if (rule.comparator === 'gt') {
+    return currentValue > rule.threshold;
+  }
+
+  return currentValue < rule.threshold;
+};
+
 export default function DashboardApp() {
   const theme = useTheme();
   const [region, setRegion] = useState('Sudeste');
@@ -198,6 +239,9 @@ export default function DashboardApp() {
     tarefasPendentes: true,
   });
   const [novaTarefaPorPlanta, setNovaTarefaPorPlanta] = useState({});
+  const [conditionRules, setConditionRules] = useState(
+    conditionRuleTemplates.map((rule) => ({ ...rule, enabled: true }))
+  );
 
   const opcoesEspecie = [
     'Alface Crespa',
@@ -528,6 +572,53 @@ export default function DashboardApp() {
     }));
   };
 
+  const currentSensorReadings = {
+    umidadeSolo: indicadorMedioUmidade,
+    temperatura: indicadorMediaTemperatura,
+    reservatorio: 26,
+  };
+
+  const evaluatedConditionRules = conditionRules.map((rule) => {
+    const currentValue = currentSensorReadings[rule.sensor];
+    const triggered = rule.enabled && evaluateConditionRule(rule, currentValue);
+
+    return {
+      ...rule,
+      currentValue,
+      triggered,
+    };
+  });
+
+  const triggeredRules = evaluatedConditionRules.filter((rule) => rule.triggered);
+
+  const onThresholdChange = (ruleId) => (event) => {
+    const parsedValue = Number(event.target.value);
+
+    setConditionRules((prev) =>
+      prev.map((rule) =>
+        rule.id === ruleId
+          ? {
+              ...rule,
+              threshold: Number.isNaN(parsedValue) ? rule.threshold : parsedValue,
+            }
+          : rule
+      )
+    );
+  };
+
+  const onToggleConditionRule = (ruleId) => (event) => {
+    setConditionRules((prev) =>
+      prev.map((rule) =>
+        rule.id === ruleId
+          ? {
+              ...rule,
+              enabled: event.target.checked,
+            }
+          : rule
+      )
+    );
+  };
+
   return (
     <Page title="Dashboard">
       <Container maxWidth="xl">
@@ -766,6 +857,62 @@ export default function DashboardApp() {
                     </Alert>
                   ))}
                 </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1} sx={{ mb: 2 }}>
+                  <Typography variant="h5">Regras por condição (if/then)</Typography>
+                  <Chip
+                    color={triggeredRules.length > 0 ? 'warning' : 'success'}
+                    label={
+                      triggeredRules.length > 0
+                        ? `${triggeredRules.length} ação(ões) pronta(s) para execução`
+                        : 'Nenhuma condição acionada no momento'
+                    }
+                  />
+                </Stack>
+
+                <Grid container spacing={2}>
+                  {evaluatedConditionRules.map((rule) => (
+                    <Grid item xs={12} md={4} key={rule.id}>
+                      <Card variant="outlined" sx={{ height: '100%' }}>
+                        <CardContent>
+                          <Stack spacing={1.5}>
+                            <FormControlLabel
+                              control={<Switch checked={rule.enabled} onChange={onToggleConditionRule(rule.id)} />}
+                              label={rule.label}
+                            />
+                            <Typography variant="body2" color="text.secondary">
+                              Leitura atual de {rule.sensorLabel.toLowerCase()}: <strong>{rule.currentValue}</strong>
+                              {rule.sensor === 'temperatura' ? ' °C' : ' %'}
+                            </Typography>
+                            <TextField
+                              label={rule.thresholdLabel}
+                              type="number"
+                              value={rule.threshold}
+                              onChange={onThresholdChange(rule.id)}
+                              disabled={!rule.enabled}
+                              fullWidth
+                            />
+                            <Alert severity={rule.triggered ? 'warning' : 'success'}>
+                              {rule.triggered ? `Condição verdadeira → ${rule.actionLabel}` : 'Condição falsa → aguardar próxima leitura'}
+                            </Alert>
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+
+                {triggeredRules.length > 0 && (
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    Ações recomendadas agora: {triggeredRules.map((rule) => rule.actionLabel).join(' • ')}.
+                  </Alert>
+                )}
               </CardContent>
             </Card>
           </Grid>
