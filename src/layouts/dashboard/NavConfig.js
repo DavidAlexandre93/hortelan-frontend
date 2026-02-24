@@ -59,6 +59,12 @@ const navConfig = [
     icon: getIcon('eva:bar-chart-2-fill'),
   },
   {
+    title: 'central de ajuda',
+    path: '/dashboard/suporte',
+    icon: getIcon('eva:question-mark-circle-fill'),
+  },
+
+  {
     title: 'status page',
     path: '/dashboard/status',
     icon: getIcon('eva:activity-fill'),
