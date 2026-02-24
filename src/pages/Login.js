@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 // @mui
 import { alpha, keyframes, styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography } from '@mui/material';
+import { motion, useScroll, useTransform } from '../lib/motionReact';
 // hooks
 import useResponsive from '../hooks/useResponsive';
 // components
@@ -75,7 +75,7 @@ const DecorativeScene = styled('div')(({ theme }) => ({
   )} 60%, transparent 100%)`,
 }));
 
-const Leaf = styled('div')(({ theme }) => ({
+const Leaf = styled(motion.div)(({ theme }) => ({
   position: 'absolute',
   width: 70,
   height: 98,
@@ -86,7 +86,7 @@ const Leaf = styled('div')(({ theme }) => ({
   transformOrigin: 'bottom center',
 }));
 
-const Cable = styled('div')(({ theme }) => ({
+const Cable = styled(motion.div)(({ theme }) => ({
   position: 'absolute',
   left: '12%',
   right: '14%',
@@ -126,24 +126,13 @@ export default function Login() {
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const { scrollYProgress } = useScroll();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const pageHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = pageHeight > 0 ? Math.min(window.scrollY / pageHeight, 1) : Math.min(window.scrollY / 300, 1);
-      setScrollProgress(progress);
-    };
-
-    handleScroll();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const leftLeafRotation = -8 + scrollProgress * 24;
-  const rightLeafRotation = 12 - scrollProgress * 30;
-  const cableWave = Math.sin(scrollProgress * Math.PI * 3) * 8;
+  const leftLeafRotation = useTransform(scrollYProgress, [0, 1], [-8, 16]);
+  const leftLeafY = useTransform(scrollYProgress, [0, 1], [0, -8]);
+  const rightLeafRotation = useTransform(scrollYProgress, [0, 1], [12, -18]);
+  const rightLeafY = useTransform(scrollYProgress, [0, 1], [0, 10]);
+  const cableWave = useTransform(scrollYProgress, [0, 0.25, 0.5, 0.75, 1], [0, 8, 0, -8, 0]);
 
   return (
     <Page title="Login">
@@ -164,24 +153,12 @@ export default function Login() {
         {mdUp && (
           <SectionStyle>
             <DecorativeScene>
+              <Leaf sx={{ top: '16%', left: '8%' }} style={{ rotate: leftLeafRotation, y: leftLeafY }} />
               <Leaf
-                sx={{
-                  top: '16%',
-                  left: '8%',
-                  transform: `rotate(${leftLeafRotation}deg) translateY(${scrollProgress * -8}px)`,
-                }}
+                sx={{ bottom: '12%', right: '12%', width: 62, height: 92, animationDuration: '4.8s' }}
+                style={{ rotate: rightLeafRotation, y: rightLeafY }}
               />
-              <Leaf
-                sx={{
-                  bottom: '12%',
-                  right: '12%',
-                  width: 62,
-                  height: 92,
-                  animationDuration: '4.8s',
-                  transform: `rotate(${rightLeafRotation}deg) translateY(${scrollProgress * 10}px)`,
-                }}
-              />
-              <Cable sx={{ transform: `scaleX(1) rotate(${cableWave}deg)` }} />
+              <Cable style={{ rotate: cableWave, scaleX: 1 }} />
             </DecorativeScene>
             <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
               Olá, bem-vindo de volta à Hortelan Agtech Ltda
