@@ -66,6 +66,35 @@ const USERS = [
         ],
       },
     ],
+    subscription: {
+      plan: 'free',
+      status: 'active',
+      billingCycle: 'monthly',
+      renewalDate: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString(),
+      seats: 1,
+      limits: {
+        gardens: 1,
+        devices: 2,
+        dataHistoryDays: 30,
+        aiPhotoDiagnostics: 10,
+        advancedExports: 1,
+      },
+      usage: {
+        gardens: 1,
+        devices: 1,
+        aiPhotoDiagnostics: 3,
+        advancedExports: 0,
+      },
+      billingHistory: [
+        {
+          id: 'invoice-admin-1-001',
+          date: new Date().toISOString(),
+          description: 'Plano gratuito',
+          amount: 0,
+          status: 'paid',
+        },
+      ],
+    },
   },
 ];
 
@@ -107,6 +136,33 @@ const buildSafeUser = (user) => ({
       sectorType: sector.sectorType || 'sol_pleno',
     })),
   })),
+  subscription: {
+    plan: user.subscription?.plan || 'free',
+    status: user.subscription?.status || 'active',
+    billingCycle: user.subscription?.billingCycle || 'monthly',
+    renewalDate: user.subscription?.renewalDate || null,
+    seats: user.subscription?.seats || 1,
+    limits: {
+      gardens: user.subscription?.limits?.gardens || 1,
+      devices: user.subscription?.limits?.devices || 2,
+      dataHistoryDays: user.subscription?.limits?.dataHistoryDays || 30,
+      aiPhotoDiagnostics: user.subscription?.limits?.aiPhotoDiagnostics || 10,
+      advancedExports: user.subscription?.limits?.advancedExports || 1,
+    },
+    usage: {
+      gardens: user.subscription?.usage?.gardens || user.gardens?.length || 0,
+      devices: user.subscription?.usage?.devices || 0,
+      aiPhotoDiagnostics: user.subscription?.usage?.aiPhotoDiagnostics || 0,
+      advancedExports: user.subscription?.usage?.advancedExports || 0,
+    },
+    billingHistory: (user.subscription?.billingHistory || []).map((invoice, index) => ({
+      id: invoice.id || `invoice-${Date.now()}-${index}`,
+      date: invoice.date || new Date().toISOString(),
+      description: invoice.description || 'Cobrança de assinatura',
+      amount: Number(invoice.amount) || 0,
+      status: invoice.status || 'paid',
+    })),
+  },
 });
 
 const INITIAL_PASSWORD_HISTORY = [
@@ -615,6 +671,7 @@ export const exportCurrentUserData = () => {
       savedAddresses: fullUser.savedAddresses || [],
       cultivationLevel: fullUser.cultivationLevel || null,
       gardens: fullUser.gardens || [],
+      subscription: fullUser.subscription || null,
     },
   };
 };
@@ -669,6 +726,40 @@ export const updateAuthenticatedUserProfile = (payload) => {
         sectorType: sector.sectorType || 'sol_pleno',
       })),
     })),
+    subscription: {
+      plan: payload.subscription?.plan || currentUser.subscription?.plan || 'free',
+      status: payload.subscription?.status || currentUser.subscription?.status || 'active',
+      billingCycle: payload.subscription?.billingCycle || currentUser.subscription?.billingCycle || 'monthly',
+      renewalDate: payload.subscription?.renewalDate || currentUser.subscription?.renewalDate || null,
+      seats: payload.subscription?.seats || currentUser.subscription?.seats || 1,
+      limits: {
+        gardens: payload.subscription?.limits?.gardens || currentUser.subscription?.limits?.gardens || 1,
+        devices: payload.subscription?.limits?.devices || currentUser.subscription?.limits?.devices || 2,
+        dataHistoryDays:
+          payload.subscription?.limits?.dataHistoryDays || currentUser.subscription?.limits?.dataHistoryDays || 30,
+        aiPhotoDiagnostics:
+          payload.subscription?.limits?.aiPhotoDiagnostics || currentUser.subscription?.limits?.aiPhotoDiagnostics || 10,
+        advancedExports:
+          payload.subscription?.limits?.advancedExports || currentUser.subscription?.limits?.advancedExports || 1,
+      },
+      usage: {
+        gardens: payload.subscription?.usage?.gardens || currentUser.subscription?.usage?.gardens || payload.gardens?.length || 0,
+        devices: payload.subscription?.usage?.devices || currentUser.subscription?.usage?.devices || 0,
+        aiPhotoDiagnostics:
+          payload.subscription?.usage?.aiPhotoDiagnostics || currentUser.subscription?.usage?.aiPhotoDiagnostics || 0,
+        advancedExports:
+          payload.subscription?.usage?.advancedExports || currentUser.subscription?.usage?.advancedExports || 0,
+      },
+      billingHistory: (payload.subscription?.billingHistory || currentUser.subscription?.billingHistory || []).map(
+        (invoice, index) => ({
+          id: invoice.id || `invoice-${Date.now()}-${index}`,
+          date: invoice.date || new Date().toISOString(),
+          description: invoice.description || 'Cobrança de assinatura',
+          amount: Number(invoice.amount) || 0,
+          status: invoice.status || 'paid',
+        })
+      ),
+    },
   };
 
   const updatedUsers = users.map((item) => (item.id === currentUser.id ? nextUser : item));

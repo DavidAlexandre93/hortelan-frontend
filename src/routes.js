@@ -19,6 +19,7 @@ import Security from './pages/Security';
 import ProfileSettings from './pages/ProfileSettings';
 import AlertCenter from './pages/AlertCenter';
 import Reports from './pages/Reports';
+import Subscriptions from './pages/Subscriptions';
 import HelpCenter from './pages/HelpCenter';
 import RequireAuth from './components/auth/RequireAuth';
 import RedirectIfAuth from './components/auth/RedirectIfAuth';
@@ -46,6 +47,7 @@ export default function Router() {
         { path: 'profile', element: <ProfileSettings /> },
         { path: 'alertas', element: <AlertCenter /> },
         { path: 'relatorios', element: <Reports /> },
+        { path: 'assinaturas', element: <Subscriptions /> },
         { path: 'suporte', element: <HelpCenter /> },
       ],
     },
