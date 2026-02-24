@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 760" role="img" aria-labelledby="title desc">
+  <title id="title">Hortelan AgTech Ltda logo</title>
+  <desc id="desc">Three green leaves with circuit-like details and Hortelan AgTech Ltda text.</desc>
+  <defs>
+    <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#B9E440"/>
+      <stop offset="45%" stop-color="#2ABF58"/>
+      <stop offset="100%" stop-color="#006A5A"/>
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#005E50"/>
+      <stop offset="100%" stop-color="#0A7A64"/>
+    </linearGradient>
+    <style>
+      .trace { fill: none; stroke: #eef8ef; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: 0.95; }
+      .node { fill: #eef8ef; }
+      .tagline { font: 500 56px "Inter", "Segoe UI", Arial, sans-serif; letter-spacing: 1px; fill: #1f866f; }
+      .brand { font: 700 112px "Inter", "Segoe UI", Arial, sans-serif; fill: url(#textGradient); }
+    </style>
+  </defs>
+
+  <g transform="translate(30 20)">
+    <path fill="url(#leafGradient)" d="M348 440c-26-144-113-246-261-246-4 109 53 212 174 253 37 13 68 8 87-7z"/>
+    <path fill="url(#leafGradient)" d="M392 438c24-146 112-246 260-246 4 111-54 213-177 254-36 12-66 7-83-8z"/>
+    <path fill="url(#leafGradient)" d="M369 450c5-164 77-293 174-357-137-14-253 132-261 357h87z"/>
+
+    <path class="trace" d="M145 286c64 6 132 41 186 122"/>
+    <path class="trace" d="M206 242c58 12 112 46 151 112"/>
+    <path class="trace" d="M302 220c36 18 66 50 86 90"/>
+    <path class="trace" d="M598 286c-64 6-132 41-186 122"/>
+    <path class="trace" d="M537 242c-58 12-112 46-151 112"/>
+    <path class="trace" d="M441 220c-36 18-66 50-86 90"/>
+
+    <circle class="node" cx="210" cy="243" r="7"/>
+    <circle class="node" cx="301" cy="220" r="7"/>
+    <circle class="node" cx="145" cy="286" r="7"/>
+    <circle class="node" cx="536" cy="244" r="7"/>
+    <circle class="node" cx="599" cy="286" r="7"/>
+    <circle class="node" cx="441" cy="221" r="7"/>
+
+    <path d="M643 142c52-3 95 24 112 67" fill="none" stroke="#65c95f" stroke-width="10" stroke-linecap="round"/>
+    <path d="M647 175c38 1 68 20 82 49" fill="none" stroke="#57bf58" stroke-width="10" stroke-linecap="round"/>
+    <path d="M653 208c24 3 42 16 51 32" fill="none" stroke="#3fb34f" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="624" cy="218" r="14" fill="#50bc58"/>
+  </g>
+
+  <text x="400" y="620" text-anchor="middle" class="brand">Hortelan</text>
+  <text x="400" y="690" text-anchor="middle" class="tagline">AgTech Ltda</text>
+</svg>
