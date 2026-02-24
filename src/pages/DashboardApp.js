@@ -34,6 +34,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Page from '../components/Page';
 import Iconify from '../components/Iconify';
 import BlockchainPanel from '../components/BlockchainPanel';
+import HortelanPromoBanner from '../components/HortelanPromoBanner';
 // sections
 import {
   AppTasks,
@@ -1061,6 +1062,8 @@ export default function DashboardApp() {
         <Typography variant="h4" sx={{ mb: 5 }}>
           Welcome User to the Hortelan System
         </Typography>
+
+        <HortelanPromoBanner sx={{ mb: 4 }} />
 
         <Grid container spacing={3}>
           <Grid item xs={12}>

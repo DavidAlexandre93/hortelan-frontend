@@ -29,6 +29,7 @@ import SupportAgentRoundedIcon from '@mui/icons-material/SupportAgentRounded';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import SensorsRoundedIcon from '@mui/icons-material/SensorsRounded';
 import Page from '../components/Page';
+import HortelanPromoBanner from '../components/HortelanPromoBanner';
 
 const faqItems = [
   {
@@ -106,6 +107,8 @@ export default function HelpCenter() {
               Consulte conteúdos de autoatendimento, abra chamados e acompanhe tickets com contexto técnico da sua horta.
             </Typography>
           </Box>
+
+          <HortelanPromoBanner />
 
           <Card>
             <CardContent>
