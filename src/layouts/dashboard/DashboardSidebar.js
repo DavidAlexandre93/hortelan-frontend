@@ -45,6 +45,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
 
   const isDesktop = useResponsive('up', 'lg');
   const { user } = useAuth();
+  const mobileDrawerWidth = { xs: '86vw', sm: 320 };
 
   useEffect(() => {
     if (isOpenSidebar) {
@@ -116,7 +117,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
           open={isOpenSidebar}
           onClose={onCloseSidebar}
           PaperProps={{
-            sx: { width: DRAWER_WIDTH },
+            sx: { width: mobileDrawerWidth, maxWidth: DRAWER_WIDTH },
           }}
         >
           {renderContent}
