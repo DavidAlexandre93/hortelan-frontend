@@ -8,14 +8,22 @@ import {
   Button,
   Card,
   CardContent,
+  Checkbox,
   Chip,
   Container,
+  Divider,
   FormControl,
+  FormControlLabel,
+  FormGroup,
   Grid,
   InputLabel,
+  List,
+  ListItem,
+  ListItemText,
   MenuItem,
   Select,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from '@mui/material';
@@ -97,6 +105,13 @@ const eventTypeOptions = [
   { value: 'colheita', label: 'Colheita' },
 ];
 
+const baseTasksByPhase = {
+  Germinação: ['Monitorar umidade diariamente', 'Verificar incidência de luz indireta'],
+  Crescimento: ['Adubar com composto orgânico', 'Inspecionar sinais de pragas'],
+  Floração: ['Ajustar irrigação para manter constância', 'Reforçar tutoramento dos ramos'],
+  Colheita: ['Planejar colheita escalonada', 'Registrar produtividade da semana'],
+};
+
 const sensorWidgets = [
   {
     title: 'Sensor de umidade do solo',
@@ -148,6 +163,21 @@ const sensorWidgets = [
   },
 ];
 
+const gardenStatusList = [
+  { id: 'g-01', nome: 'Estufa A', umidade: 71, temperatura: 26, alertas: 1, tarefasPendentes: 2 },
+  { id: 'g-02', nome: 'Canteiro B', umidade: 62, temperatura: 24, alertas: 0, tarefasPendentes: 1 },
+  { id: 'g-03', nome: 'Hidroponia', umidade: 78, temperatura: 22, alertas: 2, tarefasPendentes: 3 },
+  { id: 'g-04', nome: 'Jardim Vertical', umidade: 59, temperatura: 27, alertas: 1, tarefasPendentes: 2 },
+];
+
+const pendingTasks = [
+  { id: 'pt-1', titulo: 'Reforçar irrigação no Canteiro B', prioridade: 'Alta', horta: 'Canteiro B' },
+  { id: 'pt-2', titulo: 'Inspecionar foco de pragas na Hidroponia', prioridade: 'Alta', horta: 'Hidroponia' },
+  { id: 'pt-3', titulo: 'Calibrar sensor de umidade da Estufa A', prioridade: 'Média', horta: 'Estufa A' },
+  { id: 'pt-4', titulo: 'Verificar reservatório do Jardim Vertical', prioridade: 'Média', horta: 'Jardim Vertical' },
+  { id: 'pt-5', titulo: 'Planejar poda de manutenção', prioridade: 'Baixa', horta: 'Estufa A' },
+];
+
 export default function DashboardApp() {
   const theme = useTheme();
   const [region, setRegion] = useState('Sudeste');
@@ -162,6 +192,12 @@ export default function DashboardApp() {
   const [novoEventoPorPlanta, setNovoEventoPorPlanta] = useState({});
   const [novaFotoPorPlanta, setNovaFotoPorPlanta] = useState({});
   const [novaObservacaoPorPlanta, setNovaObservacaoPorPlanta] = useState({});
+  const [enabledWidgets, setEnabledWidgets] = useState({
+    resumoHortas: true,
+    indicadores: true,
+    tarefasPendentes: true,
+  });
+  const [novaTarefaPorPlanta, setNovaTarefaPorPlanta] = useState({});
 
   const opcoesEspecie = [
     'Alface Crespa',
@@ -196,6 +232,12 @@ export default function DashboardApp() {
         eventos: [],
         fotos: [],
         observacoes: [],
+        tarefas: (baseTasksByPhase[novaPlanta.faseCultivo] || []).map((titulo) => ({
+          id: faker.datatype.uuid(),
+          titulo,
+          concluida: false,
+          prioridade: 'média',
+        })),
       },
       ...prev,
     ]);
@@ -339,6 +381,54 @@ export default function DashboardApp() {
     }));
   };
 
+  const atualizarNovaTarefa = (plantaId, value) => {
+    setNovaTarefaPorPlanta((prev) => ({
+      ...prev,
+      [plantaId]: value,
+    }));
+  };
+
+  const adicionarTarefa = (plantaId) => {
+    const titulo = (novaTarefaPorPlanta[plantaId] || '').trim();
+    if (!titulo) return;
+
+    setPlantas((prev) =>
+      prev.map((planta) =>
+        planta.id === plantaId
+          ? {
+              ...planta,
+              tarefas: [
+                {
+                  id: faker.datatype.uuid(),
+                  titulo,
+                  concluida: false,
+                  prioridade: 'média',
+                },
+                ...planta.tarefas,
+              ],
+            }
+          : planta
+      )
+    );
+
+    atualizarNovaTarefa(plantaId, '');
+  };
+
+  const alternarTarefa = (plantaId, tarefaId) => {
+    setPlantas((prev) =>
+      prev.map((planta) =>
+        planta.id === plantaId
+          ? {
+              ...planta,
+              tarefas: planta.tarefas.map((tarefa) =>
+                tarefa.id === tarefaId ? { ...tarefa, concluida: !tarefa.concluida } : tarefa
+              ),
+            }
+          : planta
+      )
+    );
+  };
+
   const janelaAtual = regionalSeasonality[region][novaPlanta.especie] || [];
   const mesEscolhido = novaPlanta.dataPlantio ? new Date(`${novaPlanta.dataPlantio}T00:00:00`).getMonth() + 1 : null;
 
@@ -418,6 +508,26 @@ export default function DashboardApp() {
     { severidade: 'info', mensagem: 'Novo ciclo de irrigação concluído com sucesso no Canteiro A.' },
   ];
 
+  const indicadorMedioUmidade = Math.round(
+    gardenStatusList.reduce((acumulado, horta) => acumulado + horta.umidade, 0) / gardenStatusList.length
+  );
+  const indicadorMediaTemperatura = Number(
+    (gardenStatusList.reduce((acumulado, horta) => acumulado + horta.temperatura, 0) / gardenStatusList.length).toFixed(1)
+  );
+  const indicadorAlertasAtivos = gardenStatusList.reduce((acumulado, horta) => acumulado + horta.alertas, 0);
+
+  const tarefasOrdenadas = [...pendingTasks].sort((a, b) => {
+    const prioridade = { Alta: 0, Média: 1, Baixa: 2 };
+    return prioridade[a.prioridade] - prioridade[b.prioridade];
+  });
+
+  const onToggleWidget = (widgetKey) => (event) => {
+    setEnabledWidgets((prev) => ({
+      ...prev,
+      [widgetKey]: event.target.checked,
+    }));
+  };
+
   return (
     <Page title="Dashboard">
       <Container maxWidth="xl">
@@ -426,6 +536,128 @@ export default function DashboardApp() {
         </Typography>
 
         <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" sx={{ mb: 2 }}>
+                  Widgets personalizáveis do dashboard
+                </Typography>
+                <FormGroup row>
+                  <FormControlLabel
+                    control={<Switch checked={enabledWidgets.resumoHortas} onChange={onToggleWidget('resumoHortas')} />}
+                    label="Resumo das hortas"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={enabledWidgets.indicadores} onChange={onToggleWidget('indicadores')} />}
+                    label="Indicadores principais"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={enabledWidgets.tarefasPendentes} onChange={onToggleWidget('tarefasPendentes')} />}
+                    label="Tarefas pendentes"
+                  />
+                </FormGroup>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {enabledWidgets.indicadores && (
+            <>
+              <Grid item xs={12} md={4}>
+                <AppWidgetSummary
+                  title="Umidade média"
+                  total={indicadorMedioUmidade}
+                  icon1="carbon:soil-moisture-field"
+                  color="primary"
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <AppWidgetSummary
+                  title="Temperatura média"
+                  total={indicadorMediaTemperatura}
+                  icon1="mdi:temperature-celsius"
+                  color="warning"
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <AppWidgetSummary title="Alertas ativos" total={indicadorAlertasAtivos} icon1="icon-park:alarm" color="error" />
+              </Grid>
+            </>
+          )}
+
+          {enabledWidgets.resumoHortas && (
+            <Grid item xs={12}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h5" sx={{ mb: 2 }}>
+                    Resumo do status de todas as hortas
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {gardenStatusList.map((horta) => (
+                      <Grid item xs={12} md={6} lg={3} key={horta.id}>
+                        <Card variant="outlined">
+                          <CardContent>
+                            <Typography variant="subtitle1">{horta.nome}</Typography>
+                            <Stack spacing={1} sx={{ mt: 1.5 }}>
+                              <Typography variant="body2" color="text.secondary">
+                                Umidade: <strong>{horta.umidade}%</strong>
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Temperatura: <strong>{horta.temperatura}°C</strong>
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Alertas: <strong>{horta.alertas}</strong>
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Tarefas pendentes: <strong>{horta.tarefasPendentes}</strong>
+                              </Typography>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
+
+          {enabledWidgets.tarefasPendentes && (
+            <Grid item xs={12}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h5" sx={{ mb: 1 }}>
+                    Visão rápida de tarefas pendentes
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Priorização automática por impacto operacional.
+                  </Typography>
+                  <List disablePadding>
+                    {tarefasOrdenadas.map((task, index) => (
+                      <Box key={task.id}>
+                        <ListItem disableGutters>
+                          <ListItemText
+                            primary={task.titulo}
+                            secondary={`Horta: ${task.horta}`}
+                            primaryTypographyProps={{ variant: 'subtitle2' }}
+                          />
+                          <Chip
+                            size="small"
+                            label={task.prioridade}
+                            color={task.prioridade === 'Alta' ? 'error' : task.prioridade === 'Média' ? 'warning' : 'default'}
+                            variant={task.prioridade === 'Baixa' ? 'outlined' : 'filled'}
+                          />
+                        </ListItem>
+                        {index < tarefasOrdenadas.length - 1 && <Divider />}
+                      </Box>
+                    ))}
+                  </List>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
+
           <Grid item xs={12}>
             <AppSensorAnalytics />
           </Grid>
@@ -718,6 +950,30 @@ export default function DashboardApp() {
                       const draftEvento = novoEventoPorPlanta[planta.id] || { tipo: '', data: '', detalhes: '' };
                       const draftFoto = novaFotoPorPlanta[planta.id] || { data: '', url: '', legenda: '' };
                       const draftObservacao = novaObservacaoPorPlanta[planta.id] || { data: '', texto: '' };
+                      const draftTarefa = novaTarefaPorPlanta[planta.id] || '';
+                      const tarefasPendentes = planta.tarefas.filter((tarefa) => !tarefa.concluida);
+                      const ultimoEvento = planta.eventos[0];
+                      const ultimaFoto = planta.fotos[0];
+                      const condicoes = [
+                        {
+                          label: `Fase: ${planta.faseCultivo}`,
+                          color: planta.faseCultivo === 'Colheita' ? 'success' : 'info',
+                        },
+                        {
+                          label: `${tarefasPendentes.length} tarefa(s) pendente(s)`,
+                          color: tarefasPendentes.length > 0 ? 'warning' : 'success',
+                        },
+                        {
+                          label: ultimoEvento
+                            ? `Último cuidado: ${eventTypeOptions.find((option) => option.value === ultimoEvento.tipo)?.label || 'Registro manual'}`
+                            : 'Sem cuidado registrado',
+                          color: ultimoEvento ? 'primary' : 'default',
+                        },
+                        {
+                          label: ultimaFoto ? `Última foto em ${ultimaFoto.data}` : 'Sem foto de evolução',
+                          color: ultimaFoto ? 'secondary' : 'default',
+                        },
+                      ];
 
                       const timeline = [
                         ...planta.eventos.map((evento) => ({
@@ -760,9 +1016,20 @@ export default function DashboardApp() {
                             </Stack>
 
                             <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                              <Grid item xs={12}>
+                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                  Condições atuais relacionadas à planta
+                                </Typography>
+                                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                                  {condicoes.map((item) => (
+                                    <Chip key={item.label} size="small" label={item.label} color={item.color} variant="outlined" />
+                                  ))}
+                                </Stack>
+                              </Grid>
+
                               <Grid item xs={12} md={4}>
                                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                  Registro de eventos
+                                  Histórico de cuidados
                                 </Typography>
                                 <Stack spacing={1}>
                                   <FormControl size="small" fullWidth>
@@ -797,6 +1064,19 @@ export default function DashboardApp() {
                                   <Button size="small" variant="contained" onClick={() => adicionarEvento(planta.id)}>
                                     Salvar evento
                                   </Button>
+                                  {planta.eventos.length > 0 ? (
+                                    <Stack spacing={0.75}>
+                                      {planta.eventos.slice(0, 3).map((evento) => (
+                                        <Typography key={evento.id} variant="caption" color="text.secondary">
+                                          {evento.data} • {eventTypeOptions.find((option) => option.value === evento.tipo)?.label || evento.tipo}
+                                        </Typography>
+                                      ))}
+                                    </Stack>
+                                  ) : (
+                                    <Typography variant="caption" color="text.secondary">
+                                      Nenhum cuidado registrado até o momento.
+                                    </Typography>
+                                  )}
                                 </Stack>
                               </Grid>
 
@@ -833,7 +1113,50 @@ export default function DashboardApp() {
 
                               <Grid item xs={12} md={4}>
                                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                  Observações do usuário
+                                  Próximas tarefas
+                                </Typography>
+                                <Stack spacing={1}>
+                                  <TextField
+                                    size="small"
+                                    label="Nova tarefa"
+                                    value={draftTarefa}
+                                    onChange={(event) => atualizarNovaTarefa(planta.id, event.target.value)}
+                                  />
+                                  <Button size="small" variant="contained" onClick={() => adicionarTarefa(planta.id)}>
+                                    Adicionar tarefa
+                                  </Button>
+                                  {planta.tarefas.length > 0 ? (
+                                    <Stack spacing={0.25}>
+                                      {planta.tarefas.slice(0, 4).map((tarefa) => (
+                                        <Stack key={tarefa.id} direction="row" spacing={0.5} alignItems="center">
+                                          <Checkbox
+                                            size="small"
+                                            checked={tarefa.concluida}
+                                            onChange={() => alternarTarefa(planta.id, tarefa.id)}
+                                          />
+                                          <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                            sx={{ textDecoration: tarefa.concluida ? 'line-through' : 'none' }}
+                                          >
+                                            {tarefa.titulo}
+                                          </Typography>
+                                        </Stack>
+                                      ))}
+                                    </Stack>
+                                  ) : (
+                                    <Typography variant="caption" color="text.secondary">
+                                      Nenhuma tarefa cadastrada.
+                                    </Typography>
+                                  )}
+                                </Stack>
+                              </Grid>
+                            </Grid>
+
+                            <Card variant="outlined" sx={{ mt: 2 }}>
+                              <CardContent>
+                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                  Observações de evolução
                                 </Typography>
                                 <Stack spacing={1}>
                                   <TextField
@@ -856,8 +1179,8 @@ export default function DashboardApp() {
                                     Salvar observação
                                   </Button>
                                 </Stack>
-                              </Grid>
-                            </Grid>
+                              </CardContent>
+                            </Card>
 
                             <Card variant="outlined" sx={{ mt: 2, bgcolor: 'background.neutral' }}>
                               <CardContent>
