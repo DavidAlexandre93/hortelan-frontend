@@ -7,6 +7,10 @@ import ErrorRoundedIcon from '@mui/icons-material/ErrorRounded';
 import NotificationsActiveRoundedIcon from '@mui/icons-material/NotificationsActiveRounded';
 import TaskAltRoundedIcon from '@mui/icons-material/TaskAltRounded';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
+import PauseCircleFilledRoundedIcon from '@mui/icons-material/PauseCircleFilledRounded';
+import PlayCircleFilledRoundedIcon from '@mui/icons-material/PlayCircleFilledRounded';
+import PowerSettingsNewRoundedIcon from '@mui/icons-material/PowerSettingsNewRounded';
+import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import {
   Alert,
   Box,
@@ -148,16 +152,39 @@ function buildInitialAlerts() {
   );
 }
 
+function buildInitialActuators() {
+  return greenhouseAreas.reduce((acc, area) => {
+    const areaActuators = area.devices
+      .filter((device) => device.type === 'device')
+      .map((device) => ({
+        ...device,
+        areaId: area.id,
+        areaName: area.name,
+        isOn: false,
+      }));
+
+    return [...acc, ...areaActuators];
+  }, []);
+}
+
 export default function StatusPage() {
   const [selectedArea, setSelectedArea] = useState('all');
   const [events, setEvents] = useState([]);
   const [alerts, setAlerts] = useState(() => buildInitialAlerts());
+  const [actuators, setActuators] = useState(() => buildInitialActuators());
+  const [automationSuspendedAt, setAutomationSuspendedAt] = useState(null);
+  const [interventions, setInterventions] = useState([]);
+
+  const automationSuspended = Boolean(automationSuspendedAt);
 
   useEffect(() => {
     const interval = setInterval(() => {
       const area = randomItem(greenhouseAreas);
       const device = randomItem(area.devices);
-      const template = randomItem(streamTemplates);
+      const availableTemplates = automationSuspended
+        ? streamTemplates.filter((template) => template.type !== 'actuator')
+        : streamTemplates;
+      const template = randomItem(availableTemplates);
       const createdAt = new Date().toISOString();
 
       const event = {
@@ -189,7 +216,7 @@ export default function StatusPage() {
     }, 2200);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [automationSuspended]);
 
   const filteredEvents = useMemo(
     () => (selectedArea === 'all' ? events : events.filter((event) => event.areaId === selectedArea)),
@@ -210,6 +237,10 @@ export default function StatusPage() {
 
   const successfulExecutions = filteredRuleExecutions.filter((execution) => execution.status === 'success').length;
   const failedExecutions = filteredRuleExecutions.filter((execution) => execution.status === 'failed').length;
+  const filteredActuators = selectedArea === 'all' ? actuators : actuators.filter((actuator) => actuator.areaId === selectedArea);
+  const filteredInterventions = selectedArea === 'all'
+    ? interventions
+    : interventions.filter((entry) => entry.areaId === selectedArea || entry.areaId === 'global');
 
   const totalDevices = greenhouseAreas.reduce((acc, area) => acc + area.devices.length, 0);
   const offlineDevices = greenhouseAreas.reduce(
@@ -228,6 +259,72 @@ export default function StatusPage() {
           : alert
       )
     );
+  };
+
+  const appendIntervention = ({ areaId = 'global', areaName = 'Todas as áreas', type, description, deviceName = '-' }) => {
+    const createdAt = new Date().toISOString();
+
+    setInterventions((prev) => [
+      {
+        id: `${createdAt}-${Math.random().toString(36).slice(2, 9)}`,
+        createdAt,
+        areaId,
+        areaName,
+        type,
+        description,
+        deviceName,
+      },
+      ...prev,
+    ]);
+  };
+
+  const handleActuatorToggle = (actuatorId) => {
+    setActuators((prev) =>
+      prev.map((actuator) => {
+        if (actuator.id !== actuatorId) {
+          return actuator;
+        }
+
+        const nextState = !actuator.isOn;
+        appendIntervention({
+          areaId: actuator.areaId,
+          areaName: actuator.areaName,
+          type: nextState ? 'LIGAR_ATUADOR' : 'DESLIGAR_ATUADOR',
+          description: `Atuador ${nextState ? 'ligado' : 'desligado'} manualmente`,
+          deviceName: actuator.name,
+        });
+
+        return {
+          ...actuator,
+          isOn: nextState,
+        };
+      })
+    );
+  };
+
+  const handleSuspendAutomation = () => {
+    if (automationSuspended) {
+      return;
+    }
+
+    const suspendedAt = new Date().toISOString();
+    setAutomationSuspendedAt(suspendedAt);
+    appendIntervention({
+      type: 'SUSPENDER_AUTOMACAO',
+      description: 'Automação suspensa temporariamente por intervenção manual',
+    });
+  };
+
+  const handleResumeAutomation = () => {
+    if (!automationSuspended) {
+      return;
+    }
+
+    setAutomationSuspendedAt(null);
+    appendIntervention({
+      type: 'RETOMAR_AUTOMACAO',
+      description: 'Automação retomada e controle automático restabelecido',
+    });
   };
 
   return (
@@ -319,6 +416,76 @@ export default function StatusPage() {
           </Grid>
 
           <Grid container spacing={3}>
+            <Grid item xs={12} lg={4}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography variant="h6" sx={{ mb: 1 }}>
+                    Controles manuais e automação
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Ligue/desligue atuadores manualmente e suspenda ou retome a automação quando necessário.
+                  </Typography>
+
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mb: 2 }}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      color="warning"
+                      startIcon={<PauseCircleFilledRoundedIcon />}
+                      onClick={handleSuspendAutomation}
+                      disabled={automationSuspended}
+                    >
+                      Suspender automação
+                    </Button>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      color="success"
+                      startIcon={<PlayCircleFilledRoundedIcon />}
+                      onClick={handleResumeAutomation}
+                      disabled={!automationSuspended}
+                    >
+                      Retomar automação
+                    </Button>
+                  </Stack>
+
+                  <Alert severity={automationSuspended ? 'warning' : 'success'} sx={{ mb: 2 }}>
+                    {automationSuspended
+                      ? `Automação pausada desde ${dateTimeFormatter.format(new Date(automationSuspendedAt))}`
+                      : 'Automação ativa e monitorando atuadores automaticamente.'}
+                  </Alert>
+
+                  <Stack spacing={1}>
+                    {filteredActuators.map((actuator) => (
+                      <Card key={actuator.id} variant="outlined">
+                        <CardContent sx={{ py: 1.5 }}>
+                          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                            <Box>
+                              <Typography variant="body2" fontWeight={700}>
+                                {actuator.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {actuator.areaName} • {actuator.id}
+                              </Typography>
+                            </Box>
+                            <Button
+                              size="small"
+                              variant={actuator.isOn ? 'contained' : 'outlined'}
+                              color={actuator.isOn ? 'error' : 'primary'}
+                              startIcon={<PowerSettingsNewRoundedIcon fontSize="small" />}
+                              onClick={() => handleActuatorToggle(actuator.id)}
+                            >
+                              {actuator.isOn ? 'Desligar' : 'Ligar'}
+                            </Button>
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
             <Grid item xs={12} lg={4}>
               <Card sx={{ height: '100%' }}>
                 <CardContent>
@@ -437,6 +604,30 @@ export default function StatusPage() {
                   ))}
                 </TableBody>
               </Table>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                <HistoryRoundedIcon color="action" />
+                <Typography variant="h6">Registro de intervenções manuais</Typography>
+              </Stack>
+
+              <Stack spacing={1.2}>
+                {filteredInterventions.length === 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    Nenhuma intervenção manual registrada no filtro atual.
+                  </Typography>
+                )}
+                {filteredInterventions.map((entry) => (
+                  <Alert key={entry.id} severity="info">
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1} flexWrap="wrap">
+                      <Typography variant="body2">
+                        <strong>{entry.type}</strong> • {entry.areaName} • {entry.deviceName} — {entry.description}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {dateTimeFormatter.format(new Date(entry.createdAt))}
+                      </Typography>
+                    </Stack>
+                  </Alert>
+                ))}
+              </Stack>
             </CardContent>
           </Card>
 
