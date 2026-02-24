@@ -16,6 +16,7 @@ import {
   FormControlLabel,
   FormGroup,
   Grid,
+  IconButton,
   InputLabel,
   List,
   ListItem,
@@ -27,6 +28,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 // components
 import Page from '../components/Page';
@@ -178,6 +180,24 @@ const pendingTasks = [
   { id: 'pt-5', titulo: 'Planejar poda de manutenção', prioridade: 'Baixa', horta: 'Estufa A' },
 ];
 
+const automationSensors = [
+  { value: 'umidadeSolo', label: 'Umidade do solo (%)' },
+  { value: 'temperatura', label: 'Temperatura ambiente (°C)' },
+  { value: 'umidadeAr', label: 'Umidade do ar (%)' },
+  { value: 'luminosidade', label: 'Luminosidade (lux)' },
+  { value: 'nivelReservatorio', label: 'Nível do reservatório (%)' },
+  { value: 'fluxo', label: 'Fluxo de água (L/min)' },
+];
+
+const automationOperators = ['<', '<=', '=', '>=', '>'];
+
+const dependencyStatuses = [
+  { value: 'online', label: 'Online' },
+  { value: 'offline', label: 'Offline' },
+  { value: 'ok', label: 'Saudável' },
+  { value: 'critico', label: 'Crítico' },
+];
+
 export default function DashboardApp() {
   const theme = useTheme();
   const [region, setRegion] = useState('Sudeste');
@@ -198,6 +218,15 @@ export default function DashboardApp() {
     tarefasPendentes: true,
   });
   const [novaTarefaPorPlanta, setNovaTarefaPorPlanta] = useState({});
+  const [automationDraft, setAutomationDraft] = useState({
+    nome: 'Rega inteligente da manhã',
+    logica: 'AND',
+    janelaInicio: '06:00',
+    janelaFim: '09:00',
+    condicoes: [{ sensor: 'umidadeSolo', operador: '<=', valor: '40' }],
+    dependencias: [{ sensor: 'nivelReservatorio', status: 'ok' }],
+  });
+  const [automationRules, setAutomationRules] = useState([]);
 
   const opcoesEspecie = [
     'Alface Crespa',
@@ -386,6 +415,66 @@ export default function DashboardApp() {
       ...prev,
       [plantaId]: value,
     }));
+  };
+
+  const atualizarCondicaoAutomacao = (index, field, value) => {
+    setAutomationDraft((prev) => ({
+      ...prev,
+      condicoes: prev.condicoes.map((condicao, condicaoIndex) =>
+        condicaoIndex === index ? { ...condicao, [field]: value } : condicao
+      ),
+    }));
+  };
+
+  const adicionarCondicaoAutomacao = () => {
+    setAutomationDraft((prev) => ({
+      ...prev,
+      condicoes: [...prev.condicoes, { sensor: 'temperatura', operador: '>=', valor: '22' }],
+    }));
+  };
+
+  const removerCondicaoAutomacao = (index) => {
+    setAutomationDraft((prev) => ({
+      ...prev,
+      condicoes: prev.condicoes.filter((_, condicaoIndex) => condicaoIndex !== index),
+    }));
+  };
+
+  const atualizarDependenciaAutomacao = (index, field, value) => {
+    setAutomationDraft((prev) => ({
+      ...prev,
+      dependencias: prev.dependencias.map((dependencia, dependenciaIndex) =>
+        dependenciaIndex === index ? { ...dependencia, [field]: value } : dependencia
+      ),
+    }));
+  };
+
+  const adicionarDependenciaAutomacao = () => {
+    setAutomationDraft((prev) => ({
+      ...prev,
+      dependencias: [...prev.dependencias, { sensor: 'fluxo', status: 'online' }],
+    }));
+  };
+
+  const removerDependenciaAutomacao = (index) => {
+    setAutomationDraft((prev) => ({
+      ...prev,
+      dependencias: prev.dependencias.filter((_, dependenciaIndex) => dependenciaIndex !== index),
+    }));
+  };
+
+  const salvarAutomacao = () => {
+    if (!automationDraft.nome || automationDraft.condicoes.length === 0) {
+      return;
+    }
+
+    setAutomationRules((prev) => [
+      {
+        id: faker.datatype.uuid(),
+        ...automationDraft,
+      },
+      ...prev,
+    ]);
   };
 
   const adicionarTarefa = (plantaId) => {
@@ -660,6 +749,219 @@ export default function DashboardApp() {
 
           <Grid item xs={12}>
             <AppSensorAnalytics />
+          </Grid>
+
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" sx={{ mb: 1.5 }}>
+                  Motor de automações por regras
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Configure condição + horário, múltiplas condições (AND/OR) e dependências entre sensores antes da execução.
+                </Typography>
+
+                <Grid container spacing={1.5}>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      label="Nome da automação"
+                      size="small"
+                      fullWidth
+                      value={automationDraft.nome}
+                      onChange={(event) => setAutomationDraft((prev) => ({ ...prev, nome: event.target.value }))}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={2}>
+                    <FormControl size="small" fullWidth>
+                      <InputLabel id="logica-automacao-label">Combinação</InputLabel>
+                      <Select
+                        labelId="logica-automacao-label"
+                        label="Combinação"
+                        value={automationDraft.logica}
+                        onChange={(event) => setAutomationDraft((prev) => ({ ...prev, logica: event.target.value }))}
+                      >
+                        <MenuItem value="AND">AND</MenuItem>
+                        <MenuItem value="OR">OR</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={6} md={2}>
+                    <TextField
+                      label="Início"
+                      type="time"
+                      size="small"
+                      fullWidth
+                      value={automationDraft.janelaInicio}
+                      onChange={(event) => setAutomationDraft((prev) => ({ ...prev, janelaInicio: event.target.value }))}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={6} md={2}>
+                    <TextField
+                      label="Fim"
+                      type="time"
+                      size="small"
+                      fullWidth
+                      value={automationDraft.janelaFim}
+                      onChange={(event) => setAutomationDraft((prev) => ({ ...prev, janelaFim: event.target.value }))}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={3}>
+                    <Button variant="contained" fullWidth onClick={salvarAutomacao}>
+                      Salvar regra
+                    </Button>
+                  </Grid>
+
+                  <Grid item xs={12} md={7}>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      Condições da regra
+                    </Typography>
+                    <Stack spacing={1}>
+                      {automationDraft.condicoes.map((condicao, index) => (
+                        <Stack key={`condicao-${index}`} direction="row" spacing={1} alignItems="center">
+                          <FormControl size="small" sx={{ minWidth: 180 }}>
+                            <InputLabel id={`condicao-sensor-${index}`}>Sensor</InputLabel>
+                            <Select
+                              labelId={`condicao-sensor-${index}`}
+                              label="Sensor"
+                              value={condicao.sensor}
+                              onChange={(event) => atualizarCondicaoAutomacao(index, 'sensor', event.target.value)}
+                            >
+                              {automationSensors.map((sensor) => (
+                                <MenuItem key={sensor.value} value={sensor.value}>
+                                  {sensor.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <FormControl size="small" sx={{ minWidth: 90 }}>
+                            <InputLabel id={`condicao-operador-${index}`}>Op.</InputLabel>
+                            <Select
+                              labelId={`condicao-operador-${index}`}
+                              label="Op."
+                              value={condicao.operador}
+                              onChange={(event) => atualizarCondicaoAutomacao(index, 'operador', event.target.value)}
+                            >
+                              {automationOperators.map((operator) => (
+                                <MenuItem key={operator} value={operator}>
+                                  {operator}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <TextField
+                            size="small"
+                            label="Valor"
+                            value={condicao.valor}
+                            onChange={(event) => atualizarCondicaoAutomacao(index, 'valor', event.target.value)}
+                          />
+                          <IconButton
+                            aria-label="Remover condição"
+                            onClick={() => removerCondicaoAutomacao(index)}
+                            disabled={automationDraft.condicoes.length === 1}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Stack>
+                      ))}
+                      <Button variant="outlined" size="small" onClick={adicionarCondicaoAutomacao} sx={{ alignSelf: 'flex-start' }}>
+                        Adicionar condição
+                      </Button>
+                    </Stack>
+                  </Grid>
+
+                  <Grid item xs={12} md={5}>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      Dependência entre sensores
+                    </Typography>
+                    <Stack spacing={1}>
+                      {automationDraft.dependencias.map((dependencia, index) => (
+                        <Stack key={`dependencia-${index}`} direction="row" spacing={1} alignItems="center">
+                          <FormControl size="small" sx={{ minWidth: 180 }}>
+                            <InputLabel id={`dependencia-sensor-${index}`}>Sensor</InputLabel>
+                            <Select
+                              labelId={`dependencia-sensor-${index}`}
+                              label="Sensor"
+                              value={dependencia.sensor}
+                              onChange={(event) => atualizarDependenciaAutomacao(index, 'sensor', event.target.value)}
+                            >
+                              {automationSensors.map((sensor) => (
+                                <MenuItem key={sensor.value} value={sensor.value}>
+                                  {sensor.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <FormControl size="small" sx={{ minWidth: 120 }}>
+                            <InputLabel id={`dependencia-status-${index}`}>Status</InputLabel>
+                            <Select
+                              labelId={`dependencia-status-${index}`}
+                              label="Status"
+                              value={dependencia.status}
+                              onChange={(event) => atualizarDependenciaAutomacao(index, 'status', event.target.value)}
+                            >
+                              {dependencyStatuses.map((status) => (
+                                <MenuItem key={status.value} value={status.value}>
+                                  {status.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <IconButton
+                            aria-label="Remover dependência"
+                            onClick={() => removerDependenciaAutomacao(index)}
+                            disabled={automationDraft.dependencias.length === 1}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Stack>
+                      ))}
+                      <Button variant="outlined" size="small" onClick={adicionarDependenciaAutomacao} sx={{ alignSelf: 'flex-start' }}>
+                        Adicionar dependência
+                      </Button>
+                    </Stack>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                      <Chip label={`Janela ativa: ${automationDraft.janelaInicio} - ${automationDraft.janelaFim}`} color="primary" variant="outlined" />
+                      <Chip label={`Condições: ${automationDraft.condicoes.length} (${automationDraft.logica})`} color="secondary" variant="outlined" />
+                      <Chip label={`Dependências: ${automationDraft.dependencias.length}`} color="info" variant="outlined" />
+                    </Stack>
+                  </Grid>
+                </Grid>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  Regras criadas nesta sessão
+                </Typography>
+                {automationRules.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    Nenhuma regra salva ainda.
+                  </Typography>
+                ) : (
+                  <Stack spacing={1}>
+                    {automationRules.map((rule) => (
+                      <Card key={rule.id} variant="outlined">
+                        <CardContent sx={{ py: 1.5 }}>
+                          <Typography variant="subtitle2">{rule.nome}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Executa entre {rule.janelaInicio} e {rule.janelaFim} quando {rule.condicoes.length} condição(ões) ({rule.logica}) e{' '}
+                            {rule.dependencias.length} dependência(s) forem atendidas.
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Stack>
+                )}
+              </CardContent>
+            </Card>
           </Grid>
 
           <Grid item xs={12}>
