@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Page from '../components/Page';
-import { hortelanModules, releaseRoadmap, wowFeatures } from '../data/hortelanBlueprint';
+import { gamificationBlueprint, hortelanModules, releaseRoadmap, wowFeatures } from '../data/hortelanBlueprint';
 
 export default function Hortelan360() {
   const [query, setQuery] = useState('');
@@ -78,6 +78,34 @@ export default function Hortelan360() {
                 <Chip key={feature} label={feature} color="primary" variant="outlined" />
               ))}
             </Stack>
+          </CardContent>
+        </Card>
+
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Programa de gamificação (detalhado)
+            </Typography>
+            <Grid container spacing={2}>
+              {gamificationBlueprint.map((pillar) => (
+                <Grid item xs={12} md={6} key={pillar.id}>
+                  <Card variant="outlined" sx={{ height: '100%' }}>
+                    <CardContent>
+                      <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                        {pillar.id} {pillar.title}
+                      </Typography>
+                      <List dense>
+                        {pillar.items.map((item) => (
+                          <ListItem key={`${pillar.id}-${item}`} sx={{ py: 0.25, px: 0 }}>
+                            <ListItemText primary={`• ${item}`} />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
           </CardContent>
         </Card>
 
