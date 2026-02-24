@@ -79,7 +79,7 @@ export default function Register() {
         {mdUp && (
           <SectionStyle>
             <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
-              Crie sua conta na Hortelan
+              Crie sua conta na Hortelan Agtech Ltda
             </Typography>
             <img
               alt="register"

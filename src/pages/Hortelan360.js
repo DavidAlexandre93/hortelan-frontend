@@ -34,10 +34,10 @@ export default function Hortelan360() {
   );
 
   return (
-    <Page title="Hortelan 360">
+    <Page title="Hortelan Agtech Ltda 360">
       <Container maxWidth="xl">
         <Stack spacing={3} sx={{ mb: 4 }}>
-          <Typography variant="h4">Hortelan AgTech — Blueprint completo da plataforma</Typography>
+          <Typography variant="h4">Hortelan Agtech Ltda — Blueprint completo da plataforma</Typography>
           <Typography color="text.secondary">
             Esta tela consolida as 30 frentes de produto solicitadas em uma arquitetura de entrega por releases.
           </Typography>
