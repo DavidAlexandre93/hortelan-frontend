@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import SensorsIcon from '@mui/icons-material/Sensors';
 import RouterIcon from '@mui/icons-material/Router';
@@ -355,20 +354,6 @@ function getPlantSensorAlerts(readings) {
   return sensorAlerts;
 }
 
-export default function StatusPage() {
-  const initialManualStatus = useMemo(
-    () =>
-      greenhouseAreas.flatMap((area) => area.plants).reduce((acc, plant) => {
-        acc[plant.id] = plant.manualStatus;
-        return acc;
-      }, {}),
-    []
-  );
-  const [manualPlantStatus, setManualPlantStatus] = useState(initialManualStatus);
-
-  const totalDevices = greenhouseAreas.reduce((acc, area) => acc + area.devices.length, 0);
-  const totalAlerts = greenhouseAreas.reduce((acc, area) => acc + area.alerts.length, 0);
-  const totalPlants = greenhouseAreas.reduce((acc, area) => acc + area.plants.length, 0);
 const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short',
   timeStyle: 'medium',
@@ -451,6 +436,15 @@ const getUpdatedMeasurement = (previousMeasurement) => {
 };
 
 export default function StatusPage() {
+  const initialManualStatus = useMemo(
+    () =>
+      greenhouseAreas.flatMap((area) => area.plants).reduce((acc, plant) => {
+        acc[plant.id] = plant.manualStatus;
+        return acc;
+      }, {}),
+    []
+  );
+  const [manualPlantStatus, setManualPlantStatus] = useState(initialManualStatus);
   const [measurementsByDevice, setMeasurementsByDevice] = useState(() => buildInitialMeasurements());
   const [lastRefreshAt, setLastRefreshAt] = useState(new Date().toISOString());
   const [viewMode, setViewMode] = useState('area');
@@ -486,6 +480,7 @@ export default function StatusPage() {
     (acc, area) => acc + area.devices.filter((device) => device.type === 'sensor').length,
     0
   );
+  const totalPlants = greenhouseAreas.reduce((acc, area) => acc + area.plants.length, 0);
 
   return (
     <Page title="Status por Área">
@@ -650,7 +645,6 @@ export default function StatusPage() {
               </Card>
             </Grid>
 
-            {greenhouseAreas.map((area) => {
             {filteredAreas.map((area) => {
               const config = areaStatusConfig[area.status];
               const scopedDevices = area.devices.filter((device) => {
@@ -791,6 +785,9 @@ export default function StatusPage() {
                                 </Stack>
                               </CardContent>
                             </Card>
+                          );
+                        })}
+
                         {scopedDevices.map((device) => {
                           const measurement = measurementsByDevice[device.id];
 

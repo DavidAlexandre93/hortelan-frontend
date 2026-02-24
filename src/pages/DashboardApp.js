@@ -10,12 +10,19 @@ import {
   CardContent,
   Chip,
   Container,
+  Divider,
   FormControl,
+  FormControlLabel,
+  FormGroup,
   Grid,
   InputLabel,
+  List,
+  ListItem,
+  ListItemText,
   MenuItem,
   Select,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from '@mui/material';
@@ -148,6 +155,21 @@ const sensorWidgets = [
   },
 ];
 
+const gardenStatusList = [
+  { id: 'g-01', nome: 'Estufa A', umidade: 71, temperatura: 26, alertas: 1, tarefasPendentes: 2 },
+  { id: 'g-02', nome: 'Canteiro B', umidade: 62, temperatura: 24, alertas: 0, tarefasPendentes: 1 },
+  { id: 'g-03', nome: 'Hidroponia', umidade: 78, temperatura: 22, alertas: 2, tarefasPendentes: 3 },
+  { id: 'g-04', nome: 'Jardim Vertical', umidade: 59, temperatura: 27, alertas: 1, tarefasPendentes: 2 },
+];
+
+const pendingTasks = [
+  { id: 'pt-1', titulo: 'Reforçar irrigação no Canteiro B', prioridade: 'Alta', horta: 'Canteiro B' },
+  { id: 'pt-2', titulo: 'Inspecionar foco de pragas na Hidroponia', prioridade: 'Alta', horta: 'Hidroponia' },
+  { id: 'pt-3', titulo: 'Calibrar sensor de umidade da Estufa A', prioridade: 'Média', horta: 'Estufa A' },
+  { id: 'pt-4', titulo: 'Verificar reservatório do Jardim Vertical', prioridade: 'Média', horta: 'Jardim Vertical' },
+  { id: 'pt-5', titulo: 'Planejar poda de manutenção', prioridade: 'Baixa', horta: 'Estufa A' },
+];
+
 export default function DashboardApp() {
   const theme = useTheme();
   const [region, setRegion] = useState('Sudeste');
@@ -162,6 +184,11 @@ export default function DashboardApp() {
   const [novoEventoPorPlanta, setNovoEventoPorPlanta] = useState({});
   const [novaFotoPorPlanta, setNovaFotoPorPlanta] = useState({});
   const [novaObservacaoPorPlanta, setNovaObservacaoPorPlanta] = useState({});
+  const [enabledWidgets, setEnabledWidgets] = useState({
+    resumoHortas: true,
+    indicadores: true,
+    tarefasPendentes: true,
+  });
 
   const opcoesEspecie = [
     'Alface Crespa',
@@ -386,6 +413,26 @@ export default function DashboardApp() {
     };
   });
 
+  const indicadorMedioUmidade = Math.round(
+    gardenStatusList.reduce((acumulado, horta) => acumulado + horta.umidade, 0) / gardenStatusList.length
+  );
+  const indicadorMediaTemperatura = Number(
+    (gardenStatusList.reduce((acumulado, horta) => acumulado + horta.temperatura, 0) / gardenStatusList.length).toFixed(1)
+  );
+  const indicadorAlertasAtivos = gardenStatusList.reduce((acumulado, horta) => acumulado + horta.alertas, 0);
+
+  const tarefasOrdenadas = [...pendingTasks].sort((a, b) => {
+    const prioridade = { Alta: 0, Média: 1, Baixa: 2 };
+    return prioridade[a.prioridade] - prioridade[b.prioridade];
+  });
+
+  const onToggleWidget = (widgetKey) => (event) => {
+    setEnabledWidgets((prev) => ({
+      ...prev,
+      [widgetKey]: event.target.checked,
+    }));
+  };
+
   return (
     <Page title="Dashboard">
       <Container maxWidth="xl">
@@ -394,6 +441,128 @@ export default function DashboardApp() {
         </Typography>
 
         <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" sx={{ mb: 2 }}>
+                  Widgets personalizáveis do dashboard
+                </Typography>
+                <FormGroup row>
+                  <FormControlLabel
+                    control={<Switch checked={enabledWidgets.resumoHortas} onChange={onToggleWidget('resumoHortas')} />}
+                    label="Resumo das hortas"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={enabledWidgets.indicadores} onChange={onToggleWidget('indicadores')} />}
+                    label="Indicadores principais"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={enabledWidgets.tarefasPendentes} onChange={onToggleWidget('tarefasPendentes')} />}
+                    label="Tarefas pendentes"
+                  />
+                </FormGroup>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {enabledWidgets.indicadores && (
+            <>
+              <Grid item xs={12} md={4}>
+                <AppWidgetSummary
+                  title="Umidade média"
+                  total={indicadorMedioUmidade}
+                  icon1="carbon:soil-moisture-field"
+                  color="primary"
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <AppWidgetSummary
+                  title="Temperatura média"
+                  total={indicadorMediaTemperatura}
+                  icon1="mdi:temperature-celsius"
+                  color="warning"
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <AppWidgetSummary title="Alertas ativos" total={indicadorAlertasAtivos} icon1="icon-park:alarm" color="error" />
+              </Grid>
+            </>
+          )}
+
+          {enabledWidgets.resumoHortas && (
+            <Grid item xs={12}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h5" sx={{ mb: 2 }}>
+                    Resumo do status de todas as hortas
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {gardenStatusList.map((horta) => (
+                      <Grid item xs={12} md={6} lg={3} key={horta.id}>
+                        <Card variant="outlined">
+                          <CardContent>
+                            <Typography variant="subtitle1">{horta.nome}</Typography>
+                            <Stack spacing={1} sx={{ mt: 1.5 }}>
+                              <Typography variant="body2" color="text.secondary">
+                                Umidade: <strong>{horta.umidade}%</strong>
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Temperatura: <strong>{horta.temperatura}°C</strong>
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Alertas: <strong>{horta.alertas}</strong>
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Tarefas pendentes: <strong>{horta.tarefasPendentes}</strong>
+                              </Typography>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
+
+          {enabledWidgets.tarefasPendentes && (
+            <Grid item xs={12}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h5" sx={{ mb: 1 }}>
+                    Visão rápida de tarefas pendentes
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Priorização automática por impacto operacional.
+                  </Typography>
+                  <List disablePadding>
+                    {tarefasOrdenadas.map((task, index) => (
+                      <Box key={task.id}>
+                        <ListItem disableGutters>
+                          <ListItemText
+                            primary={task.titulo}
+                            secondary={`Horta: ${task.horta}`}
+                            primaryTypographyProps={{ variant: 'subtitle2' }}
+                          />
+                          <Chip
+                            size="small"
+                            label={task.prioridade}
+                            color={task.prioridade === 'Alta' ? 'error' : task.prioridade === 'Média' ? 'warning' : 'default'}
+                            variant={task.prioridade === 'Baixa' ? 'outlined' : 'filled'}
+                          />
+                        </ListItem>
+                        {index < tarefasOrdenadas.length - 1 && <Divider />}
+                      </Box>
+                    ))}
+                  </List>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
+
           <Grid item xs={12}>
             <AppSensorAnalytics />
           </Grid>
