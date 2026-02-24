@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Avatar,
@@ -29,6 +29,7 @@ import PaidIcon from '@mui/icons-material/Paid';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import Page from '../components/Page';
 import HortelanPromoBanner from '../components/HortelanPromoBanner';
+import useGSAP from '../hooks/useGSAP';
 import productCatalog, { categories } from '../data/productCatalog';
 
 const sortMap = {
@@ -38,6 +39,7 @@ const sortMap = {
 };
 
 export default function ProductsMarketplace() {
+  const rootRef = useRef(null);
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [maxPrice, setMaxPrice] = useState(500);
@@ -122,22 +124,82 @@ export default function ProductsMarketplace() {
     { id: 'PED-1013', status: 'Entregue', rastreio: 'BR987654321', itens: 'Substrato + Fertilizante Foliar' },
   ];
 
+  useGSAP(
+    ({ selector, root }) => {
+      const heroTitle = selector('.gsap-hero-title')[0];
+      const heroSubtitle = selector('.gsap-hero-subtitle')[0];
+      const heroBanner = selector('.gsap-hero-banner')[0];
+      const chips = selector('.gsap-category-chip');
+      const storyCards = selector('.gsap-story-card');
+
+      const animateIn = (element, delay, offset = 24) => {
+        if (!element) return;
+        element.animate(
+          [
+            { opacity: 0, transform: `translateY(${offset}px)` },
+            { opacity: 1, transform: 'translateY(0px)' },
+          ],
+          { duration: 700, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', delay, fill: 'forwards' }
+        );
+      };
+
+      animateIn(heroTitle, 0, 34);
+      animateIn(heroSubtitle, 140, 24);
+      animateIn(heroBanner, 260, 22);
+      chips.forEach((chip, index) => animateIn(chip, 310 + index * 35, 12));
+
+      const storyObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            storyCards.forEach((card, index) => animateIn(card, index * 120, 32));
+          });
+        },
+        { threshold: 0.22 }
+      );
+
+      const storySection = selector('.gsap-story-section')[0];
+      if (storySection) storyObserver.observe(storySection);
+
+      const onScroll = () => {
+        if (!heroBanner || !root) return;
+        const rect = root.getBoundingClientRect();
+        const rawProgress = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight + 280)));
+        heroBanner.style.transform = `translate3d(0, ${-rawProgress * 26}px, 0)`;
+      };
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      return () => {
+        window.removeEventListener('scroll', onScroll);
+        storyObserver.disconnect();
+      };
+    },
+    { scope: rootRef }
+  );
+
   return (
     <Page title="Marketplace Hortelan Agtech Ltda">
-      <Container>
+      <Container ref={rootRef}>
         <Stack spacing={1} sx={{ mb: 3 }}>
-          <Typography variant="h4">Catálogo de produtos Hortelan Agtech Ltda</Typography>
-          <Typography color="text.secondary">
+          <Typography className="gsap-hero-title" variant="h4">
+            Catálogo de produtos Hortelan Agtech Ltda
+          </Typography>
+          <Typography className="gsap-hero-subtitle" color="text.secondary">
             Explore sementes, substratos, fertilizantes, sensores, kits, irrigação e ferramentas com filtros avançados.
           </Typography>
         </Stack>
 
-        <HortelanPromoBanner sx={{ mb: 3 }} />
+        <Box className="gsap-hero-banner-wrapper" sx={{ mb: 3, overflow: 'hidden' }}>
+          <HortelanPromoBanner className="gsap-hero-banner" />
+        </Box>
 
         <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
           {categories.map((category) => (
             <Chip
               key={category}
+              className="gsap-category-chip"
               label={category}
               clickable
               color={selectedCategory === category ? 'primary' : 'default'}
@@ -217,9 +279,9 @@ export default function ProductsMarketplace() {
           </Grid>
         </Paper>
 
-        <Grid container spacing={3}>
+        <Grid className="gsap-story-section" container spacing={3}>
           <Grid item xs={12} md={5}>
-            <Card>
+            <Card className="gsap-story-card">
               <CardContent>
                 <Typography variant="h6" sx={{ mb: 2 }}>
                   Produtos ({filteredProducts.length})
@@ -253,7 +315,7 @@ export default function ProductsMarketplace() {
 
           <Grid item xs={12} md={7}>
             {selectedProduct && (
-              <Card>
+              <Card className="gsap-story-card">
                 <CardContent>
                   <Typography variant="h6" sx={{ mb: 1 }}>
                     Página de produto
