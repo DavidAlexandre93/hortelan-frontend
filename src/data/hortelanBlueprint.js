@@ -291,10 +291,13 @@ export const hortelanModules = [
     title: 'Módulo Educacional/Institucional',
     tags: ['Release 3', 'B2B/B2G'],
     features: [
-      'Gestão de múltiplas hortas por instituição',
-      'Usuários por turma/equipe e dashboard por unidade',
-      'Metas coletivas e relatórios ESG/pedagógicos',
-      'Permissões para professores/gestores e certificados',
+      '24.1 Gestão de múltiplas unidades: escolas, condomínios, empresas e projetos sociais',
+      '24.1 Painel consolidado com várias hortas por unidade/instituição',
+      '24.2 Perfis institucionais: coordenador, monitor, operador local e visualizador/gestor',
+      '24.3 Relatórios institucionais de engajamento e uso de recursos',
+      '24.3 Indicadores de produção/colheita e sustentabilidade/educação por unidade e rede',
+      '24.4 Módulo educacional (fase futura): trilhas de atividades e conteúdo pedagógico',
+      '24.4 Registro de atividades em sala/projeto e evidências para acompanhamento',
     ],
   },
   {
@@ -379,10 +382,11 @@ export const hortelanModules = [
     title: 'Integrações Externas',
     tags: ['Release 3', 'Ecossistema'],
     features: [
-      'Página de integrações para conectar/desconectar serviços',
-      'Permissões e testes de integração',
-      'Clima, WhatsApp, CRM, pagamento e ERPs',
-      'Home Assistant, webhooks e assistentes de voz',
+      '23.1 Clima e geodados: APIs de clima e dados regionais de sazonalidade',
+      '23.2 Pagamento: gateway de pagamento e antifraude para e-commerce robusto',
+      '23.3 Logística: frete/rastreamento e Correios/transportadoras quando loja ativa',
+      '23.4 Mensageria: e-mail transacional, push notifications e WhatsApp/SMS em roadmap futuro',
+      '23.5 IoT/ecossistema: suporte multi-fabricante e API pública para parceiros em fase avançada',
     ],
   },
   {

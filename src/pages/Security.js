@@ -2,6 +2,7 @@ import {
   Alert,
   Button,
   Card,
+  Chip,
   Container,
   Dialog,
   DialogActions,
@@ -38,6 +39,8 @@ const TWO_FACTOR_METHOD_LABELS = {
 };
 
 const CONSENT_LABELS = {
+  cookies: 'Cookies opcionais (web)',
+  notifications: 'Notificações',
   marketing: 'Marketing',
   analytics: 'Analytics',
   communications: 'Comunicações',
@@ -47,12 +50,19 @@ export default function Security() {
   const navigate = useNavigate();
   const {
     user,
+    sessions,
     twoFactor,
     trustedDevices,
     consents,
+    consentLogs,
+    retentionPolicy,
     deletionRequest,
     update2FASettings,
+    logoutOthers,
+    logoutAll,
     removeTrustedDevice,
+    rotateDeviceCredential,
+    revokeCompromised,
     updateConsents,
     requestDeletion,
     deactivateAccount,
@@ -138,6 +148,43 @@ export default function Security() {
 
           <Card sx={{ p: 3 }}>
             <Stack spacing={2}>
+              <Typography variant="h6">Controle de sessão e acesso não autorizado</Typography>
+              <Typography color="text.secondary">
+                Sessões inativas expiram em 30 minutos. Encerre sessões suspeitas para evitar acesso não autorizado.
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Button variant="outlined" onClick={logoutOthers}>Encerrar outras sessões</Button>
+                <Button color="error" variant="outlined" onClick={logoutAll}>Encerrar todas as sessões</Button>
+              </Stack>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Sessão</TableCell>
+                    <TableCell>Última atividade</TableCell>
+                    <TableCell>Método</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {sessions.map((session) => (
+                    <TableRow key={session.id}>
+                      <TableCell>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Typography variant="subtitle2">{session.isCurrent ? 'Atual' : 'Remota'}</Typography>
+                          {session.isCurrent && <Chip label="Atual" size="small" color="success" />}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary">{session.userAgent}</Typography>
+                      </TableCell>
+                      <TableCell>{new Date(session.lastActiveAt).toLocaleString()}</TableCell>
+                      <TableCell>{session.authMethod}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Stack>
+          </Card>
+
+          <Card sx={{ p: 3 }}>
+            <Stack spacing={2}>
               <Typography variant="h6">Autenticação em dois fatores (2FA)</Typography>
               <Typography color="text.secondary">
                 Ative o segundo fator por e-mail ou app autenticador para elevar o nível de proteção do login.
@@ -184,9 +231,9 @@ export default function Security() {
 
           <Card sx={{ p: 3 }}>
             <Stack spacing={2}>
-              <Typography variant="h6">Consentimentos e preferências</Typography>
+              <Typography variant="h6">Privacidade e consentimento</Typography>
               <Typography color="text.secondary">
-                Gerencie as permissões para uso dos seus dados em campanhas, analytics e comunicações da plataforma.
+                Gerencie cookies, notificações e uso de dados analíticos conforme suas preferências de privacidade.
               </Typography>
 
               <Stack spacing={1}>
@@ -198,6 +245,23 @@ export default function Security() {
                 ))}
               </Stack>
 
+              <FormControl size="small" sx={{ maxWidth: 280 }}>
+                <InputLabel id="privacy-mode-label">Preferência de privacidade</InputLabel>
+                <Select
+                  labelId="privacy-mode-label"
+                  label="Preferência de privacidade"
+                  value={consents?.privacyMode || 'balanced'}
+                  onChange={(event) => {
+                    updateConsents({ privacyMode: event.target.value });
+                    setFeedback(`Preferência de privacidade alterada para ${event.target.value}.`);
+                  }}
+                >
+                  <MenuItem value="restricted">Restrita</MenuItem>
+                  <MenuItem value="balanced">Balanceada</MenuItem>
+                  <MenuItem value="personalized">Personalizada</MenuItem>
+                </Select>
+              </FormControl>
+
               <Typography variant="caption" color="text.secondary">
                 Última atualização: {consents?.updatedAt ? new Date(consents.updatedAt).toLocaleString() : 'Sem registro'}
               </Typography>
@@ -208,18 +272,12 @@ export default function Security() {
             <Stack spacing={2}>
               <Typography variant="h6">LGPD e dados pessoais</Typography>
               <Typography color="text.secondary">
-                Exporte seus dados pessoais em formato JSON para atender solicitações de portabilidade (LGPD).
+                Exporte, solicite exclusão e acompanhe retenção de dados com trilha de consentimentos.
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <Button variant="contained" onClick={handleExport}>
-                  Exportar dados pessoais
-                </Button>
-                <Button color="warning" variant="outlined" onClick={() => setDeactivationOpen(true)}>
-                  Desativar conta
-                </Button>
-                <Button color="error" variant="outlined" onClick={() => setDeletionOpen(true)}>
-                  Solicitar exclusão de conta
-                </Button>
+                <Button variant="contained" onClick={handleExport}>Exportar dados pessoais</Button>
+                <Button color="warning" variant="outlined" onClick={() => setDeactivationOpen(true)}>Desativar conta</Button>
+                <Button color="error" variant="outlined" onClick={() => setDeletionOpen(true)}>Solicitar exclusão de conta</Button>
               </Stack>
 
               {deletionRequest && (
@@ -228,15 +286,19 @@ export default function Security() {
                 </Alert>
               )}
 
+              <Typography variant="body2" color="text.secondary">
+                Política de retenção: {retentionPolicy?.retentionDays} dias ({retentionPolicy?.legalBasis}).
+              </Typography>
+
               {!user?.isActive && <Alert severity="warning">Sua conta está desativada.</Alert>}
             </Stack>
           </Card>
 
           <Card sx={{ p: 3 }}>
             <Stack spacing={2}>
-              <Typography variant="h6">Dispositivos confiáveis</Typography>
+              <Typography variant="h6">Segurança de dispositivos (fase avançada)</Typography>
               <Typography color="text.secondary">
-                Dispositivos confiáveis podem pular o segundo fator enquanto o vínculo estiver válido.
+                Faça vinculação segura de dispositivos, rotação de credenciais e revogação em caso de comprometimento.
               </Typography>
 
               {trustedDevices.length === 0 ? (
@@ -247,7 +309,7 @@ export default function Security() {
                     <TableRow>
                       <TableCell>Nome</TableCell>
                       <TableCell>Confiado em</TableCell>
-                      <TableCell>Expira em</TableCell>
+                      <TableCell>Credencial</TableCell>
                       <TableCell align="right">Ações</TableCell>
                     </TableRow>
                   </TableHead>
@@ -257,29 +319,59 @@ export default function Security() {
                         <TableCell>
                           <Stack spacing={0.5}>
                             <Typography variant="subtitle2">{device.deviceName || 'Dispositivo sem nome'}</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {device.userAgent}
-                            </Typography>
+                            <Typography variant="caption" color="text.secondary">{device.userAgent}</Typography>
                           </Stack>
                         </TableCell>
                         <TableCell>{new Date(device.trustedAt).toLocaleString()}</TableCell>
-                        <TableCell>{new Date(device.expiresAt).toLocaleString()}</TableCell>
+                        <TableCell>v{device.credentialVersion || 1}</TableCell>
                         <TableCell align="right">
-                          <Button
-                            color="error"
-                            variant="text"
-                            onClick={() => {
-                              removeTrustedDevice(device.id);
-                              setFeedback('Dispositivo removido da lista de confiança.');
-                            }}
-                          >
-                            Revogar
-                          </Button>
+                          <Stack direction="row" justifyContent="flex-end" spacing={1}>
+                            <Button size="small" variant="text" onClick={() => rotateDeviceCredential(device.id)}>
+                              Rotacionar chave
+                            </Button>
+                            <Button
+                              size="small"
+                              color="warning"
+                              variant="text"
+                              onClick={() => revokeCompromised(device.id, 'Revogado por suspeita de comprometimento')}
+                            >
+                              Comprometido
+                            </Button>
+                            <Button size="small" color="error" variant="text" onClick={() => removeTrustedDevice(device.id)}>
+                              Revogar
+                            </Button>
+                          </Stack>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
+              )}
+            </Stack>
+          </Card>
+
+          <Card sx={{ p: 3 }}>
+            <Stack spacing={2}>
+              <Typography variant="h6">Registro de consentimentos</Typography>
+              {consentLogs?.length ? (
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Data/Hora</TableCell>
+                      <TableCell>Alterações</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {consentLogs.slice(0, 10).map((entry) => (
+                      <TableRow key={entry.id}>
+                        <TableCell>{new Date(entry.changedAt).toLocaleString()}</TableCell>
+                        <TableCell>{Object.keys(entry.payload || {}).join(', ')}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <Typography color="text.secondary">Sem alterações registradas.</Typography>
               )}
             </Stack>
           </Card>
@@ -292,7 +384,10 @@ export default function Security() {
             ) : (
               <>
                 <Typography variant="h6" sx={{ mb: 2 }}>
-                  Histórico de troca de senha
+                  Políticas de senha e histórico de troca
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  Política ativa: mínimo 8 caracteres, com letra maiúscula, minúscula, número e caractere especial.
                 </Typography>
                 <Table>
                   <TableHead>
