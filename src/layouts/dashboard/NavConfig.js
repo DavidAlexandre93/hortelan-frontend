@@ -12,7 +12,7 @@ const navConfig = [
     icon: getIcon('eva:pie-chart-2-fill'),
   },
   {
-    title: 'garden',
+    title: 'admin',
     path: '/dashboard/user',
     icon: getIcon('eva:people-fill'),
   },
@@ -63,6 +63,11 @@ const navConfig = [
     path: '/dashboard/assinaturas',
     icon: getIcon('eva:credit-card-fill'),
   },
+    title: 'central de ajuda',
+    path: '/dashboard/suporte',
+    icon: getIcon('eva:question-mark-circle-fill'),
+  },
+
   {
     title: 'status page',
     path: '/dashboard/status',
