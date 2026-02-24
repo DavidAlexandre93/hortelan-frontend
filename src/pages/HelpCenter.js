@@ -30,6 +30,7 @@ import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import SensorsRoundedIcon from '@mui/icons-material/SensorsRounded';
 import Page from '../components/Page';
 import HortelanPromoBanner from '../components/HortelanPromoBanner';
+import GSAPTypingText from '../components/GSAPTypingText';
 
 const faqItems = [
   {
@@ -101,10 +102,25 @@ export default function HelpCenter() {
         <Stack spacing={3}>
           <Box>
             <Typography variant="h4" gutterBottom>
-              Central de ajuda e suporte
+              <GSAPTypingText
+                texts={[
+                  'Central de ajuda e suporte',
+                  'Suporte técnico especializado para sua horta conectada',
+                  'Resolva incidentes com contexto de sensores e automações',
+                ]}
+              />
             </Typography>
             <Typography color="text.secondary">
-              Consulte conteúdos de autoatendimento, abra chamados e acompanhe tickets com contexto técnico da sua horta.
+              <GSAPTypingText
+                texts={[
+                  'Consulte conteúdos de autoatendimento, abra chamados e acompanhe tickets com contexto técnico.',
+                  'Tenha acesso rápido a FAQ, histórico de tickets e suporte contextual em um só lugar.',
+                ]}
+                speed={28}
+                eraseSpeed={17}
+                holdDuration={1100}
+                startDelay={200}
+              />
             </Typography>
           </Box>
 

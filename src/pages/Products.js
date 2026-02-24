@@ -32,6 +32,7 @@ import HortelanPromoBanner from '../components/HortelanPromoBanner';
 import useGSAP from '../hooks/useGSAP';
 import productCatalog, { categories } from '../data/productCatalog';
 import { motion, useScroll, useTransform } from '../lib/motionReact';
+import GSAPTypingText from '../components/GSAPTypingText';
 
 const sortMap = {
   preco: (a, b) => a.preco - b.preco,
@@ -170,10 +171,25 @@ export default function ProductsMarketplace() {
       <Container ref={rootRef}>
         <Stack spacing={1} sx={{ mb: 3 }}>
           <Typography className="gsap-hero-title" variant="h4">
-            Catálogo de produtos Hortelan Agtech Ltda
+            <GSAPTypingText
+              texts={[
+                'Catálogo de produtos Hortelan Agtech Ltda',
+                'Marketplace inteligente para sua operação agrícola',
+                'Compre insumos e automação com curadoria Hortelan',
+              ]}
+            />
           </Typography>
           <Typography className="gsap-hero-subtitle" color="text.secondary">
-            Explore sementes, substratos, fertilizantes, sensores, kits, irrigação e ferramentas com filtros avançados.
+            <GSAPTypingText
+              texts={[
+                'Explore sementes, substratos, fertilizantes e sensores com filtros avançados.',
+                'Descubra kits de irrigação e ferramentas validadas para estufa, indoor e hidroponia.',
+              ]}
+              speed={30}
+              eraseSpeed={18}
+              holdDuration={1200}
+              startDelay={200}
+            />
           </Typography>
         </Stack>
 

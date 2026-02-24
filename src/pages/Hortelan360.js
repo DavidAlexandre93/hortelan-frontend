@@ -20,6 +20,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Page from '../components/Page';
 import { gamificationBlueprint, hortelanModules, releaseRoadmap, wowFeatures } from '../data/hortelanBlueprint';
+import GSAPTypingText from '../components/GSAPTypingText';
 
 export default function Hortelan360() {
   const [query, setQuery] = useState('');
@@ -37,9 +38,26 @@ export default function Hortelan360() {
     <Page title="Hortelan Agtech Ltda 360">
       <Container maxWidth="xl">
         <Stack spacing={3} sx={{ mb: 4 }}>
-          <Typography variant="h4">Hortelan Agtech Ltda — Blueprint completo da plataforma</Typography>
+          <Typography variant="h4">
+            <GSAPTypingText
+              texts={[
+                'Hortelan Agtech Ltda — Blueprint completo da plataforma',
+                'Arquitetura 360 para evolução contínua do produto',
+                'Planejamento estratégico com foco em entregas por releases',
+              ]}
+            />
+          </Typography>
           <Typography color="text.secondary">
-            Esta tela consolida as 30 frentes de produto solicitadas em uma arquitetura de entrega por releases.
+            <GSAPTypingText
+              texts={[
+                'Esta tela consolida 30 frentes de produto em uma arquitetura de entrega por releases.',
+                'Navegue por módulos, roadmap e funcionalidades WOW com visão executiva e operacional.',
+              ]}
+              speed={30}
+              eraseSpeed={18}
+              holdDuration={1100}
+              startDelay={200}
+            />
           </Typography>
           <Alert severity="success">Cobertura funcional: 30 módulos estratégicos + roteiro de releases + diferenciais WOW.</Alert>
         </Stack>
