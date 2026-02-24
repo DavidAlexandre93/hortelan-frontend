@@ -31,6 +31,7 @@ import Page from '../components/Page';
 import HortelanPromoBanner from '../components/HortelanPromoBanner';
 import useGSAP from '../hooks/useGSAP';
 import productCatalog, { categories } from '../data/productCatalog';
+import { motion, useScroll, useTransform } from '../lib/motionReact';
 
 const sortMap = {
   preco: (a, b) => a.preco - b.preco,
@@ -40,6 +41,8 @@ const sortMap = {
 
 export default function ProductsMarketplace() {
   const rootRef = useRef(null);
+  const { scrollYProgress } = useScroll();
+  const bannerY = useTransform(scrollYProgress, [0, 1], [0, -26]);
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [maxPrice, setMaxPrice] = useState(500);
@@ -131,15 +134,16 @@ export default function ProductsMarketplace() {
       const heroBanner = selector('.gsap-hero-banner')[0];
       const chips = selector('.gsap-category-chip');
       const storyCards = selector('.gsap-story-card');
+      const storySection = selector('.gsap-story-section')[0];
 
-      const animateIn = (element, delay, offset = 24) => {
+      const animateIn = (element, delay, offset = 24, duration = 700) => {
         if (!element) return;
         element.animate(
           [
             { opacity: 0, transform: `translateY(${offset}px)` },
             { opacity: 1, transform: 'translateY(0px)' },
           ],
-          { duration: 700, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', delay, fill: 'forwards' }
+          { duration, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', delay, fill: 'forwards' }
         );
       };
 
@@ -148,32 +152,14 @@ export default function ProductsMarketplace() {
       animateIn(heroBanner, 260, 22);
       chips.forEach((chip, index) => animateIn(chip, 310 + index * 35, 12));
 
-      const storyObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
-            storyCards.forEach((card, index) => animateIn(card, index * 120, 32));
-          });
-        },
-        { threshold: 0.22 }
-      );
-
-      const storySection = selector('.gsap-story-section')[0];
-      if (storySection) storyObserver.observe(storySection);
-
-      const onScroll = () => {
-        if (!heroBanner || !root) return;
-        const rect = root.getBoundingClientRect();
-        const rawProgress = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight + 280)));
-        heroBanner.style.transform = `translate3d(0, ${-rawProgress * 26}px, 0)`;
-      };
-
-      window.addEventListener('scroll', onScroll, { passive: true });
-      onScroll();
+      if (storySection) {
+        storyCards.forEach((card, index) => animateIn(card, 520 + index * 120, 32, 800));
+      }
 
       return () => {
-        window.removeEventListener('scroll', onScroll);
-        storyObserver.disconnect();
+        if (!root) return;
+        const animatedElements = [heroTitle, heroSubtitle, heroBanner, ...chips, ...storyCards].filter(Boolean);
+        animatedElements.forEach((element) => element.getAnimations().forEach((animation) => animation.cancel()));
       };
     },
     { scope: rootRef }
@@ -191,7 +177,12 @@ export default function ProductsMarketplace() {
           </Typography>
         </Stack>
 
-        <Box className="gsap-hero-banner-wrapper" sx={{ mb: 3, overflow: 'hidden' }}>
+        <Box
+          component={motion.div}
+          className="gsap-hero-banner-wrapper"
+          sx={{ mb: 3, overflow: 'hidden' }}
+          style={{ y: bannerY }}
+        >
           <HortelanPromoBanner className="gsap-hero-banner" />
         </Box>
 
