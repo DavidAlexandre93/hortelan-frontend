@@ -1,264 +1,322 @@
-import { useMemo, useRef, useState } from 'react';
-import { motion, useReducedMotion } from '../../lib/motionReact';
-import useGSAP from '../../hooks/useGSAP';
+import { useEffect, useRef, useState } from 'react';
 
-export default function HarvestSplashScreen({ onComplete }) {
-  const rootRef = useRef(null);
-  const shouldReduceMotion = useReducedMotion();
-  const [hidden, setHidden] = useState(false);
+const styles = {
+  splashRoot: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 9999,
+    overflow: 'hidden',
+    background: '#0b1b0f',
+    pointerEvents: 'none',
+  },
+  revealLayer: {
+    position: 'absolute',
+    inset: 0,
+    background: 'linear-gradient(180deg, rgba(8, 23, 12, 0.74) 0%, rgba(8, 23, 12, 0.9) 100%)',
+    willChange: 'clip-path',
+  },
+  canvasLayer: { position: 'absolute', inset: 0 },
+  brand: {
+    position: 'absolute',
+    left: 24,
+    top: 18,
+    padding: '10px 12px',
+    borderRadius: 14,
+    background: 'rgba(0,0,0,0.35)',
+    color: 'white',
+    backdropFilter: 'blur(6px)',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.24)',
+  },
+  brandTitle: { fontWeight: 900, letterSpacing: 0.2 },
+  brandSub: { opacity: 0.85, fontSize: 12, marginTop: 2 },
+};
 
-  const cropLine = useMemo(
-    () =>
-      Array.from({ length: 42 }, (_, index) => ({
-        id: `soy-${index}`,
-        swayDelay: `${(index % 6) * 0.12}s`,
-      })),
-    []
-  );
+const easeOutExpo = (x) => (x === 1 ? 1 : 1 - 2 ** (-10 * x));
 
-  useGSAP(
-    ({ selector }) => {
-      if (hidden) return undefined;
+export default function HarvestSplashScreen({ onComplete, durationSec = 14 }) {
+  const pixiHostRef = useRef(null);
+  const [finished, setFinished] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const progressRef = useRef(0);
 
-      const overlay = selector('.harvest-splash-overlay')[0];
-      const label = selector('.harvest-splash-label')[0];
-      const harvester = selector('.harvest-splash-harvester')[0];
-      const harvestedTrack = selector('.harvest-splash-harvested-track')[0];
-      const crops = selector('.harvest-splash-crop');
+  useEffect(() => {
+    const durationMs = durationSec * 1000;
+    const startedAt = performance.now();
+    let rafId = 0;
 
-      const animations = [];
-      const timeout = setTimeout(() => setHidden(true), shouldReduceMotion ? 1100 : 3600);
+    const step = (now) => {
+      const normalized = Math.min(1, (now - startedAt) / durationMs);
+      const eased = easeOutExpo(normalized);
+      progressRef.current = eased;
+      setProgress(eased);
 
-      const animate = (element, keyframes, options) => {
-        if (!element) return;
-        const animation = element.animate(keyframes, options);
-        animations.push(animation);
-      };
+      if (normalized < 1) {
+        rafId = requestAnimationFrame(step);
+      } else {
+        setFinished(true);
+        onComplete?.();
+      }
+    };
 
-      animate(
-        label,
-        [
-          { opacity: 0, transform: 'translate(-50%, 12px)' },
-          { opacity: 1, transform: 'translate(-50%, 0px)' },
-          { opacity: 0, transform: 'translate(-50%, -10px)' },
-        ],
-        { duration: shouldReduceMotion ? 820 : 2200, delay: 160, fill: 'forwards', easing: 'ease-in-out' }
-      );
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
+  }, [durationSec, onComplete]);
 
-      animate(
-        harvester,
-        [
-          { transform: 'translateX(-120vw)' },
-          { transform: 'translateX(-8vw)' },
-          { transform: 'translateX(112vw)' },
-        ],
-        {
-          duration: shouldReduceMotion ? 900 : 2400,
-          delay: 260,
-          fill: 'forwards',
-          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-        }
-      );
+  useEffect(() => {
+    if (!pixiHostRef.current) return undefined;
 
-      animate(
-        harvestedTrack,
-        [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
-        {
-          duration: shouldReduceMotion ? 860 : 2250,
-          delay: 310,
-          fill: 'forwards',
-          easing: 'linear',
-        }
-      );
+    let disposed = false;
+    let app = null;
+    let emitter = null;
+    const modulePixi = 'pixi.js';
+    const moduleEmitter = '@pixi/particle-emitter';
 
-      crops.forEach((crop, index) => {
-        animate(
-          crop,
-          [
-            { transform: 'translateY(0px) scale(1)', opacity: 0.95 },
-            { transform: 'translateY(-10px) scale(0.72)', opacity: 0 },
-          ],
-          {
-            duration: shouldReduceMotion ? 320 : 540,
-            delay: (shouldReduceMotion ? 360 : 720) + index * (shouldReduceMotion ? 16 : 36),
-            fill: 'forwards',
-            easing: 'ease-in',
+    import(/* @vite-ignore */ modulePixi)
+      .then((pixiModule) => {
+        if (!pixiModule || disposed || !pixiHostRef.current) return null;
+
+        const PIXI = pixiModule;
+        app = new PIXI.Application({
+          resizeTo: pixiHostRef.current,
+          antialias: true,
+          backgroundAlpha: 0,
+          powerPreference: 'high-performance',
+        });
+        pixiHostRef.current.appendChild(app.view);
+
+        const farLayer = new PIXI.Container();
+        const nearLayer = new PIXI.Container();
+        const plantsLayer = new PIXI.Container();
+        const harvestedLayer = new PIXI.Container();
+        const machineLayer = new PIXI.Container();
+        const fxLayer = new PIXI.Container();
+        app.stage.addChild(farLayer, harvestedLayer, plantsLayer, nearLayer, fxLayer, machineLayer);
+
+        const makeTexture = (drawFn) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 1024;
+          canvas.height = 512;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return PIXI.Texture.EMPTY;
+          drawFn(ctx, canvas.width, canvas.height);
+          return PIXI.Texture.from(canvas);
+        };
+
+        const fieldFarTex = makeTexture((ctx, w, h) => {
+          ctx.fillStyle = '#1f6f2a';
+          ctx.fillRect(0, 0, w, h);
+          ctx.globalAlpha = 0.35;
+          for (let y = -40; y < h + 40; y += 30) {
+            ctx.fillStyle = 'rgba(255,255,255,0.10)';
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y - 18);
+            ctx.lineTo(w, y + 6);
+            ctx.lineTo(0, y + 24);
+            ctx.closePath();
+            ctx.fill();
           }
-        );
-      });
+          ctx.globalAlpha = 1;
+        });
 
-      animate(
-        overlay,
-        [{ opacity: 1 }, { opacity: 1 }, { opacity: 0 }],
-        { duration: shouldReduceMotion ? 1050 : 3450, fill: 'forwards', easing: 'ease-in' }
-      );
+        const fieldNearTex = makeTexture((ctx, w, h) => {
+          ctx.fillStyle = '#1f6f2a';
+          ctx.fillRect(0, 0, w, h);
+          ctx.globalAlpha = 0.35;
+          for (let y = -40; y < h + 40; y += 30) {
+            ctx.fillStyle = 'rgba(0,0,0,0.10)';
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y - 18);
+            ctx.lineTo(w, y + 6);
+            ctx.lineTo(0, y + 24);
+            ctx.closePath();
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+        });
 
-      return () => {
-        clearTimeout(timeout);
-        animations.forEach((animation) => animation.cancel());
-      };
-    },
-    { dependencies: [hidden, shouldReduceMotion], scope: rootRef }
-  );
+        const harvestedTex = makeTexture((ctx, w, h) => {
+          ctx.fillStyle = '#2f7d35';
+          ctx.fillRect(0, 0, w, h);
+        });
 
-  useGSAP(
-    () => {
-      if (!hidden) return;
-      onComplete?.();
-    },
-    { dependencies: [hidden, onComplete] }
-  );
+        const far = new PIXI.TilingSprite(fieldFarTex, app.screen.width, app.screen.height);
+        const near = new PIXI.TilingSprite(fieldNearTex, app.screen.width, app.screen.height);
+        far.alpha = 0.9;
+        near.alpha = 0.65;
+        near.y = 12;
+        farLayer.addChild(far);
+        nearLayer.addChild(near);
 
-  if (hidden) return null;
+        const harvested = new PIXI.TilingSprite(harvestedTex, 1, app.screen.height);
+        harvested.alpha = 0.95;
+        harvestedLayer.addChild(harvested);
+
+        const plantTexture = (() => {
+          const c = document.createElement('canvas');
+          c.width = 40;
+          c.height = 40;
+          const ctx = c.getContext('2d');
+          if (!ctx) return PIXI.Texture.EMPTY;
+          ctx.strokeStyle = '#0b3b14';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(20, 18);
+          ctx.lineTo(20, 36);
+          ctx.stroke();
+          ctx.fillStyle = '#58d180';
+          ctx.beginPath();
+          ctx.ellipse(20, 12, 10, 8, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#46b96b';
+          ctx.beginPath();
+          ctx.ellipse(12, 22, 8, 6, -0.5, 0, Math.PI * 2);
+          ctx.fill();
+          return PIXI.Texture.from(c);
+        })();
+
+        const plants = [];
+        for (let x = 30; x < app.screen.width + 80; x += 32) {
+          for (let y = 90; y < app.screen.height - 40; y += 38) {
+            if (((x * 13 + y * 7) % 11) < 4) {
+              const sprite = new PIXI.Sprite(plantTexture);
+              sprite.anchor.set(0.5, 1);
+              sprite.x = x + (Math.random() - 0.5) * 8;
+              sprite.y = y + (Math.random() - 0.5) * 8;
+              sprite.scale.set(0.8 + Math.random() * 0.55);
+              sprite.rotation = (Math.random() - 0.5) * 0.15;
+              sprite.baseX = sprite.x;
+              plants.push(sprite);
+              plantsLayer.addChild(sprite);
+            }
+          }
+        }
+
+        const machine = new PIXI.Container();
+        machineLayer.addChild(machine);
+        const body = new PIXI.Graphics();
+        body.roundRect(-70, -46, 140, 72, 16).fill({ color: 0xf2c94c, alpha: 1 });
+        body.roundRect(-70, -46, 140, 72, 16).stroke({ color: 0x5f4b10, width: 3, alpha: 0.9 });
+        machine.addChild(body);
+
+        const header = new PIXI.Graphics();
+        header.roundRect(-125, 10, 120, 40, 14).fill({ color: 0xe2553a, alpha: 1 });
+        header.roundRect(-125, 10, 120, 40, 14).stroke({ color: 0x5a1f15, width: 3, alpha: 0.9 });
+        for (let i = 0; i < 10; i += 1) {
+          header.rect(-115 + i * 12, 14, 2, 32).fill({ color: 0xffe6d2, alpha: 0.7 });
+        }
+        machine.addChild(header);
+
+        return import(/* @vite-ignore */ moduleEmitter)
+          .then((emitterModule) => {
+            if (!emitterModule || disposed) return null;
+
+            const { Emitter } = emitterModule;
+            const dustContainer = new PIXI.ParticleContainer(1000, {
+              scale: true,
+              position: true,
+              alpha: true,
+            });
+            fxLayer.addChild(dustContainer);
+
+            const dustTex = (() => {
+              const c = document.createElement('canvas');
+              c.width = 24;
+              c.height = 24;
+              const ctx = c.getContext('2d');
+              if (!ctx) return PIXI.Texture.EMPTY;
+              const g = ctx.createRadialGradient(12, 12, 2, 12, 12, 12);
+              g.addColorStop(0, 'rgba(235,225,180,0.9)');
+              g.addColorStop(1, 'rgba(235,225,180,0)');
+              ctx.fillStyle = g;
+              ctx.fillRect(0, 0, 24, 24);
+              return PIXI.Texture.from(c);
+            })();
+
+            emitter = new Emitter(dustContainer, {
+              lifetime: { min: 0.6, max: 1.6 },
+              frequency: 0.01,
+              spawnChance: 1,
+              particlesPerWave: 1,
+              emitterLifetime: -1,
+              maxParticles: 900,
+              pos: { x: 0, y: 0 },
+              addAtBack: false,
+              behaviors: [
+                { type: 'alpha', config: { alpha: { list: [{ time: 0, value: 0 }, { time: 0.2, value: 0.55 }, { time: 1, value: 0 }] } } },
+                { type: 'scale', config: { scale: { list: [{ time: 0, value: 0.35 }, { time: 1, value: 1 }] } } },
+                { type: 'moveSpeed', config: { speed: { list: [{ time: 0, value: 120 }, { time: 1, value: 40 }] } } },
+                { type: 'rotationStatic', config: { min: 0, max: 360 } },
+                { type: 'spawnShape', config: { type: 'rect', data: { x: -18, y: -10, w: 18, h: 20 } } },
+              ],
+              textures: [dustTex],
+            });
+
+            return null;
+          })
+          .catch(() => null)
+          .then(() => {
+            let last = performance.now();
+            app.ticker.add(() => {
+              const currentProgress = progressRef.current;
+              const w = app.screen.width;
+              const h = app.screen.height;
+              const x = -120 + currentProgress * (w + 240);
+              const y = h * 0.62 + Math.sin(currentProgress * Math.PI * 10) * 2;
+
+              machine.x = x;
+              machine.y = y;
+              far.tilePosition.x = -currentProgress * 90;
+              near.tilePosition.x = -currentProgress * 160;
+
+              const harvestedWidth = Math.max(0, Math.min(w, x + 40));
+              harvested.width = Math.max(1, harvestedWidth);
+
+              plants.forEach((sprite) => {
+                sprite.visible = sprite.baseX > harvestedWidth;
+              });
+
+              if (emitter) {
+                emitter.updateOwnerPos(x - 30, y + 30);
+                const now = performance.now();
+                const dt = (now - last) / 1000;
+                last = now;
+                emitter.update(dt);
+              }
+            });
+
+            return null;
+          });
+      })
+      .catch(() => null);
+
+    return () => {
+      disposed = true;
+      if (emitter) emitter.destroy();
+      if (app) {
+        const host = pixiHostRef.current;
+        const view = app.view;
+        app.destroy(true, { children: true, texture: true, baseTexture: true });
+        if (host && view && host.contains(view)) host.removeChild(view);
+      }
+    };
+  }, []);
+
+  if (finished) return null;
 
   return (
-    <motion.div ref={rootRef} className="harvest-splash-root" aria-hidden="true">
-      <div className="harvest-splash-overlay">
-        <div className="harvest-splash-label">Colhendo a plantação de soja para abrir o site...</div>
+    <div style={styles.splashRoot} aria-hidden="true">
+      <div style={{ ...styles.revealLayer, clipPath: `inset(0 ${(1 - progress) * 100}% 0 0)` }} />
 
-        <div className="harvest-splash-field">
-          <div className="harvest-splash-soil" />
-          <div className="harvest-splash-harvested-track" />
-          <div className="harvest-splash-crops-line">
-            {cropLine.map((soy) => (
-              <span key={soy.id} className="harvest-splash-crop" style={{ animationDelay: soy.swayDelay }}>
-                <span className="harvest-splash-crop-head" />
-                <span className="harvest-splash-crop-stem" />
-              </span>
-            ))}
-          </div>
+      <div style={styles.canvasLayer}>
+        <div ref={pixiHostRef} style={{ position: 'absolute', inset: 0 }} />
+
+        <div style={styles.brand}>
+          <div style={styles.brandTitle}>Safra Vision</div>
+          <div style={styles.brandSub}>Carregando…</div>
         </div>
-
-        <div className="harvest-splash-harvester">🚜</div>
       </div>
-
-      <style>
-        {`
-          .harvest-splash-root {
-            position: fixed;
-            inset: 0;
-            z-index: 2000;
-            pointer-events: all;
-          }
-
-          .harvest-splash-overlay {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            background: linear-gradient(180deg, #b7ec8d 0%, #71bf59 38%, #4a8a3d 100%);
-          }
-
-          .harvest-splash-label {
-            position: absolute;
-            left: 50%;
-            top: 16%;
-            transform: translateX(-50%);
-            border-radius: 999px;
-            padding: 0.65rem 1rem;
-            font-size: clamp(0.88rem, 1.45vw, 1.04rem);
-            color: #f4fff6;
-            background: rgba(25, 71, 35, 0.62);
-            backdrop-filter: blur(6px);
-            font-weight: 600;
-            text-align: center;
-            white-space: nowrap;
-          }
-
-          .harvest-splash-field {
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            padding: 0 clamp(0.8rem, 3vw, 2.2rem);
-          }
-
-          .harvest-splash-soil {
-            position: absolute;
-            inset: auto 0 0 0;
-            height: clamp(42px, 7vw, 80px);
-            border-radius: 12px;
-            background: linear-gradient(180deg, #8b5a2b 0%, #5f3a19 100%);
-          }
-
-          .harvest-splash-harvested-track {
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            height: clamp(42px, 7vw, 80px);
-            width: 100%;
-            border-radius: 12px;
-            background: linear-gradient(180deg, rgba(70, 44, 22, 0.82), rgba(48, 29, 14, 0.92));
-            transform-origin: left center;
-            transform: scaleX(0);
-          }
-
-          .harvest-splash-crops-line {
-            position: relative;
-            z-index: 2;
-            display: grid;
-            grid-template-columns: repeat(42, minmax(0, 1fr));
-            align-items: end;
-            gap: 0.15rem;
-          }
-
-          .harvest-splash-crop {
-            position: relative;
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            height: clamp(56px, 9vw, 92px);
-            opacity: 0.97;
-            transform-origin: bottom center;
-            animation: soySway 1.3s ease-in-out infinite alternate;
-            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
-          }
-
-          .harvest-splash-crop-head {
-            width: clamp(12px, 1.1vw, 17px);
-            height: clamp(16px, 1.5vw, 24px);
-            border-radius: 60% 60% 45% 45%;
-            background: linear-gradient(180deg, #9be07f 0%, #59b548 100%);
-            box-shadow: inset 0 -2px 2px rgba(15, 90, 31, 0.22);
-          }
-
-          .harvest-splash-crop-stem {
-            width: clamp(4px, 0.35vw, 6px);
-            height: clamp(34px, 5.4vw, 58px);
-            margin-top: 1px;
-            border-radius: 999px;
-            background: linear-gradient(180deg, #4f9e3a 0%, #2f6d26 100%);
-          }
-
-          .harvest-splash-harvester {
-            position: absolute;
-            left: 0;
-            top: calc(50% - clamp(20px, 3vw, 34px));
-            font-size: clamp(2.1rem, 5.2vw, 4rem);
-            z-index: 3;
-            filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.25));
-          }
-
-          @keyframes soySway {
-            from { transform: rotate(-2deg) translateY(0px); }
-            to { transform: rotate(2deg) translateY(-4px); }
-          }
-
-          @media (max-width: 899px) {
-            .harvest-splash-label {
-              top: 12%;
-              white-space: normal;
-              max-width: 90vw;
-            }
-
-            .harvest-splash-crops-line {
-              grid-template-columns: repeat(21, minmax(0, 1fr));
-              row-gap: 0.2rem;
-            }
-          }
-        `}
-      </style>
-    </motion.div>
+    </div>
   );
 }

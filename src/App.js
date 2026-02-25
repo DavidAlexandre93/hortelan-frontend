@@ -18,10 +18,6 @@ function AppContent() {
   const { consents } = useAuth();
   const [splashFinished, setSplashFinished] = useState(false);
 
-  if (!splashFinished) {
-    return <HarvestSplashScreen onComplete={() => setSplashFinished(true)} />;
-  }
-
   return (
     <>
       <ScrollToTop />
@@ -30,6 +26,7 @@ function AppContent() {
       <Router />
       <CookieConsentBanner />
       {consents?.analytics && <Analytics />}
+      {!splashFinished && <HarvestSplashScreen onComplete={() => setSplashFinished(true)} />}
     </>
   );
 }

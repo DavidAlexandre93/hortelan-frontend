@@ -1,16 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Hortelan icon">
   <defs>
     <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#B9E440"/>
-      <stop offset="45%" stop-color="#2ABF58"/>
-      <stop offset="100%" stop-color="#006A5A"/>
+      <stop offset="0%" stop-color="#b7e343"/>
+      <stop offset="48%" stop-color="#24bf57"/>
+      <stop offset="100%" stop-color="#02695b"/>
     </linearGradient>
+    <style>
+      .trace { fill: none; stroke: #ecf8ef; stroke-width: 5.5; stroke-linecap: round; stroke-linejoin: round; }
+      .node { fill: #ecf8ef; }
+    </style>
   </defs>
-  <path fill="url(#leafGradient)" d="M243 396c-23-105-84-181-190-181-3 80 39 156 126 186 27 9 50 6 64-5z"/>
-  <path fill="url(#leafGradient)" d="M275 395c22-106 84-181 190-181 3 81-40 157-128 186-26 9-49 6-62-5z"/>
-  <path fill="url(#leafGradient)" d="M259 404c4-119 56-216 128-263-100-10-184 97-190 263h62z"/>
-  <path d="M412 178c36-2 68 16 80 48" fill="none" stroke="#65c95f" stroke-width="8" stroke-linecap="round"/>
-  <path d="M417 206c26 1 47 14 57 35" fill="none" stroke="#57bf58" stroke-width="8" stroke-linecap="round"/>
-  <path d="M421 231c16 2 29 10 35 23" fill="none" stroke="#3fb34f" stroke-width="8" stroke-linecap="round"/>
-  <circle cx="396" cy="236" r="10" fill="#50bc58"/>
+
+  <path fill="url(#leafGradient)" d="M244 408c-23-108-87-187-200-187-3 84 41 163 132 193 28 10 53 7 68-6z"/>
+  <path fill="url(#leafGradient)" d="M277 408c23-108 87-187 199-187 4 84-41 163-132 193-28 10-53 7-67-6z"/>
+  <path fill="url(#leafGradient)" d="M260 417c4-123 59-226 139-276-108-11-198 103-205 276h66z"/>
+
+  <path class="trace" d="M98 296c52 8 104 36 147 97"/>
+  <path class="trace" d="M128 254c46 9 88 35 118 82"/>
+  <path class="trace" d="M175 228c30 15 56 41 74 74"/>
+  <path class="trace" d="M414 298c-51 8-104 36-148 97"/>
+  <path class="trace" d="M384 255c-47 9-88 35-118 83"/>
+  <path class="trace" d="M336 229c-30 15-56 41-74 74"/>
+
+  <circle class="node" cx="131" cy="254" r="7"/>
+  <circle class="node" cx="176" cy="228" r="7"/>
+  <circle class="node" cx="98" cy="296" r="7"/>
+  <circle class="node" cx="383" cy="255" r="7"/>
+  <circle class="node" cx="413" cy="298" r="7"/>
+  <circle class="node" cx="336" cy="229" r="7"/>
+
+  <path d="M392 148c38-2 72 17 85 51" fill="none" stroke="#67ca60" stroke-width="9" stroke-linecap="round"/>
+  <path d="M397 181c28 1 51 15 62 37" fill="none" stroke="#58c059" stroke-width="9" stroke-linecap="round"/>
+  <path d="M401 210c17 2 32 11 39 25" fill="none" stroke="#42b850" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="376" cy="221" r="12" fill="#50bd58"/>
 </svg>
