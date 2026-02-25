@@ -137,9 +137,16 @@ export default function Login() {
   const rightLeafY = useTransform(scrollYProgress, [0, 1], [0, 10]);
   const cableWave = useTransform(scrollYProgress, [0, 0.25, 0.5, 0.75, 1], [0, 8, 0, -8, 0]);
 
+  if (showSplash) {
+    return (
+      <Page title="Login">
+        <HarvestSplashScreen durationSec={4} onComplete={() => setShowSplash(false)} />
+      </Page>
+    );
+  }
+
   return (
     <Page title="Login">
-      {showSplash && <HarvestSplashScreen durationSec={4} onComplete={() => setShowSplash(false)} />}
       <RootStyle>
         <HeaderStyle>
           <Logo />
