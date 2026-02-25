@@ -1,4 +1,5 @@
 import { Link as RouterLink } from 'react-router-dom';
+import { useState } from 'react';
 // @mui
 import { alpha, keyframes, styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography } from '@mui/material';
@@ -8,6 +9,7 @@ import useResponsive from '../hooks/useResponsive';
 // components
 import Page from '../components/Page';
 import Logo from '../components/Logo';
+import HarvestSplashScreen from '../components/fx/HarvestSplashScreen';
 // sections
 import { LoginForm } from '../sections/auth/login';
 import AuthSocial from '../sections/auth/AuthSocial';
@@ -123,6 +125,7 @@ const ContentStyle = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Login() {
+  const [showSplash, setShowSplash] = useState(true);
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
@@ -136,6 +139,7 @@ export default function Login() {
 
   return (
     <Page title="Login">
+      {showSplash && <HarvestSplashScreen durationSec={4} onComplete={() => setShowSplash(false)} />}
       <RootStyle>
         <HeaderStyle>
           <Logo />
