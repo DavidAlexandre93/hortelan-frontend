@@ -1,264 +1,274 @@
-import { useMemo, useRef, useState } from 'react';
-import { motion, useReducedMotion } from '../../lib/motionReact';
-import useGSAP from '../../hooks/useGSAP';
+import { useEffect, useRef, useState } from 'react';
 
-export default function HarvestSplashScreen({ onComplete }) {
-  const rootRef = useRef(null);
-  const shouldReduceMotion = useReducedMotion();
-  const [hidden, setHidden] = useState(false);
+const styles = {
+  splashRoot: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 9999,
+    overflow: 'hidden',
+    background: '#0b1b0f',
+    pointerEvents: 'none',
+  },
+  revealLayer: {
+    position: 'absolute',
+    inset: 0,
+    background: 'linear-gradient(180deg, rgba(8, 23, 12, 0.74) 0%, rgba(8, 23, 12, 0.9) 100%)',
+    willChange: 'clip-path',
+  },
+  canvasLayer: { position: 'absolute', inset: 0 },
+  brand: {
+    position: 'absolute',
+    left: 24,
+    top: 18,
+    padding: '10px 12px',
+    borderRadius: 14,
+    background: 'rgba(0,0,0,0.35)',
+    color: 'white',
+    backdropFilter: 'blur(6px)',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.24)',
+  },
+  brandTitle: { fontWeight: 900, letterSpacing: 0.2 },
+  brandSub: { opacity: 0.85, fontSize: 12, marginTop: 2 },
+};
 
-  const cropLine = useMemo(
-    () =>
-      Array.from({ length: 42 }, (_, index) => ({
-        id: `soy-${index}`,
-        swayDelay: `${(index % 6) * 0.12}s`,
-      })),
-    []
-  );
+const easeOutExpo = (x) => (x === 1 ? 1 : 1 - 2 ** (-10 * x));
 
-  useGSAP(
-    ({ selector }) => {
-      if (hidden) return undefined;
+function createPlants(width, height) {
+  const plants = [];
+  for (let x = 30; x < width + 80; x += 32) {
+    for (let y = 110; y < height - 30; y += 38) {
+      if (((x * 13 + y * 7) % 11) < 4) {
+        plants.push({
+          x: x + (Math.random() - 0.5) * 8,
+          y: y + (Math.random() - 0.5) * 8,
+          scale: 0.8 + Math.random() * 0.55,
+          baseRotation: (Math.random() - 0.5) * 0.16,
+        });
+      }
+    }
+  }
+  return plants;
+}
 
-      const overlay = selector('.harvest-splash-overlay')[0];
-      const label = selector('.harvest-splash-label')[0];
-      const harvester = selector('.harvest-splash-harvester')[0];
-      const harvestedTrack = selector('.harvest-splash-harvested-track')[0];
-      const crops = selector('.harvest-splash-crop');
+function drawScene(ctx, width, height, progress, plants) {
+  const machineX = -120 + progress * (width + 240);
+  const machineY = height * 0.62 + Math.sin(progress * Math.PI * 10) * 2;
+  const harvestedWidth = Math.max(0, Math.min(width, machineX + 40));
 
-      const animations = [];
-      const timeout = setTimeout(() => setHidden(true), shouldReduceMotion ? 1100 : 3600);
+  ctx.clearRect(0, 0, width, height);
 
-      const animate = (element, keyframes, options) => {
-        if (!element) return;
-        const animation = element.animate(keyframes, options);
-        animations.push(animation);
-      };
+  const sky = ctx.createLinearGradient(0, 0, 0, height);
+  sky.addColorStop(0, '#165326');
+  sky.addColorStop(1, '#0b1f0f');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, width, height);
 
-      animate(
-        label,
-        [
-          { opacity: 0, transform: 'translate(-50%, 12px)' },
-          { opacity: 1, transform: 'translate(-50%, 0px)' },
-          { opacity: 0, transform: 'translate(-50%, -10px)' },
-        ],
-        { duration: shouldReduceMotion ? 820 : 2200, delay: 160, fill: 'forwards', easing: 'ease-in-out' }
-      );
+  ctx.globalAlpha = 0.7;
+  ctx.fillStyle = '#2f7d35';
+  ctx.fillRect(0, 0, harvestedWidth, height);
 
-      animate(
-        harvester,
-        [
-          { transform: 'translateX(-120vw)' },
-          { transform: 'translateX(-8vw)' },
-          { transform: 'translateX(112vw)' },
-        ],
-        {
-          duration: shouldReduceMotion ? 900 : 2400,
-          delay: 260,
-          fill: 'forwards',
-          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-        }
-      );
+  ctx.globalAlpha = 0.24;
+  ctx.fillStyle = '#ffffff';
+  for (let y = -40; y < height + 40; y += 30) {
+    ctx.beginPath();
+    ctx.moveTo(0, y - progress * 90);
+    ctx.lineTo(width, y - 18 - progress * 90);
+    ctx.lineTo(width, y + 6 - progress * 90);
+    ctx.lineTo(0, y + 24 - progress * 90);
+    ctx.closePath();
+    ctx.fill();
+  }
 
-      animate(
-        harvestedTrack,
-        [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
-        {
-          duration: shouldReduceMotion ? 860 : 2250,
-          delay: 310,
-          fill: 'forwards',
-          easing: 'linear',
-        }
-      );
+  ctx.globalAlpha = 0.3;
+  ctx.fillStyle = '#000000';
+  for (let y = -20; y < height + 40; y += 30) {
+    ctx.beginPath();
+    ctx.moveTo(0, y - progress * 160);
+    ctx.lineTo(width, y - 18 - progress * 160);
+    ctx.lineTo(width, y + 6 - progress * 160);
+    ctx.lineTo(0, y + 24 - progress * 160);
+    ctx.closePath();
+    ctx.fill();
+  }
 
-      crops.forEach((crop, index) => {
-        animate(
-          crop,
-          [
-            { transform: 'translateY(0px) scale(1)', opacity: 0.95 },
-            { transform: 'translateY(-10px) scale(0.72)', opacity: 0 },
-          ],
-          {
-            duration: shouldReduceMotion ? 320 : 540,
-            delay: (shouldReduceMotion ? 360 : 720) + index * (shouldReduceMotion ? 16 : 36),
-            fill: 'forwards',
-            easing: 'ease-in',
-          }
-        );
-      });
+  ctx.globalAlpha = 1;
+  plants.forEach((plant) => {
+    if (plant.x <= harvestedWidth) return;
 
-      animate(
-        overlay,
-        [{ opacity: 1 }, { opacity: 1 }, { opacity: 0 }],
-        { duration: shouldReduceMotion ? 1050 : 3450, fill: 'forwards', easing: 'ease-in' }
-      );
+    const sway = Math.sin(progress * 12 + plant.x * 0.02) * 0.09;
+    const rotation = plant.baseRotation + sway;
+    const h = 20 * plant.scale;
 
-      return () => {
-        clearTimeout(timeout);
-        animations.forEach((animation) => animation.cancel());
-      };
-    },
-    { dependencies: [hidden, shouldReduceMotion], scope: rootRef }
-  );
+    ctx.save();
+    ctx.translate(plant.x, plant.y);
+    ctx.rotate(rotation);
+    ctx.fillStyle = '#0b3b14';
+    ctx.fillRect(-1, -h, 2, h);
 
-  useGSAP(
-    () => {
-      if (!hidden) return;
-      onComplete?.();
-    },
-    { dependencies: [hidden, onComplete] }
-  );
+    ctx.fillStyle = '#58d180';
+    ctx.beginPath();
+    ctx.ellipse(0, -h - 6, 8 * plant.scale, 6 * plant.scale, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-  if (hidden) return null;
+    ctx.fillStyle = '#46b96b';
+    ctx.beginPath();
+    ctx.ellipse(-6 * plant.scale, -h + 3, 6 * plant.scale, 4 * plant.scale, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#6fe39a';
+    ctx.beginPath();
+    ctx.ellipse(5 * plant.scale, -h + 4, 5 * plant.scale, 4 * plant.scale, 0.35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  ctx.save();
+  ctx.translate(machineX, machineY);
+
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath();
+  ctx.ellipse(0, 55, 90, 18, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#f2c94c';
+  ctx.strokeStyle = '#5f4b10';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.roundRect(-70, -46, 140, 72, 16);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.roundRect(20, -78, 50, 50, 14);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(74,163,217,0.55)';
+  ctx.strokeStyle = 'rgba(40,80,107,0.6)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(30, -70, 30, 30, 10);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#e2553a';
+  ctx.strokeStyle = '#5a1f15';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.roundRect(-125, 10, 120, 40, 14);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,230,210,0.7)';
+  for (let i = 0; i < 10; i += 1) {
+    ctx.fillRect(-115 + i * 12, 14, 2, 32);
+  }
+
+  ctx.fillStyle = '#111111';
+  [[-30, 36], [40, 36]].forEach(([x, y]) => {
+    ctx.beginPath();
+    ctx.arc(x, y, 18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#8a8a8a';
+    ctx.beginPath();
+    ctx.arc(x, y, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#111111';
+  });
+
+  for (let i = 0; i < 26; i += 1) {
+    const px = -30 + (Math.random() - 0.5) * 32;
+    const py = 28 + (Math.random() - 0.5) * 24;
+    const r = 4 + Math.random() * 8;
+    const alpha = 0.16 + Math.random() * 0.28;
+    const dust = ctx.createRadialGradient(px, py, 1, px, py, r);
+    dust.addColorStop(0, `rgba(235,225,180,${alpha})`);
+    dust.addColorStop(1, 'rgba(235,225,180,0)');
+    ctx.fillStyle = dust;
+    ctx.beginPath();
+    ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+export default function HarvestSplashScreen({ onComplete, durationSec = 14 }) {
+  const canvasRef = useRef(null);
+  const [progress, setProgress] = useState(0);
+  const [finished, setFinished] = useState(false);
+  const animationState = useRef({ rafId: 0, plants: [] });
+  const progressRef = useRef(0);
+
+  useEffect(() => {
+    const duration = durationSec * 1000;
+    const started = performance.now();
+
+    const step = (now) => {
+      const t = Math.min(1, (now - started) / duration);
+      const easedProgress = easeOutExpo(t);
+      progressRef.current = easedProgress;
+      setProgress(easedProgress);
+
+      if (t < 1) {
+        animationState.current.rafId = requestAnimationFrame(step);
+      } else {
+        setFinished(true);
+        onComplete?.();
+      }
+    };
+
+    animationState.current.rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animationState.current.rafId);
+  }, [durationSec, onComplete]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || finished) return undefined;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return undefined;
+
+    const resize = () => {
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(window.innerWidth * ratio);
+      canvas.height = Math.floor(window.innerHeight * ratio);
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      animationState.current.plants = createPlants(window.innerWidth, window.innerHeight);
+    };
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    let rafId = 0;
+    const drawFrame = () => {
+      drawScene(ctx, window.innerWidth, window.innerHeight, progressRef.current, animationState.current.plants);
+      rafId = requestAnimationFrame(drawFrame);
+    };
+    drawFrame();
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', resize);
+    };
+  }, [finished]);
+
+  if (finished) return null;
 
   return (
-    <motion.div ref={rootRef} className="harvest-splash-root" aria-hidden="true">
-      <div className="harvest-splash-overlay">
-        <div className="harvest-splash-label">Colhendo a plantação de soja para abrir o site...</div>
+    <div style={styles.splashRoot} aria-hidden="true">
+      <div style={{ ...styles.revealLayer, clipPath: `inset(0 ${(1 - progress) * 100}% 0 0)` }} />
 
-        <div className="harvest-splash-field">
-          <div className="harvest-splash-soil" />
-          <div className="harvest-splash-harvested-track" />
-          <div className="harvest-splash-crops-line">
-            {cropLine.map((soy) => (
-              <span key={soy.id} className="harvest-splash-crop" style={{ animationDelay: soy.swayDelay }}>
-                <span className="harvest-splash-crop-head" />
-                <span className="harvest-splash-crop-stem" />
-              </span>
-            ))}
-          </div>
+      <div style={styles.canvasLayer}>
+        <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0 }} />
+
+        <div style={styles.brand}>
+          <div style={styles.brandTitle}>Safra Vision</div>
+          <div style={styles.brandSub}>Carregando…</div>
         </div>
-
-        <div className="harvest-splash-harvester">🚜</div>
       </div>
-
-      <style>
-        {`
-          .harvest-splash-root {
-            position: fixed;
-            inset: 0;
-            z-index: 2000;
-            pointer-events: all;
-          }
-
-          .harvest-splash-overlay {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            background: linear-gradient(180deg, #b7ec8d 0%, #71bf59 38%, #4a8a3d 100%);
-          }
-
-          .harvest-splash-label {
-            position: absolute;
-            left: 50%;
-            top: 16%;
-            transform: translateX(-50%);
-            border-radius: 999px;
-            padding: 0.65rem 1rem;
-            font-size: clamp(0.88rem, 1.45vw, 1.04rem);
-            color: #f4fff6;
-            background: rgba(25, 71, 35, 0.62);
-            backdrop-filter: blur(6px);
-            font-weight: 600;
-            text-align: center;
-            white-space: nowrap;
-          }
-
-          .harvest-splash-field {
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            padding: 0 clamp(0.8rem, 3vw, 2.2rem);
-          }
-
-          .harvest-splash-soil {
-            position: absolute;
-            inset: auto 0 0 0;
-            height: clamp(42px, 7vw, 80px);
-            border-radius: 12px;
-            background: linear-gradient(180deg, #8b5a2b 0%, #5f3a19 100%);
-          }
-
-          .harvest-splash-harvested-track {
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            height: clamp(42px, 7vw, 80px);
-            width: 100%;
-            border-radius: 12px;
-            background: linear-gradient(180deg, rgba(70, 44, 22, 0.82), rgba(48, 29, 14, 0.92));
-            transform-origin: left center;
-            transform: scaleX(0);
-          }
-
-          .harvest-splash-crops-line {
-            position: relative;
-            z-index: 2;
-            display: grid;
-            grid-template-columns: repeat(42, minmax(0, 1fr));
-            align-items: end;
-            gap: 0.15rem;
-          }
-
-          .harvest-splash-crop {
-            position: relative;
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            height: clamp(56px, 9vw, 92px);
-            opacity: 0.97;
-            transform-origin: bottom center;
-            animation: soySway 1.3s ease-in-out infinite alternate;
-            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
-          }
-
-          .harvest-splash-crop-head {
-            width: clamp(12px, 1.1vw, 17px);
-            height: clamp(16px, 1.5vw, 24px);
-            border-radius: 60% 60% 45% 45%;
-            background: linear-gradient(180deg, #9be07f 0%, #59b548 100%);
-            box-shadow: inset 0 -2px 2px rgba(15, 90, 31, 0.22);
-          }
-
-          .harvest-splash-crop-stem {
-            width: clamp(4px, 0.35vw, 6px);
-            height: clamp(34px, 5.4vw, 58px);
-            margin-top: 1px;
-            border-radius: 999px;
-            background: linear-gradient(180deg, #4f9e3a 0%, #2f6d26 100%);
-          }
-
-          .harvest-splash-harvester {
-            position: absolute;
-            left: 0;
-            top: calc(50% - clamp(20px, 3vw, 34px));
-            font-size: clamp(2.1rem, 5.2vw, 4rem);
-            z-index: 3;
-            filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.25));
-          }
-
-          @keyframes soySway {
-            from { transform: rotate(-2deg) translateY(0px); }
-            to { transform: rotate(2deg) translateY(-4px); }
-          }
-
-          @media (max-width: 899px) {
-            .harvest-splash-label {
-              top: 12%;
-              white-space: normal;
-              max-width: 90vw;
-            }
-
-            .harvest-splash-crops-line {
-              grid-template-columns: repeat(21, minmax(0, 1fr));
-              row-gap: 0.2rem;
-            }
-          }
-        `}
-      </style>
-    </motion.div>
+    </div>
   );
 }
