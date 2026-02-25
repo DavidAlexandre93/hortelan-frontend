@@ -175,7 +175,7 @@ export default function Login() {
 
             <Typography sx={{ color: 'text.secondary', mb: 1 }}>Use seu e-mail e senha para continuar.</Typography>
             <Typography sx={{ color: 'text.secondary', mb: 5 }}>
-              Acesso de demonstração: <strong>admin@hortelan.com</strong> / <strong>admin123</strong>.
+              Acesso de demonstração: <strong>davidfernandes@hortelanagtech.com</strong> / <strong>admin</strong>.
             </Typography>
 
             <AuthSocial />
