@@ -33,227 +33,275 @@ const styles = {
 
 const easeOutExpo = (x) => (x === 1 ? 1 : 1 - 2 ** (-10 * x));
 
-function createPlants(width, height) {
-  const plants = [];
-  for (let x = 30; x < width + 80; x += 32) {
-    for (let y = 110; y < height - 30; y += 38) {
-      if (((x * 13 + y * 7) % 11) < 4) {
-        plants.push({
-          x: x + (Math.random() - 0.5) * 8,
-          y: y + (Math.random() - 0.5) * 8,
-          scale: 0.8 + Math.random() * 0.55,
-          baseRotation: (Math.random() - 0.5) * 0.16,
-        });
-      }
-    }
-  }
-  return plants;
-}
-
-function drawScene(ctx, width, height, progress, plants) {
-  const machineX = -120 + progress * (width + 240);
-  const machineY = height * 0.62 + Math.sin(progress * Math.PI * 10) * 2;
-  const harvestedWidth = Math.max(0, Math.min(width, machineX + 40));
-
-  ctx.clearRect(0, 0, width, height);
-
-  const sky = ctx.createLinearGradient(0, 0, 0, height);
-  sky.addColorStop(0, '#165326');
-  sky.addColorStop(1, '#0b1f0f');
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, width, height);
-
-  ctx.globalAlpha = 0.7;
-  ctx.fillStyle = '#2f7d35';
-  ctx.fillRect(0, 0, harvestedWidth, height);
-
-  ctx.globalAlpha = 0.24;
-  ctx.fillStyle = '#ffffff';
-  for (let y = -40; y < height + 40; y += 30) {
-    ctx.beginPath();
-    ctx.moveTo(0, y - progress * 90);
-    ctx.lineTo(width, y - 18 - progress * 90);
-    ctx.lineTo(width, y + 6 - progress * 90);
-    ctx.lineTo(0, y + 24 - progress * 90);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  ctx.globalAlpha = 0.3;
-  ctx.fillStyle = '#000000';
-  for (let y = -20; y < height + 40; y += 30) {
-    ctx.beginPath();
-    ctx.moveTo(0, y - progress * 160);
-    ctx.lineTo(width, y - 18 - progress * 160);
-    ctx.lineTo(width, y + 6 - progress * 160);
-    ctx.lineTo(0, y + 24 - progress * 160);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  ctx.globalAlpha = 1;
-  plants.forEach((plant) => {
-    if (plant.x <= harvestedWidth) return;
-
-    const sway = Math.sin(progress * 12 + plant.x * 0.02) * 0.09;
-    const rotation = plant.baseRotation + sway;
-    const h = 20 * plant.scale;
-
-    ctx.save();
-    ctx.translate(plant.x, plant.y);
-    ctx.rotate(rotation);
-    ctx.fillStyle = '#0b3b14';
-    ctx.fillRect(-1, -h, 2, h);
-
-    ctx.fillStyle = '#58d180';
-    ctx.beginPath();
-    ctx.ellipse(0, -h - 6, 8 * plant.scale, 6 * plant.scale, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#46b96b';
-    ctx.beginPath();
-    ctx.ellipse(-6 * plant.scale, -h + 3, 6 * plant.scale, 4 * plant.scale, -0.4, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#6fe39a';
-    ctx.beginPath();
-    ctx.ellipse(5 * plant.scale, -h + 4, 5 * plant.scale, 4 * plant.scale, 0.35, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  });
-
-  ctx.save();
-  ctx.translate(machineX, machineY);
-
-  ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  ctx.beginPath();
-  ctx.ellipse(0, 55, 90, 18, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = '#f2c94c';
-  ctx.strokeStyle = '#5f4b10';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.roundRect(-70, -46, 140, 72, 16);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.roundRect(20, -78, 50, 50, 14);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = 'rgba(74,163,217,0.55)';
-  ctx.strokeStyle = 'rgba(40,80,107,0.6)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(30, -70, 30, 30, 10);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = '#e2553a';
-  ctx.strokeStyle = '#5a1f15';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.roundRect(-125, 10, 120, 40, 14);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = 'rgba(255,230,210,0.7)';
-  for (let i = 0; i < 10; i += 1) {
-    ctx.fillRect(-115 + i * 12, 14, 2, 32);
-  }
-
-  ctx.fillStyle = '#111111';
-  [[-30, 36], [40, 36]].forEach(([x, y]) => {
-    ctx.beginPath();
-    ctx.arc(x, y, 18, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#8a8a8a';
-    ctx.beginPath();
-    ctx.arc(x, y, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#111111';
-  });
-
-  for (let i = 0; i < 26; i += 1) {
-    const px = -30 + (Math.random() - 0.5) * 32;
-    const py = 28 + (Math.random() - 0.5) * 24;
-    const r = 4 + Math.random() * 8;
-    const alpha = 0.16 + Math.random() * 0.28;
-    const dust = ctx.createRadialGradient(px, py, 1, px, py, r);
-    dust.addColorStop(0, `rgba(235,225,180,${alpha})`);
-    dust.addColorStop(1, 'rgba(235,225,180,0)');
-    ctx.fillStyle = dust;
-    ctx.beginPath();
-    ctx.arc(px, py, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.restore();
-}
-
 export default function HarvestSplashScreen({ onComplete, durationSec = 14 }) {
-  const canvasRef = useRef(null);
-  const [progress, setProgress] = useState(0);
+  const pixiHostRef = useRef(null);
   const [finished, setFinished] = useState(false);
-  const animationState = useRef({ rafId: 0, plants: [] });
+  const [progress, setProgress] = useState(0);
   const progressRef = useRef(0);
 
   useEffect(() => {
-    const duration = durationSec * 1000;
-    const started = performance.now();
+    const durationMs = durationSec * 1000;
+    const startedAt = performance.now();
+    let rafId = 0;
 
     const step = (now) => {
-      const t = Math.min(1, (now - started) / duration);
-      const easedProgress = easeOutExpo(t);
-      progressRef.current = easedProgress;
-      setProgress(easedProgress);
+      const normalized = Math.min(1, (now - startedAt) / durationMs);
+      const eased = easeOutExpo(normalized);
+      progressRef.current = eased;
+      setProgress(eased);
 
-      if (t < 1) {
-        animationState.current.rafId = requestAnimationFrame(step);
+      if (normalized < 1) {
+        rafId = requestAnimationFrame(step);
       } else {
         setFinished(true);
         onComplete?.();
       }
     };
 
-    animationState.current.rafId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animationState.current.rafId);
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
   }, [durationSec, onComplete]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || finished) return undefined;
+    if (!pixiHostRef.current) return undefined;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return undefined;
+    let disposed = false;
+    let app = null;
+    let emitter = null;
+    const modulePixi = 'pixi.js';
+    const moduleEmitter = '@pixi/particle-emitter';
 
-    const resize = () => {
-      const ratio = window.devicePixelRatio || 1;
-      canvas.width = Math.floor(window.innerWidth * ratio);
-      canvas.height = Math.floor(window.innerHeight * ratio);
-      canvas.style.width = `${window.innerWidth}px`;
-      canvas.style.height = `${window.innerHeight}px`;
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      animationState.current.plants = createPlants(window.innerWidth, window.innerHeight);
-    };
+    import(/* @vite-ignore */ modulePixi)
+      .then((pixiModule) => {
+        if (!pixiModule || disposed || !pixiHostRef.current) return null;
 
-    resize();
-    window.addEventListener('resize', resize);
+        const PIXI = pixiModule;
+        app = new PIXI.Application({
+          resizeTo: pixiHostRef.current,
+          antialias: true,
+          backgroundAlpha: 0,
+          powerPreference: 'high-performance',
+        });
+        pixiHostRef.current.appendChild(app.view);
 
-    let rafId = 0;
-    const drawFrame = () => {
-      drawScene(ctx, window.innerWidth, window.innerHeight, progressRef.current, animationState.current.plants);
-      rafId = requestAnimationFrame(drawFrame);
-    };
-    drawFrame();
+        const farLayer = new PIXI.Container();
+        const nearLayer = new PIXI.Container();
+        const plantsLayer = new PIXI.Container();
+        const harvestedLayer = new PIXI.Container();
+        const machineLayer = new PIXI.Container();
+        const fxLayer = new PIXI.Container();
+        app.stage.addChild(farLayer, harvestedLayer, plantsLayer, nearLayer, fxLayer, machineLayer);
+
+        const makeTexture = (drawFn) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 1024;
+          canvas.height = 512;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return PIXI.Texture.EMPTY;
+          drawFn(ctx, canvas.width, canvas.height);
+          return PIXI.Texture.from(canvas);
+        };
+
+        const fieldFarTex = makeTexture((ctx, w, h) => {
+          ctx.fillStyle = '#1f6f2a';
+          ctx.fillRect(0, 0, w, h);
+          ctx.globalAlpha = 0.35;
+          for (let y = -40; y < h + 40; y += 30) {
+            ctx.fillStyle = 'rgba(255,255,255,0.10)';
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y - 18);
+            ctx.lineTo(w, y + 6);
+            ctx.lineTo(0, y + 24);
+            ctx.closePath();
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+        });
+
+        const fieldNearTex = makeTexture((ctx, w, h) => {
+          ctx.fillStyle = '#1f6f2a';
+          ctx.fillRect(0, 0, w, h);
+          ctx.globalAlpha = 0.35;
+          for (let y = -40; y < h + 40; y += 30) {
+            ctx.fillStyle = 'rgba(0,0,0,0.10)';
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y - 18);
+            ctx.lineTo(w, y + 6);
+            ctx.lineTo(0, y + 24);
+            ctx.closePath();
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+        });
+
+        const harvestedTex = makeTexture((ctx, w, h) => {
+          ctx.fillStyle = '#2f7d35';
+          ctx.fillRect(0, 0, w, h);
+        });
+
+        const far = new PIXI.TilingSprite(fieldFarTex, app.screen.width, app.screen.height);
+        const near = new PIXI.TilingSprite(fieldNearTex, app.screen.width, app.screen.height);
+        far.alpha = 0.9;
+        near.alpha = 0.65;
+        near.y = 12;
+        farLayer.addChild(far);
+        nearLayer.addChild(near);
+
+        const harvested = new PIXI.TilingSprite(harvestedTex, 1, app.screen.height);
+        harvested.alpha = 0.95;
+        harvestedLayer.addChild(harvested);
+
+        const plantTexture = (() => {
+          const c = document.createElement('canvas');
+          c.width = 40;
+          c.height = 40;
+          const ctx = c.getContext('2d');
+          if (!ctx) return PIXI.Texture.EMPTY;
+          ctx.strokeStyle = '#0b3b14';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(20, 18);
+          ctx.lineTo(20, 36);
+          ctx.stroke();
+          ctx.fillStyle = '#58d180';
+          ctx.beginPath();
+          ctx.ellipse(20, 12, 10, 8, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#46b96b';
+          ctx.beginPath();
+          ctx.ellipse(12, 22, 8, 6, -0.5, 0, Math.PI * 2);
+          ctx.fill();
+          return PIXI.Texture.from(c);
+        })();
+
+        const plants = [];
+        for (let x = 30; x < app.screen.width + 80; x += 32) {
+          for (let y = 90; y < app.screen.height - 40; y += 38) {
+            if (((x * 13 + y * 7) % 11) < 4) {
+              const sprite = new PIXI.Sprite(plantTexture);
+              sprite.anchor.set(0.5, 1);
+              sprite.x = x + (Math.random() - 0.5) * 8;
+              sprite.y = y + (Math.random() - 0.5) * 8;
+              sprite.scale.set(0.8 + Math.random() * 0.55);
+              sprite.rotation = (Math.random() - 0.5) * 0.15;
+              sprite.baseX = sprite.x;
+              plants.push(sprite);
+              plantsLayer.addChild(sprite);
+            }
+          }
+        }
+
+        const machine = new PIXI.Container();
+        machineLayer.addChild(machine);
+        const body = new PIXI.Graphics();
+        body.roundRect(-70, -46, 140, 72, 16).fill({ color: 0xf2c94c, alpha: 1 });
+        body.roundRect(-70, -46, 140, 72, 16).stroke({ color: 0x5f4b10, width: 3, alpha: 0.9 });
+        machine.addChild(body);
+
+        const header = new PIXI.Graphics();
+        header.roundRect(-125, 10, 120, 40, 14).fill({ color: 0xe2553a, alpha: 1 });
+        header.roundRect(-125, 10, 120, 40, 14).stroke({ color: 0x5a1f15, width: 3, alpha: 0.9 });
+        for (let i = 0; i < 10; i += 1) {
+          header.rect(-115 + i * 12, 14, 2, 32).fill({ color: 0xffe6d2, alpha: 0.7 });
+        }
+        machine.addChild(header);
+
+        return import(/* @vite-ignore */ moduleEmitter)
+          .then((emitterModule) => {
+            if (!emitterModule || disposed) return null;
+
+            const { Emitter } = emitterModule;
+            const dustContainer = new PIXI.ParticleContainer(1000, {
+              scale: true,
+              position: true,
+              alpha: true,
+            });
+            fxLayer.addChild(dustContainer);
+
+            const dustTex = (() => {
+              const c = document.createElement('canvas');
+              c.width = 24;
+              c.height = 24;
+              const ctx = c.getContext('2d');
+              if (!ctx) return PIXI.Texture.EMPTY;
+              const g = ctx.createRadialGradient(12, 12, 2, 12, 12, 12);
+              g.addColorStop(0, 'rgba(235,225,180,0.9)');
+              g.addColorStop(1, 'rgba(235,225,180,0)');
+              ctx.fillStyle = g;
+              ctx.fillRect(0, 0, 24, 24);
+              return PIXI.Texture.from(c);
+            })();
+
+            emitter = new Emitter(dustContainer, {
+              lifetime: { min: 0.6, max: 1.6 },
+              frequency: 0.01,
+              spawnChance: 1,
+              particlesPerWave: 1,
+              emitterLifetime: -1,
+              maxParticles: 900,
+              pos: { x: 0, y: 0 },
+              addAtBack: false,
+              behaviors: [
+                { type: 'alpha', config: { alpha: { list: [{ time: 0, value: 0 }, { time: 0.2, value: 0.55 }, { time: 1, value: 0 }] } } },
+                { type: 'scale', config: { scale: { list: [{ time: 0, value: 0.35 }, { time: 1, value: 1 }] } } },
+                { type: 'moveSpeed', config: { speed: { list: [{ time: 0, value: 120 }, { time: 1, value: 40 }] } } },
+                { type: 'rotationStatic', config: { min: 0, max: 360 } },
+                { type: 'spawnShape', config: { type: 'rect', data: { x: -18, y: -10, w: 18, h: 20 } } },
+              ],
+              textures: [dustTex],
+            });
+
+            return null;
+          })
+          .catch(() => null)
+          .then(() => {
+            let last = performance.now();
+            app.ticker.add(() => {
+              const currentProgress = progressRef.current;
+              const w = app.screen.width;
+              const h = app.screen.height;
+              const x = -120 + currentProgress * (w + 240);
+              const y = h * 0.62 + Math.sin(currentProgress * Math.PI * 10) * 2;
+
+              machine.x = x;
+              machine.y = y;
+              far.tilePosition.x = -currentProgress * 90;
+              near.tilePosition.x = -currentProgress * 160;
+
+              const harvestedWidth = Math.max(0, Math.min(w, x + 40));
+              harvested.width = Math.max(1, harvestedWidth);
+
+              plants.forEach((sprite) => {
+                sprite.visible = sprite.baseX > harvestedWidth;
+              });
+
+              if (emitter) {
+                emitter.updateOwnerPos(x - 30, y + 30);
+                const now = performance.now();
+                const dt = (now - last) / 1000;
+                last = now;
+                emitter.update(dt);
+              }
+            });
+
+            return null;
+          });
+      })
+      .catch(() => null);
 
     return () => {
-      cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', resize);
+      disposed = true;
+      if (emitter) emitter.destroy();
+      if (app) {
+        const host = pixiHostRef.current;
+        const view = app.view;
+        app.destroy(true, { children: true, texture: true, baseTexture: true });
+        if (host && view && host.contains(view)) host.removeChild(view);
+      }
     };
-  }, [finished]);
+  }, []);
 
   if (finished) return null;
 
@@ -262,7 +310,7 @@ export default function HarvestSplashScreen({ onComplete, durationSec = 14 }) {
       <div style={{ ...styles.revealLayer, clipPath: `inset(0 ${(1 - progress) * 100}% 0 0)` }} />
 
       <div style={styles.canvasLayer}>
-        <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0 }} />
+        <div ref={pixiHostRef} style={{ position: 'absolute', inset: 0 }} />
 
         <div style={styles.brand}>
           <div style={styles.brandTitle}>Safra Vision</div>

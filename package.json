@@ -65,7 +65,10 @@
     "react-router-dom": "^6.3.0",
     "simplebar": "^5.3.8",
     "simplebar-react": "^2.4.1",
-    "yup": "^0.32.11"
+    "yup": "^0.32.11",
+    "framer-motion": "^11.11.17",
+    "pixi.js": "^7.4.3",
+    "@pixi/particle-emitter": "^5.0.8"
   },
   "devDependencies": {
     "@babel/core": "^7.18.6",
