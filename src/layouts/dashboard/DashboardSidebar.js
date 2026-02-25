@@ -16,6 +16,12 @@ import useAuth from '../../auth/useAuth';
 
 // ----------------------------------------------------------------------
 
+const HORTELAN_SOCIAL_LINKS = [
+  { label: 'Instagram', href: 'https://www.instagram.com/hortelan_agtech/' },
+  { label: 'YouTube', href: 'https://www.youtube.com/@HortelanAgTechLtda' },
+  { label: 'E-mail', href: 'mailto:hortelanagtechltda@gmail.com' },
+];
+
 const DRAWER_WIDTH = 280;
 
 const RootStyle = styled('div')(({ theme }) => ({
@@ -95,16 +101,20 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
 
           <Box sx={{ textAlign: 'center' }}>
             <Typography gutterBottom variant="h6">
-              Have some Questions or Problems?
+              Precisa de ajuda com a sua operação?
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Ask your questions here through our chatbot, we recommend documentation or support requests
+              Fale com o time Hortelan Agtech por nossos canais oficiais.
             </Typography>
           </Box>
 
-          <Button href="https://www.davidalexandrefernandes.com.br" target="_blank" variant="contained">
-            Contact us
-          </Button>
+          <Stack spacing={1.25} sx={{ width: 1 }}>
+            {HORTELAN_SOCIAL_LINKS.map((social) => (
+              <Button key={social.label} href={social.href} target="_blank" rel="noopener noreferrer" variant="contained" fullWidth>
+                {social.label}
+              </Button>
+            ))}
+          </Stack>
         </Stack>
       </Box>
     </Scrollbar>
