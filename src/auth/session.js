@@ -68,8 +68,8 @@ const normalizeGardenAccessControl = (accessControl = {}) => ({
 const USERS = [
   {
     id: 'admin-1',
-    email: 'admin@hortelan.com',
-    password: 'admin123',
+    email: 'davidfernandes@hortelanagtech.com',
+    password: 'admin',
     name: 'Administrador Hortelan',
     role: 'administrator',
     photoURL: '',
@@ -221,7 +221,7 @@ const INITIAL_PASSWORD_HISTORY = [
   {
     id: `pwd-history-${Date.now()}`,
     userId: 'admin-1',
-    userEmail: 'admin@hortelan.com',
+    userEmail: 'davidfernandes@hortelanagtech.com',
     changedAt: new Date().toISOString(),
     method: 'seed',
     changedBy: 'system',
@@ -679,8 +679,8 @@ export const loginWithEmailAndPassword = ({
 
 export const loginWithSocialProvider = ({ provider, remember, trustDevice, deviceName }) => {
   const providerMap = {
-    google: 'admin@hortelan.com',
-    apple: 'admin@hortelan.com',
+    google: 'davidfernandes@hortelanagtech.com',
+    apple: 'davidfernandes@hortelanagtech.com',
   };
 
   const email = providerMap[provider];
