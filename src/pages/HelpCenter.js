@@ -12,6 +12,7 @@ import {
   FormControlLabel,
   Grid,
   InputLabel,
+  Link,
   List,
   ListItem,
   ListItemText,
@@ -28,6 +29,9 @@ import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
 import SupportAgentRoundedIcon from '@mui/icons-material/SupportAgentRounded';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import SensorsRoundedIcon from '@mui/icons-material/SensorsRounded';
+import InstagramIcon from '@mui/icons-material/Instagram';
+import YouTubeIcon from '@mui/icons-material/YouTube';
+import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
 import Page from '../components/Page';
 import HortelanPromoBanner from '../components/HortelanPromoBanner';
 import GSAPTypingText from '../components/GSAPTypingText';
@@ -87,6 +91,27 @@ const statusColor = {
 const priorities = ['Baixa', 'Média', 'Alta', 'Crítica'];
 const categories = ['Conectividade', 'Automação', 'App/Web', 'Conta e acesso', 'Cobrança'];
 
+const socialChannels = [
+  {
+    label: 'Instagram',
+    href: 'https://www.instagram.com/hortelan_agtech/',
+    helper: '@hortelan_agtech',
+    icon: <InstagramIcon fontSize="small" />,
+  },
+  {
+    label: 'YouTube',
+    href: 'https://www.youtube.com/@HortelanAgTechLtda',
+    helper: '@HortelanAgTechLtda',
+    icon: <YouTubeIcon fontSize="small" />,
+  },
+  {
+    label: 'E-mail',
+    href: 'mailto:hortelanagtechltda@gmail.com',
+    helper: 'hortelanagtechltda@gmail.com',
+    icon: <EmailRoundedIcon fontSize="small" />,
+  },
+];
+
 export default function HelpCenter() {
   const [tab, setTab] = useState('central-ajuda');
   const [category, setCategory] = useState(categories[0]);
@@ -125,6 +150,32 @@ export default function HelpCenter() {
           </Box>
 
           <HortelanPromoBanner />
+
+          <Card>
+            <CardContent>
+              <Stack spacing={1.5}>
+                <Typography variant="h6">Canais oficiais Hortelan Agtech</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Para conteúdos técnicos, novidades e suporte comercial, acompanhe e fale com a Hortelan pelos canais abaixo.
+                </Typography>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} useFlexGap flexWrap="wrap">
+                  {socialChannels.map((channel) => (
+                    <Button
+                      key={channel.label}
+                      component={Link}
+                      href={channel.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      startIcon={channel.icon}
+                      variant="outlined"
+                    >
+                      {channel.label}: {channel.helper}
+                    </Button>
+                  ))}
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardContent>
