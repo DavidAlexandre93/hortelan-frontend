@@ -97,7 +97,7 @@ export default function Hortelan360() {
   );
 
   return (
-    <Page title="Hortelan Agtech Ltda 360">
+    <Page title="Hortelan AgTech Ltda 360">
       <Container maxWidth="xl" ref={sceneRef} sx={{ position: 'relative', overflow: 'hidden', pb: 3 }}>
         {[1, 2, 3].map((orb) => (
           <Box
@@ -123,7 +123,7 @@ export default function Hortelan360() {
             <Typography variant="h4">
               <GSAPTypingText
                 texts={[
-                  'Hortelan Agtech Ltda — Blueprint completo da plataforma',
+                  'Hortelan AgTech Ltda — Blueprint completo da plataforma',
                   'Arquitetura 360 para evolução contínua do produto',
                   'Planejamento estratégico com foco em entregas por releases',
                 ]}

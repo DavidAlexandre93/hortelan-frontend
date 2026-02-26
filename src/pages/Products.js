@@ -275,7 +275,7 @@ export default function ProductsMarketplace() {
   );
 
   return (
-    <Page title="Marketplace Hortelan Agtech Ltda">
+    <Page title="Marketplace Hortelan AgTech Ltda">
       <Container ref={rootRef} sx={{ position: 'relative', overflow: 'hidden' }}>
         <Box className="gsap-float-orb" sx={{ position: 'absolute', top: 120, right: -24, width: 120, height: 120, borderRadius: '50%', bgcolor: 'success.light', filter: 'blur(18px)', opacity: 0.28, pointerEvents: 'none' }} />
         <Box className="gsap-float-orb" sx={{ position: 'absolute', top: 340, left: -34, width: 140, height: 140, borderRadius: '50%', bgcolor: 'primary.light', filter: 'blur(22px)', opacity: 0.24, pointerEvents: 'none' }} />
@@ -283,9 +283,9 @@ export default function ProductsMarketplace() {
           <Typography className="gsap-hero-title" variant="h4">
             <GSAPTypingText
               texts={[
-                'Catálogo de produtos Hortelan Agtech Ltda',
+                'Catálogo de produtos Hortelan AgTech Ltda',
                 'Marketplace inteligente para sua operação agrícola',
-                'Compre insumos e automação com curadoria Hortelan',
+                'Compre insumos e automação com curadoria Hortelan AgTech Ltda',
               ]}
             />
           </Typography>
@@ -447,7 +447,7 @@ export default function ProductsMarketplace() {
                     {selectedProduct.descricaoTecnica}
                   </Typography>
                   <Typography variant="body2" color="primary" sx={{ mb: 2 }}>
-                    Compatibilidade Hortelan Agtech Ltda: {selectedProduct.compatibilidadeHortelan}
+                    Compatibilidade Hortelan AgTech Ltda: {selectedProduct.compatibilidadeHortelan}
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
                     <Chip icon={<Inventory2Icon />} label={`Estoque: ${selectedProduct.estoque}`} />

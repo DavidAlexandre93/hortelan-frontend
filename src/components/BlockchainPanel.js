@@ -51,7 +51,7 @@ export default function BlockchainPanel() {
       return;
     }
 
-    const message = `Hortelan checkpoint: irrigacao validada em ${new Date().toISOString()}`;
+    const message = `Hortelan AgTech Ltda checkpoint: irrigacao validada em ${new Date().toISOString()}`;
     const hexMessage = `0x${Array.from(message).map((char) => char.charCodeAt(0).toString(16).padStart(2, '0')).join('')}`;
     const [account] = await window.ethereum.request({ method: 'eth_requestAccounts' });
     const signedMessage = await window.ethereum.request({

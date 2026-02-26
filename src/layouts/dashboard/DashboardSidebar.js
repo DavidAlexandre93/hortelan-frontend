@@ -104,7 +104,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
               Precisa de ajuda com a sua operação?
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Fale com o time Hortelan Agtech por nossos canais oficiais.
+              Fale com o time Hortelan AgTech Ltda por nossos canais oficiais.
             </Typography>
           </Box>
 

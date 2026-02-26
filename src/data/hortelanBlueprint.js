@@ -207,7 +207,7 @@ export const hortelanModules = [
       'Diagnóstico por regras (sem IA): solo úmido + amarelecimento → possível excesso de água',
       'Diagnóstico por regras (sem IA): temperatura alta + baixa umidade → risco de estresse',
       'Sugestão de ajustes nas automações com explicação didática',
-      'Assistente virtual Hortelan (fase avançada) com perguntas em linguagem natural',
+      'Assistente virtual Hortelan AgTech Ltda (fase avançada) com perguntas em linguagem natural',
       'Respostas com base nos dados da horta + sugestões de automação, insumos e tarefas',
       'Score de saúde por horta/área/planta com tendência de melhora ou piora',
       'Fase avançada com previsão de rega e recomendação personalizada',
@@ -241,7 +241,7 @@ export const hortelanModules = [
   },
   {
     id: 13,
-    title: 'Comunidade (Rede Hortelan)',
+    title: 'Comunidade (Rede Hortelan AgTech Ltda)',
     tags: ['Release 3', 'Social'],
     features: [
       'Feed de posts com texto/foto/vídeo, curtidas e comentários',
