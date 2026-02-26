@@ -1,5 +1,4 @@
 import { Link as RouterLink } from 'react-router-dom';
-import { useState } from 'react';
 // @mui
 import { alpha, keyframes, styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography } from '@mui/material';
@@ -9,7 +8,6 @@ import useResponsive from '../hooks/useResponsive';
 // components
 import Page from '../components/Page';
 import Logo from '../components/Logo';
-import HarvestSplashScreen from '../components/fx/HarvestSplashScreen';
 // sections
 import { LoginForm } from '../sections/auth/login';
 import AuthSocial from '../sections/auth/AuthSocial';
@@ -125,7 +123,6 @@ const ContentStyle = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Login() {
-  const [showSplash, setShowSplash] = useState(true);
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
@@ -136,14 +133,6 @@ export default function Login() {
   const rightLeafRotation = useTransform(scrollYProgress, [0, 1], [12, -18]);
   const rightLeafY = useTransform(scrollYProgress, [0, 1], [0, 10]);
   const cableWave = useTransform(scrollYProgress, [0, 0.25, 0.5, 0.75, 1], [0, 8, 0, -8, 0]);
-
-  if (showSplash) {
-    return (
-      <Page title="Login">
-        <HarvestSplashScreen durationSec={12} onComplete={() => setShowSplash(false)} />
-      </Page>
-    );
-  }
 
   return (
     <Page title="Login">
