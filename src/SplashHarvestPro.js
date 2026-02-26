@@ -39,7 +39,7 @@ export default function SplashHarvestPro({ onFinish }) {
       const dx = Math.abs(x - prevX.current);
       prevX.current = x;
       // dx ~ pixels por frame; escala para blur
-      const blur = Math.min(8, dx * 0.18);
+      const blur = Math.min(2, dx * 0.06);
       blurMV.set(blur);
     });
     return () => unsub();
@@ -52,7 +52,7 @@ export default function SplashHarvestPro({ onFinish }) {
 
   useEffect(() => {
     const controls = animate(p, 1, {
-      duration: 4.8,
+      duration: 11.5,
       ease: [0.2, 0.8, 0.2, 1],
       onComplete: () => {
         setDone(true);
@@ -140,7 +140,7 @@ export default function SplashHarvestPro({ onFinish }) {
           style={{
             ...styles.harvesterWrap,
             x: harvX,
-            filter: useTransform(blurMV, (b) => `blur(${b}px)`),
+            filter: useTransform(blurMV, (b) => `drop-shadow(0 10px 18px rgba(0,0,0,0.26)) blur(${Math.min(1.2, b * 0.4)}px)`),
           }}
         >
           <HarvesterSVG />
