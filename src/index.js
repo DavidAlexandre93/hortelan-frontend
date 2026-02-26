@@ -11,6 +11,7 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 import { tryLoadAndStartRecorder } from '@alwaysmeticulous/recorder-loader';
 import { initReliabilityTelemetry } from './services/platformReliability';
+import { AuthProvider } from './auth/AuthContext';
 
 // ----------------------------------------------------------------------
 
@@ -58,9 +59,11 @@ Sentry.init({
 
 const appTree = (
   <HelmetProvider>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </AuthProvider>
   </HelmetProvider>
 );
 
