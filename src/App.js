@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import SplashHarvestPro from "./SplashHarvestPro";
 import Router from "./routes";
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  const location = useLocation();
+  const [showSplash, setShowSplash] = useState(location.pathname === '/');
   const navigate = useNavigate();
 
   const handleSplashFinish = () => {
