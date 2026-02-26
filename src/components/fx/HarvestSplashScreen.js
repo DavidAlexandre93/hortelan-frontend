@@ -63,7 +63,8 @@ export default function HarvestSplashScreen({ onComplete, durationSec = 14 }) {
   }, [durationSec, onComplete]);
 
   useEffect(() => {
-    if (!pixiHostRef.current) return undefined;
+    const pixiHost = pixiHostRef.current;
+    if (!pixiHost) return undefined;
 
     let disposed = false;
     let app = null;
@@ -73,16 +74,16 @@ export default function HarvestSplashScreen({ onComplete, durationSec = 14 }) {
 
     import(/* @vite-ignore */ modulePixi)
       .then((pixiModule) => {
-        if (!pixiModule || disposed || !pixiHostRef.current) return null;
+        if (!pixiModule || disposed || !pixiHost) return null;
 
         const PIXI = pixiModule;
         app = new PIXI.Application({
-          resizeTo: pixiHostRef.current,
+          resizeTo: pixiHost,
           antialias: true,
           backgroundAlpha: 0,
           powerPreference: 'high-performance',
         });
-        pixiHostRef.current.appendChild(app.view);
+        pixiHost.appendChild(app.view);
 
         const farLayer = new PIXI.Container();
         const nearLayer = new PIXI.Container();
@@ -295,10 +296,9 @@ export default function HarvestSplashScreen({ onComplete, durationSec = 14 }) {
       disposed = true;
       if (emitter) emitter.destroy();
       if (app) {
-        const host = pixiHostRef.current;
         const view = app.view;
         app.destroy(true, { children: true, texture: true, baseTexture: true });
-        if (host && view && host.contains(view)) host.removeChild(view);
+        if (view && pixiHost.contains(view)) pixiHost.removeChild(view);
       }
     };
   }, []);
