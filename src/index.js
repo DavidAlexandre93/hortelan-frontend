@@ -19,6 +19,7 @@ const rootElement = document.getElementById('root');
 
 const ERROR_ROUTE_PATH = '/404';
 let hasRedirectedToErrorPage = false;
+const shouldHandleGlobalErrors = isProduction();
 
 function redirectToErrorPage() {
   if (window.location.pathname === ERROR_ROUTE_PATH || hasRedirectedToErrorPage) {
@@ -30,22 +31,24 @@ function redirectToErrorPage() {
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
-window.addEventListener('error', (event) => {
-  // Evita redirecionar por falhas não fatais (ex.: erro de carregamento de imagem/extensão).
-  if (!(event instanceof ErrorEvent) || !event.error) {
-    return;
-  }
+if (shouldHandleGlobalErrors) {
+  window.addEventListener('error', (event) => {
+    // Evita redirecionar por falhas não fatais (ex.: erro de carregamento de imagem/extensão).
+    if (!(event instanceof ErrorEvent) || !event.error) {
+      return;
+    }
 
-  redirectToErrorPage();
-});
+    redirectToErrorPage();
+  });
 
-window.addEventListener('unhandledrejection', (event) => {
-  if (!(event.reason instanceof Error)) {
-    return;
-  }
+  window.addEventListener('unhandledrejection', (event) => {
+    if (!(event.reason instanceof Error)) {
+      return;
+    }
 
-  redirectToErrorPage();
-});
+    redirectToErrorPage();
+  });
+}
 
 async function startApp() {
   if (!isProduction()) {
