@@ -52,7 +52,7 @@ export default function SplashHarvestPro({ onFinish }) {
 
   useEffect(() => {
     const controls = animate(p, 1, {
-      duration: 4.8,
+      duration: 11.5,
       ease: [0.2, 0.8, 0.2, 1],
       onComplete: () => {
         setDone(true);
