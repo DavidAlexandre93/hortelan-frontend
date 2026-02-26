@@ -154,9 +154,9 @@ export default function HelpCenter() {
           <Card>
             <CardContent>
               <Stack spacing={1.5}>
-                <Typography variant="h6">Canais oficiais Hortelan Agtech</Typography>
+                <Typography variant="h6">Canais oficiais Hortelan AgTech Ltda</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Para conteúdos técnicos, novidades e suporte comercial, acompanhe e fale com a Hortelan pelos canais abaixo.
+                  Para conteúdos técnicos, novidades e suporte comercial, acompanhe e fale com a Hortelan AgTech Ltda pelos canais abaixo.
                 </Typography>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} useFlexGap flexWrap="wrap">
                   {socialChannels.map((channel) => (

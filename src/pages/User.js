@@ -41,16 +41,16 @@ const users = [
 ];
 
 const devices = [
-  { modelo: 'Hortelan Sense v2', firmware: '2.4.1', parque: 1240, problematicos: 28 },
-  { modelo: 'Hortelan Pump Pro', firmware: '1.9.8', parque: 890, problematicos: 12 },
-  { modelo: 'Hortelan Hub Mini', firmware: '3.1.0', parque: 642, problematicos: 41 },
+  { modelo: 'Hortelan AgTech Ltda Sense v2', firmware: '2.4.1', parque: 1240, problematicos: 28 },
+  { modelo: 'Hortelan AgTech Ltda Pump Pro', firmware: '1.9.8', parque: 890, problematicos: 12 },
+  { modelo: 'Hortelan AgTech Ltda Hub Mini', firmware: '3.1.0', parque: 642, problematicos: 41 },
 ];
 
 const cmsContent = [
   { tipo: 'Artigo', titulo: '5 práticas para melhorar a umidade do solo', status: 'Publicado' },
   { tipo: 'Guia', titulo: 'Guia de cultivo de alface hidropônica', status: 'Em revisão' },
   { tipo: 'FAQ', titulo: 'Como resetar meu dispositivo IoT?', status: 'Publicado' },
-  { tipo: 'Onboarding', titulo: 'Primeiros 7 dias no Hortelan', status: 'Rascunho' },
+  { tipo: 'Onboarding', titulo: 'Primeiros 7 dias no Hortelan AgTech Ltda', status: 'Rascunho' },
 ];
 
 const communityQueue = [
