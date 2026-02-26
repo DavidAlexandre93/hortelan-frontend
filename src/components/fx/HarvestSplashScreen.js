@@ -29,6 +29,14 @@ const styles = {
   },
   brandTitle: { fontWeight: 900, letterSpacing: 0.2 },
   brandSub: { opacity: 0.85, fontSize: 12, marginTop: 2 },
+  machineFallback: {
+    position: 'absolute',
+    width: 168,
+    height: 92,
+    bottom: '30%',
+    willChange: 'transform, left',
+    filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.35))',
+  },
 };
 
 const easeOutExpo = (x) => (x === 1 ? 1 : 1 - 2 ** (-10 * x));
@@ -319,6 +327,37 @@ export default function HarvestSplashScreen({ onComplete, durationSec = 14 }) {
 
       <div style={styles.canvasLayer}>
         <div ref={pixiHostRef} style={{ position: 'absolute', inset: 0 }} />
+
+        <div
+          style={{
+            ...styles.machineFallback,
+            left: `calc(${Math.min(progress, 0.98) * 100}% - 84px)`,
+            transform: `translateY(${Math.sin(progress * Math.PI * 18) * 2}px)`,
+          }}
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 168 92" width="100%" height="100%">
+            <rect x="52" y="10" width="92" height="44" rx="10" fill="#f2c94c" stroke="#5f4b10" strokeWidth="3" />
+            <rect x="6" y="40" width="74" height="30" rx="10" fill="#e2553a" stroke="#5a1f15" strokeWidth="3" />
+            {Array.from({ length: 6 }).map((_, index) => (
+              <line
+                // eslint-disable-next-line react/no-array-index-key
+                key={index}
+                x1={18 + index * 10}
+                y1="44"
+                x2={18 + index * 10}
+                y2="66"
+                stroke="#ffd9b8"
+                strokeWidth="2"
+                opacity="0.8"
+              />
+            ))}
+            <circle cx="66" cy="76" r="12" fill="#233" />
+            <circle cx="124" cy="76" r="12" fill="#233" />
+            <circle cx="66" cy="76" r="5" fill="#ddd" />
+            <circle cx="124" cy="76" r="5" fill="#ddd" />
+          </svg>
+        </div>
 
         <div style={styles.brand}>
           <div style={styles.brandTitle}>Safra Vision</div>
