@@ -140,7 +140,7 @@ export default function Login() {
   if (showSplash) {
     return (
       <Page title="Login">
-        <HarvestSplashScreen durationSec={4} onComplete={() => setShowSplash(false)} />
+        <HarvestSplashScreen durationSec={12} onComplete={() => setShowSplash(false)} />
       </Page>
     );
   }
