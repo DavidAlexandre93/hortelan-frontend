@@ -11,7 +11,7 @@ export default function SplashHarvestPro({ onFinish }) {
 
   const p = useMotionValue(0);
 
-  // Spring só pra suavizar um pouco o recorte/blur
+  // Spring só para o HUD (barra), sem afetar a velocidade da colheitadeira
   const pSpring = useSpring(p, { stiffness: 120, damping: 22, mass: 0.6 });
 
   // dimensões responsivas
@@ -27,8 +27,9 @@ export default function SplashHarvestPro({ onFinish }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const harvX = useTransform(pSpring, [0, 1], [-460, W + 160]);
-  const cutX = useTransform(pSpring, [0, 1], [0, W]);
+  // Movimento principal linear e constante
+  const harvX = useTransform(p, [0, 1], [-460, W + 160]);
+  const cutX = useTransform(p, [0, 1], [0, W]);
 
   // blur dinâmico por velocidade (motion blur)
   const prevX = useRef(0);
@@ -52,8 +53,8 @@ export default function SplashHarvestPro({ onFinish }) {
 
   useEffect(() => {
     const controls = animate(p, 1, {
-      duration: 21,
-      ease: [0.2, 0.8, 0.2, 1],
+      duration: 24,
+      ease: "linear",
       onComplete: () => {
         setDone(true);
         setTimeout(() => onFinish?.(), 320);
