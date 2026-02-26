@@ -1,6 +1,6 @@
 import { Component } from 'react';
 
-const ERROR_REDIRECT_URL = 'https://hortelan.vercel.app/404';
+const ERROR_ROUTE_PATH = '/404';
 
 export default class GlobalErrorBoundary extends Component {
   static getDerivedStateFromError() {
@@ -8,7 +8,11 @@ export default class GlobalErrorBoundary extends Component {
   }
 
   componentDidCatch() {
-    window.location.replace(ERROR_REDIRECT_URL);
+    if (window.location.pathname === ERROR_ROUTE_PATH) {
+      return;
+    }
+
+    window.location.replace(ERROR_ROUTE_PATH);
   }
 
   render() {
