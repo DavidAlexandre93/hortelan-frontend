@@ -3,12 +3,12 @@
   "name": "Hortelan AgTech Ltda V2.0 Systems ",
   "icons": [
     {
-      "src": "static/hortelan-logo.svg",
+      "src": "favicon/hortelan-logo.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     },
     {
-      "src": "static/hortelan-logo.svg",
+      "src": "favicon/hortelan-logo.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }
