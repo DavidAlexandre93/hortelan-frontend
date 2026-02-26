@@ -10,7 +10,7 @@ export default function App() {
 
   const handleSplashFinish = () => {
     setShowSplash(false);
-    navigate('/login', { replace: true });
+    navigate('/login', { replace: true, state: { forceLogin: true } });
   };
 
   return showSplash ? (
