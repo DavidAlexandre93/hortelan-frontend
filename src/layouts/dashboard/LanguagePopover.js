@@ -10,11 +10,80 @@ const LANGS = [
   { value: 'pt', label: 'Português (Brasil)', icon: '/static/icons/brasil.svg', countries: ['BR'] },
   { value: 'es', label: 'Español', icon: '/static/icons/espanha.svg', countries: ['ES'] },
   { value: 'fr', label: 'Français', icon: '/static/icons/franca.svg', countries: ['FR'] },
+  { value: 'ja', label: '日本語', icon: '/static/icons/japao.svg', countries: ['JP'] },
 ];
+
+const COUNTRY_LANGUAGE_MAP = {
+  BR: 'pt',
+  PT: 'pt',
+  FR: 'fr',
+  BE: 'fr',
+  CA: 'en',
+  US: 'en',
+  GB: 'en',
+  AU: 'en',
+  NZ: 'en',
+  IE: 'en',
+  JP: 'ja',
+  ES: 'es',
+  MX: 'es',
+  AR: 'es',
+  CL: 'es',
+  CO: 'es',
+  PE: 'es',
+  UY: 'es',
+  PY: 'es',
+  BO: 'es',
+  VE: 'es',
+  EC: 'es',
+  CR: 'es',
+  PA: 'es',
+  GT: 'es',
+  HN: 'es',
+  SV: 'es',
+  NI: 'es',
+  DO: 'es',
+  DE: 'de',
+  AT: 'de',
+  CH: 'de',
+  IT: 'it',
+  NL: 'nl',
+  PL: 'pl',
+  SE: 'sv',
+  NO: 'no',
+  DK: 'da',
+  FI: 'fi',
+  CZ: 'cs',
+  GR: 'el',
+  TR: 'tr',
+  RO: 'ro',
+  HU: 'hu',
+  RU: 'ru',
+  UA: 'uk',
+  IL: 'iw',
+  SA: 'ar',
+  AE: 'ar',
+  EG: 'ar',
+  MA: 'ar',
+  DZ: 'ar',
+  IN: 'hi',
+  TH: 'th',
+  VN: 'vi',
+  ID: 'id',
+  KR: 'ko',
+  CN: 'zh-CN',
+  TW: 'zh-TW',
+};
+
+const GOOGLE_TRANSLATE_LANGUAGES = [
+  ...new Set([...LANGS.map((lang) => lang.value), ...Object.values(COUNTRY_LANGUAGE_MAP)]),
+].join(',');
 
 const mapCountryToLanguage = (countryCode) => {
   if (!countryCode) return 'pt';
   const upperCountryCode = countryCode.toUpperCase();
+  const mappedLanguage = COUNTRY_LANGUAGE_MAP[upperCountryCode];
+  if (mappedLanguage) return mappedLanguage;
   const language = LANGS.find((lang) => lang.countries.includes(upperCountryCode));
   return language?.value || 'pt';
 };
@@ -53,7 +122,7 @@ const ensureGoogleTranslate = () => {
         {
           pageLanguage: 'pt',
           autoDisplay: false,
-          includedLanguages: LANGS.map((lang) => lang.value).join(','),
+          includedLanguages: GOOGLE_TRANSLATE_LANGUAGES,
         },
         'google_translate_element'
       );
