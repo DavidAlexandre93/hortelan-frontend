@@ -18,17 +18,34 @@ import { AuthProvider } from './auth/AuthContext';
 const rootElement = document.getElementById('root');
 
 const ERROR_ROUTE_PATH = '/404';
+let hasRedirectedToErrorPage = false;
 
 function redirectToErrorPage() {
-  if (window.location.pathname === ERROR_ROUTE_PATH) {
+  if (window.location.pathname === ERROR_ROUTE_PATH || hasRedirectedToErrorPage) {
     return;
   }
 
-  window.location.replace(ERROR_ROUTE_PATH);
+  hasRedirectedToErrorPage = true;
+  window.history.replaceState({}, '', ERROR_ROUTE_PATH);
+  window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
-window.addEventListener('error', redirectToErrorPage);
-window.addEventListener('unhandledrejection', redirectToErrorPage);
+window.addEventListener('error', (event) => {
+  // Evita redirecionar por falhas não fatais (ex.: erro de carregamento de imagem/extensão).
+  if (!(event instanceof ErrorEvent) || !event.error) {
+    return;
+  }
+
+  redirectToErrorPage();
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  if (!(event.reason instanceof Error)) {
+    return;
+  }
+
+  redirectToErrorPage();
+});
 
 async function startApp() {
   if (!isProduction()) {
