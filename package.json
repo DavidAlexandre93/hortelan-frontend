@@ -42,7 +42,7 @@
     "@emotion/styled": "^11.9.3",
     "@faker-js/faker": "^7.3.0",
     "@hookform/resolvers": "^2.9.3",
-    "@iconify/react": "^3.2.2",
+    "@iconify/react": "^6.0.2",
     "@mui/icons-material": "^5.14.13",
     "@mui/lab": "^5.0.0-alpha.88",
     "@mui/material": "^5.8.6",
