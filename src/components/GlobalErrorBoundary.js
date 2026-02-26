@@ -12,8 +12,7 @@ export default class GlobalErrorBoundary extends Component {
       return;
     }
 
-    window.history.replaceState({}, '', ERROR_ROUTE_PATH);
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    window.location.replace(ERROR_ROUTE_PATH);
   }
 
   render() {
