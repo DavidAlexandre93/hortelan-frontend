@@ -197,15 +197,23 @@ export default function HarvestSplashScreen({ onComplete, durationSec = 14 }) {
         const machine = new PIXI.Container();
         machineLayer.addChild(machine);
         const body = new PIXI.Graphics();
-        body.roundRect(-70, -46, 140, 72, 16).fill({ color: 0xf2c94c, alpha: 1 });
-        body.roundRect(-70, -46, 140, 72, 16).stroke({ color: 0x5f4b10, width: 3, alpha: 0.9 });
+        body.beginFill(0xf2c94c, 1);
+        body.drawRoundedRect(-70, -46, 140, 72, 16);
+        body.endFill();
+        body.lineStyle(3, 0x5f4b10, 0.9);
+        body.drawRoundedRect(-70, -46, 140, 72, 16);
         machine.addChild(body);
 
         const header = new PIXI.Graphics();
-        header.roundRect(-125, 10, 120, 40, 14).fill({ color: 0xe2553a, alpha: 1 });
-        header.roundRect(-125, 10, 120, 40, 14).stroke({ color: 0x5a1f15, width: 3, alpha: 0.9 });
+        header.beginFill(0xe2553a, 1);
+        header.drawRoundedRect(-125, 10, 120, 40, 14);
+        header.endFill();
+        header.lineStyle(3, 0x5a1f15, 0.9);
+        header.drawRoundedRect(-125, 10, 120, 40, 14);
         for (let i = 0; i < 10; i += 1) {
-          header.rect(-115 + i * 12, 14, 2, 32).fill({ color: 0xffe6d2, alpha: 0.7 });
+          header.beginFill(0xffe6d2, 0.7);
+          header.drawRect(-115 + i * 12, 14, 2, 32);
+          header.endFill();
         }
         machine.addChild(header);
 
