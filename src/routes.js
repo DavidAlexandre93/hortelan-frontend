@@ -37,6 +37,7 @@ export default function Router() {
         </RequireAuth>
       ),
       children: [
+        { index: true, element: <Navigate to="app" replace /> },
         { path: 'app', element: <DashboardApp /> },
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },
@@ -51,7 +52,7 @@ export default function Router() {
         { path: 'assinaturas', element: <Subscriptions /> },
         { path: 'integracoes', element: <Integrations /> },
         { path: 'suporte', element: <HelpCenter /> },
-        { path: 'integracoes', element: <IntegrationsOps /> },
+        { path: 'integracoes/ops', element: <IntegrationsOps /> },
       ],
     },
     {
