@@ -17,12 +17,15 @@ import { AuthProvider } from './auth/AuthContext';
 
 const rootElement = document.getElementById('root');
 
-const ERROR_REDIRECT_URL = 'https://hortelan.vercel.app/404';
+const ERROR_ROUTE_PATH = '/404';
 
 function redirectToErrorPage() {
-  if (window.location.href !== ERROR_REDIRECT_URL) {
-    window.location.replace(ERROR_REDIRECT_URL);
+  if (window.location.pathname === ERROR_ROUTE_PATH) {
+    return;
   }
+
+  window.history.replaceState({}, '', ERROR_ROUTE_PATH);
+  window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
 window.addEventListener('error', redirectToErrorPage);
