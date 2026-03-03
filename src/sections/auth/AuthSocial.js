@@ -5,6 +5,7 @@ import { Stack, Button, Divider, Typography, Alert } from '@mui/material';
 // component
 import Iconify from '../../components/Iconify';
 import useAuth from '../../auth/useAuth';
+import { DEFAULT_AUTH_REDIRECT, resolvePostAuthDestination } from '../../utils/authRedirect';
 
 // ----------------------------------------------------------------------
 
@@ -14,9 +15,9 @@ export default function AuthSocial() {
   const { loginWithSocial } = useAuth();
   const [socialError, setSocialError] = useState('');
 
-  const handleSocialLogin = (provider) => {
+  const handleSocialLogin = async (provider) => {
     setSocialError('');
-    const result = loginWithSocial({ provider, remember: true, trustDevice: true });
+    const result = await loginWithSocial({ provider, remember: true, trustDevice: true });
 
     if (result.error) {
       setSocialError(result.error);
@@ -28,7 +29,7 @@ export default function AuthSocial() {
       return;
     }
 
-    const destination = location.state?.from || '/dashboard/app';
+    const destination = resolvePostAuthDestination(location.state?.from || DEFAULT_AUTH_REDIRECT);
     navigate(destination, { replace: true });
   };
 
