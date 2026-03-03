@@ -1,17 +1,16 @@
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 // material
 import { Stack, Button, Divider, Typography, Alert } from '@mui/material';
 // component
 import Iconify from '../../components/Iconify';
 import useAuth from '../../auth/useAuth';
-import { DEFAULT_AUTH_REDIRECT, resolvePostAuthDestination } from '../../utils/authRedirect';
+import { DEFAULT_AUTH_REDIRECT } from '../../utils/authRedirect';
 
 // ----------------------------------------------------------------------
 
 export default function AuthSocial() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { loginWithSocial } = useAuth();
   const [socialError, setSocialError] = useState('');
 
@@ -29,8 +28,7 @@ export default function AuthSocial() {
       return;
     }
 
-    const destination = resolvePostAuthDestination(location.state?.from || DEFAULT_AUTH_REDIRECT);
-    navigate(destination, { replace: true });
+    navigate(DEFAULT_AUTH_REDIRECT, { replace: true });
   };
 
   return (
