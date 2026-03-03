@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 import { useMemo, useState } from 'react';
-import { Link as RouterLink, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link as RouterLink, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 // form
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -16,7 +16,7 @@ import Logo from '../../../components/Logo';
 import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFCheckbox, RHFTextField } from '../../../components/hook-form';
 import useAuth from '../../../auth/useAuth';
-import { DEFAULT_AUTH_REDIRECT, resolvePostAuthDestination } from '../../../utils/authRedirect';
+import { DEFAULT_AUTH_REDIRECT } from '../../../utils/authRedirect';
 // sections
 import AuthSocial from '../AuthSocial';
 import { RegisterForm } from '../register';
@@ -118,7 +118,6 @@ const ContentStyle = styled('div')(({ theme }) => ({
 
 function LoginFields() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { login } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -186,8 +185,7 @@ function LoginFields() {
       return;
     }
 
-    const destination = resolvePostAuthDestination(location.state?.from || DEFAULT_AUTH_REDIRECT);
-    navigate(destination, { replace: true });
+    navigate(DEFAULT_AUTH_REDIRECT, { replace: true });
   };
 
   return (
@@ -283,7 +281,6 @@ function LoginFields() {
 export default function LoginForm() {
   const smUp = useResponsive('up', 'sm');
   const mdUp = useResponsive('up', 'md');
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const isRegisterMode = useMemo(
