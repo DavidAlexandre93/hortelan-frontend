@@ -21,6 +21,8 @@ const rootElement = document.getElementById('root');
 const ERROR_ROUTE_PATH = '/404';
 let hasRedirectedToErrorPage = false;
 
+const CRITICAL_ERROR_SIGNATURES = ['loading chunk', 'failed to fetch dynamically imported module'];
+
 function redirectToErrorPage() {
   if (window.location.pathname === ERROR_ROUTE_PATH || hasRedirectedToErrorPage) {
     return;
@@ -31,9 +33,24 @@ function redirectToErrorPage() {
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
+function isCriticalRuntimeError(reason) {
+  if (!reason) {
+    return false;
+  }
+
+  const message = typeof reason === 'string' ? reason : reason.message;
+
+  if (!message || typeof message !== 'string') {
+    return false;
+  }
+
+  const normalizedMessage = message.toLowerCase();
+  return CRITICAL_ERROR_SIGNATURES.some((signature) => normalizedMessage.includes(signature));
+}
+
 window.addEventListener('error', (event) => {
-  // Evita redirecionar por falhas não fatais (ex.: erro de carregamento de imagem/extensão).
-  if (!(event instanceof ErrorEvent) || !event.error) {
+  // Evita redirecionar por falhas não fatais (ex.: extensão, erro de API, warning de runtime).
+  if (!(event instanceof ErrorEvent) || !isCriticalRuntimeError(event.error)) {
     return;
   }
 
@@ -41,7 +58,7 @@ window.addEventListener('error', (event) => {
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-  if (!(event.reason instanceof Error)) {
+  if (!isCriticalRuntimeError(event.reason)) {
     return;
   }
 
