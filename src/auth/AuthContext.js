@@ -29,6 +29,14 @@ import { loginWithBackend, socialLoginWithBackend } from '../services/authApi';
 
 export const AuthContext = createContext(null);
 
+function ensureAuthResultShape(result) {
+  if (result && typeof result === 'object') {
+    return result;
+  }
+
+  return { error: 'Resposta de autenticação inválida. Tente novamente.' };
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => getAuthenticatedUser());
   const [sessions, setSessions] = useState(() => getUserSessions());
@@ -79,6 +87,8 @@ export function AuthProvider({ children }) {
       });
     }
 
+    result = ensureAuthResultShape(result);
+
     if (result.error || result.requiresTwoFactor) {
       return result;
     }
@@ -110,6 +120,8 @@ export function AuthProvider({ children }) {
     } catch (error) {
       result = loginWithSocialProvider({ provider, remember, trustDevice, deviceName });
     }
+
+    result = ensureAuthResultShape(result);
 
     if (result.error || result.requiresTwoFactor) {
       return result;
