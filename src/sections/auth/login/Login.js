@@ -16,6 +16,7 @@ import Logo from '../../../components/Logo';
 import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFCheckbox, RHFTextField } from '../../../components/hook-form';
 import useAuth from '../../../auth/useAuth';
+import { DEFAULT_AUTH_REDIRECT, resolvePostAuthDestination } from '../../../utils/authRedirect';
 // sections
 import AuthSocial from '../AuthSocial';
 import { RegisterForm } from '../register';
@@ -185,7 +186,7 @@ function LoginFields() {
       return;
     }
 
-    const destination = location.state?.from || '/dashboard/app';
+    const destination = resolvePostAuthDestination(location.state?.from || DEFAULT_AUTH_REDIRECT);
     navigate(destination, { replace: true });
   };
 
