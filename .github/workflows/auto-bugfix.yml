@@ -1,11 +1,8 @@
 name: Auto Remediation - Bugs de Qualidade
 
 on:
-  workflow_run:
-    workflows:
-      - CI - Plataforma de Qualidade e Segurança
-    types:
-      - completed
+  schedule:
+    - cron: '40 */6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -13,20 +10,17 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: auto-bugfix-${{ github.event.workflow_run.head_branch || github.ref }}
+  group: auto-bugfix-main
   cancel-in-progress: true
 
 jobs:
   auto-fix:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure'
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
     steps:
-      - name: Checkout branch com falha
+      - name: Checkout branch principal
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -57,7 +51,7 @@ jobs:
           body: |
             ## 🤖 Correção automática de bug detectado no CI
 
-            Este PR foi criado automaticamente após detecção de falha na pipeline principal.
+            Este PR foi criado automaticamente por execução agendada/manual para corrigir problemas recorrentes de qualidade.
 
             ### Ações realizadas
             - `npm run lint:fix`

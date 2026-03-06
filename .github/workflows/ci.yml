@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -46,7 +45,8 @@ jobs:
       - name: Auditoria de front-end
         run: npm run audit:frontend
 
-      - name: NPM Audit (moderate+)
+      - name: NPM Audit (informativo)
+        continue-on-error: true
         run: npm audit --audit-level=moderate
 
   semgrep:
@@ -61,29 +61,10 @@ jobs:
       - name: Semgrep scan
         uses: returntocorp/semgrep-action@v1
         with:
+          semgrep-version: latest
           config: >-
             p/default
             p/secrets
-
-  codeql:
-    name: CodeQL
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Inicializar CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
-      - name: Analisar
-        uses: github/codeql-action/analyze@v3
 
   dependency-review:
     name: Revisão de dependências

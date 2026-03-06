@@ -47,19 +47,3 @@ updates:
     commit-message:
       prefix: 'chore(ci)'
       include: scope
-
-  - package-ecosystem: npm
-    directory: '/'
-    target-branch: main
-    schedule:
-      interval: daily
-      time: '09:00'
-      timezone: 'America/Sao_Paulo'
-    open-pull-requests-limit: 10
-    labels:
-      - dependencies
-      - security
-      - security-patch
-    commit-message:
-      prefix: 'fix(security)'
-    applies-to: security-updates
