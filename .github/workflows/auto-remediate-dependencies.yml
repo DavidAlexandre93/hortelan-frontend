@@ -93,7 +93,7 @@ jobs:
           git apply /tmp/auto-remediate.patch
 
       - name: Criar PR automático de remediação
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "fix(security): remediar dependências vulneráveis automaticamente"

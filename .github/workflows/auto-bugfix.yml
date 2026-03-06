@@ -87,7 +87,7 @@ jobs:
           git apply /tmp/auto-bugfix.patch
 
       - name: Criar PR automático para bug detectado
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "fix(ci): auto-correção de bug detectado no pipeline"
