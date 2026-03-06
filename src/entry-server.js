@@ -4,7 +4,7 @@ import { StaticRouter } from 'react-router-dom/server';
 import { HelmetProvider } from 'react-helmet-async';
 import App from './App';
 
-const SSR_ROUTES = ['/login', '/register', '/forgot-password'];
+const SSR_ROUTES = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/404'];
 
 export function shouldUseSsr(url) {
   const path = url.split('?')[0];
@@ -23,6 +23,8 @@ export function render(url) {
 
   return {
     appHtml,
-    headTags: helmetContext.helmet ? `${helmetContext.helmet.title.toString()}${helmetContext.helmet.meta.toString()}` : '',
+    headTags: helmetContext.helmet
+      ? `${helmetContext.helmet.title.toString()}${helmetContext.helmet.meta.toString()}${helmetContext.helmet.link.toString()}${helmetContext.helmet.script.toString()}`
+      : '',
   };
 }
