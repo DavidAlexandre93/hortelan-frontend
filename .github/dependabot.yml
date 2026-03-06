@@ -1,11 +1,11 @@
 version: 2
 updates:
   - package-ecosystem: npm
-    directory: '/'
+    directory: "/"
     schedule:
       interval: daily
-      time: '07:30'
-      timezone: 'America/Sao_Paulo'
+      time: "07:30"
+      timezone: "America/Sao_Paulo"
     open-pull-requests-limit: 20
     allow:
       - dependency-type: direct
@@ -15,35 +15,35 @@ updates:
       - security
       - npm
     commit-message:
-      prefix: 'chore(deps)'
+      prefix: "chore(deps)"
       include: scope
     groups:
       react-ecosystem:
         patterns:
-          - 'react*'
-          - '@testing-library/*'
+          - "react*"
+          - "@testing-library/*"
       mui-ecosystem:
         patterns:
-          - '@mui/*'
-          - '@emotion/*'
+          - "@mui/*"
+          - "@emotion/*"
       tooling:
         patterns:
-          - 'eslint*'
-          - 'prettier'
-          - 'vite'
-          - '@vitejs/*'
+          - "eslint*"
+          - "prettier"
+          - "vite"
+          - "@vitejs/*"
 
   - package-ecosystem: github-actions
-    directory: '/'
+    directory: "/"
     schedule:
       interval: daily
-      time: '08:00'
-      timezone: 'America/Sao_Paulo'
+      time: "08:00"
+      timezone: "America/Sao_Paulo"
     open-pull-requests-limit: 10
     labels:
       - dependencies
       - github-actions
       - security
     commit-message:
-      prefix: 'chore(ci)'
+      prefix: "chore(ci)"
       include: scope

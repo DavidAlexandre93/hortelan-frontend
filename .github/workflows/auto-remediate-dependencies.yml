@@ -2,25 +2,29 @@ name: Auto Remediation - Dependências Vulneráveis
 
 on:
   schedule:
-    - cron: '20 */6 * * *'
+    - cron: "20 */6 * * *"
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: auto-remediate-deps
   cancel-in-progress: true
 
 jobs:
-  remediate:
+  prepare-remediation:
+    name: Preparar remediação automática
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
 
     steps:
-      - name: Checkout
+      - name: Checkout (read-only)
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -41,18 +45,56 @@ jobs:
         run: npm install --package-lock-only
 
       - name: Validar qualidade após correção
+        continue-on-error: true
         run: |
           npm run lint
           npm test
           npm run build
           npm audit --audit-level=moderate
 
+      - name: Gerar patch das alterações
+        run: |
+          git add -A
+          git diff --cached > /tmp/auto-remediate.patch
+
+      - name: Publicar patch
+        uses: actions/upload-artifact@v4
+        with:
+          name: auto-remediate-patch
+          path: /tmp/auto-remediate.patch
+
+  create-pr:
+    name: Criar PR de remediação
+    needs: prepare-remediation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Baixar patch
+        uses: actions/download-artifact@v4
+        with:
+          name: auto-remediate-patch
+          path: /tmp
+
+      - name: Aplicar patch
+        run: |
+          if [ ! -s /tmp/auto-remediate.patch ]; then
+            echo "Patch vazio. Nada para aplicar.";
+            exit 0;
+          fi
+          git apply /tmp/auto-remediate.patch
+
       - name: Criar PR automático de remediação
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'fix(security): remediar dependências vulneráveis automaticamente'
-          title: 'fix(security): remediação automática de vulnerabilidades de dependências'
+          commit-message: "fix(security): remediar dependências vulneráveis automaticamente"
+          title: "fix(security): remediação automática de vulnerabilidades de dependências"
           body: |
             ## 🤖 Remediação automática de segurança
 

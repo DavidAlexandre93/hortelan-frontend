@@ -2,25 +2,29 @@ name: Auto Remediation - Bugs de Qualidade
 
 on:
   schedule:
-    - cron: '40 */6 * * *'
+    - cron: "40 */6 * * *"
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: auto-bugfix-main
   cancel-in-progress: true
 
 jobs:
-  auto-fix:
+  prepare-fix:
+    name: Preparar correções automáticas
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    permissions:
+      contents: read
 
     steps:
-      - name: Checkout branch principal
+      - name: Checkout branch principal (read-only)
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -42,12 +46,49 @@ jobs:
           npm test
           npm run build
 
+      - name: Gerar patch das alterações
+        run: |
+          git add -A
+          git diff --cached > /tmp/auto-bugfix.patch
+
+      - name: Publicar patch
+        uses: actions/upload-artifact@v4
+        with:
+          name: auto-bugfix-patch
+          path: /tmp/auto-bugfix.patch
+
+  create-pr:
+    name: Criar PR automático
+    needs: prepare-fix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout branch principal
+        uses: actions/checkout@v4
+
+      - name: Baixar patch
+        uses: actions/download-artifact@v4
+        with:
+          name: auto-bugfix-patch
+          path: /tmp
+
+      - name: Aplicar patch
+        run: |
+          if [ ! -s /tmp/auto-bugfix.patch ]; then
+            echo "Patch vazio. Nada para aplicar.";
+            exit 0;
+          fi
+          git apply /tmp/auto-bugfix.patch
+
       - name: Criar PR automático para bug detectado
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'fix(ci): auto-correção de bug detectado no pipeline'
-          title: 'fix(ci): auto-correção para falha detectada no CI'
+          commit-message: "fix(ci): auto-correção de bug detectado no pipeline"
+          title: "fix(ci): auto-correção para falha detectada no CI"
           body: |
             ## 🤖 Correção automática de bug detectado no CI
 
