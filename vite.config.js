@@ -3,6 +3,11 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      'apexcharts/client': 'apexcharts',
+    },
+  },
   esbuild: {
     loader: 'jsx',
     include: /src\/.*\.[jt]sx?$/,
