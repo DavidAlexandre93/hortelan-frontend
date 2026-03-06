@@ -12,8 +12,8 @@ export default function App() {
     setShowSplash(false);
 
     // Garante a splash como primeira tela em qualquer rota de entrada.
-    // Se a aplicação chegar na raiz ou na página 404, redireciona para login.
-    if (location.pathname === '/' || location.pathname === '/404') {
+    // Se a aplicação chegar na raiz, redireciona para login.
+    if (location.pathname === '/') {
       navigate('/login', { replace: true, state: { forceLogin: true } });
     }
   };
