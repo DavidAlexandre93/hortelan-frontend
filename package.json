@@ -65,7 +65,7 @@
     "react-hook-form": "^7.33.1",
     "react-router-dom": "^7.13.1",
     "simplebar": "^5.3.8",
-    "simplebar-react": "^2.4.1",
+    "simplebar-react": "^3.3.2",
     "yup": "^0.32.11",
     "framer-motion": "^11.11.17",
     "pixi.js": "^7.4.3",
