@@ -29,6 +29,29 @@ import { loginWithBackend, socialLoginWithBackend } from '../services/authApi';
 
 export const AuthContext = createContext(null);
 
+
+function getAuthPayload(result) {
+  if (!result || typeof result !== 'object') {
+    return { user: null, session: null };
+  }
+
+  if (result.user || result.session) {
+    return {
+      user: result.user || null,
+      session: result.session || null,
+    };
+  }
+
+  if (result.data && typeof result.data === 'object') {
+    return {
+      user: result.data.user || null,
+      session: result.data.session || null,
+    };
+  }
+
+  return { user: null, session: null };
+}
+
 function ensureAuthResultShape(result) {
   if (result && typeof result === 'object') {
     return result;
@@ -93,9 +116,32 @@ export function AuthProvider({ children }) {
       return result;
     }
 
-    refreshAuthState();
+    const { user: authenticatedUser, session } = getAuthPayload(result);
+
+    if (authenticatedUser) {
+      setUser(authenticatedUser);
+    } else {
+      setUser(getAuthenticatedUser());
+    }
+
+    if (session) {
+      setSessions((previousSessions) => {
+        const nextSessions = previousSessions.filter((item) => item.id !== session.id);
+        return [...nextSessions, session];
+      });
+    } else {
+      setSessions(getUserSessions());
+    }
+
+    setTwoFactor(getTwoFactorSettings());
+    setTrustedDevices(getTrustedDevices());
+    setConsents(getUserConsents());
+    setDeletionRequest(getAccountDeletionRequest());
+    setConsentLogs(getConsentAuditLogs());
+    setRetentionPolicy(getDataRetentionPolicy());
+
     return result;
-  }, [refreshAuthState]);
+  }, []);
 
   const logout = useCallback(() => {
     logoutCurrentSession();
@@ -127,9 +173,32 @@ export function AuthProvider({ children }) {
       return result;
     }
 
-    refreshAuthState();
+    const { user: authenticatedUser, session } = getAuthPayload(result);
+
+    if (authenticatedUser) {
+      setUser(authenticatedUser);
+    } else {
+      setUser(getAuthenticatedUser());
+    }
+
+    if (session) {
+      setSessions((previousSessions) => {
+        const nextSessions = previousSessions.filter((item) => item.id !== session.id);
+        return [...nextSessions, session];
+      });
+    } else {
+      setSessions(getUserSessions());
+    }
+
+    setTwoFactor(getTwoFactorSettings());
+    setTrustedDevices(getTrustedDevices());
+    setConsents(getUserConsents());
+    setDeletionRequest(getAccountDeletionRequest());
+    setConsentLogs(getConsentAuditLogs());
+    setRetentionPolicy(getDataRetentionPolicy());
+
     return result;
-  }, [refreshAuthState]);
+  }, []);
 
   const update2FASettings = useCallback(({ enabled, method }) => {
     const result = updateTwoFactorSettings({ enabled, method });
@@ -216,7 +285,7 @@ export function AuthProvider({ children }) {
       deletionRequest,
       consentLogs,
       retentionPolicy,
-      authenticated: isAuthenticated(),
+      authenticated: Boolean(user) || isAuthenticated(),
       login,
       loginWithSocial,
       logout,
