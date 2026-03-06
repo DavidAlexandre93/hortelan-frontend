@@ -54,6 +54,11 @@ const defaultState = {
       { service: 'Motor de automações', uptime: 99.75, latencyMs: 246, status: 'degraded' },
       { service: 'Webhook Gateway', uptime: 99.9, latencyMs: 198, status: 'operational' },
     ],
+    apiMetrics: {
+      totalRequests: 0,
+      totalErrors: 0,
+      byEndpoint: {},
+    },
   },
   featureFlags: {
     flags: [
@@ -91,23 +96,51 @@ const defaultState = {
   },
 };
 
+function cloneDefaultState() {
+  return JSON.parse(JSON.stringify(defaultState));
+}
+
 function readState() {
+  if (typeof window === 'undefined') {
+    return cloneDefaultState();
+  }
+
   const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) return defaultState;
+  if (!raw) return cloneDefaultState();
 
   try {
-    return { ...defaultState, ...JSON.parse(raw) };
+    return { ...cloneDefaultState(), ...JSON.parse(raw) };
   } catch (error) {
-    return defaultState;
+    return cloneDefaultState();
   }
 }
 
 function persist(nextState) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
 }
 
+function ensureObservabilityShape(state) {
+  if (!state.observability) {
+    state.observability = { ...defaultState.observability };
+  }
+
+  if (!state.observability.apiMetrics) {
+    state.observability.apiMetrics = {
+      totalRequests: 0,
+      totalErrors: 0,
+      byEndpoint: {},
+    };
+  }
+
+  return state;
+}
+
 export function getReliabilityState() {
-  return readState();
+  return ensureObservabilityShape(readState());
 }
 
 export function logUserAction(action, actor = 'usuário atual') {
@@ -138,20 +171,71 @@ export function updateFeatureFlag(key, patch) {
   return state;
 }
 
-export function registerJsTelemetry(message, page = window.location.pathname) {
+export function registerJsTelemetry(message, page) {
   const state = readState();
-  state.observability.jsErrors.unshift({ id: `js-${Date.now()}`, message, page, timestamp: new Date().toISOString() });
+  const resolvedPage = page || (typeof window !== 'undefined' ? window.location.pathname : 'unknown');
+  state.observability.jsErrors.unshift({ id: `js-${Date.now()}`, message, page: resolvedPage, timestamp: new Date().toISOString() });
   state.observability.jsErrors = state.observability.jsErrors.slice(0, 30);
   persist(state);
 }
 
 export function registerFrontendUsage(actionCount = 1) {
-  const state = readState();
+  const state = ensureObservabilityShape(readState());
   state.observability.frontendUsage.actionsPerSession += actionCount;
   persist(state);
 }
 
+export function registerApiMetric(path, durationMs, status, ok) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const state = ensureObservabilityShape(readState());
+  const key = path || 'unknown';
+  const endpoint = state.observability.apiMetrics.byEndpoint[key] || {
+    requests: 0,
+    errors: 0,
+    latencyMs: { p50: durationMs, p95: durationMs, p99: durationMs },
+    lastStatus: status,
+    lastSeenAt: new Date().toISOString(),
+  };
+
+  endpoint.requests += 1;
+  if (!ok) {
+    endpoint.errors += 1;
+    state.observability.apiMetrics.totalErrors += 1;
+  }
+
+  endpoint.latencyMs.p50 = Math.round((endpoint.latencyMs.p50 + durationMs) / 2);
+  endpoint.latencyMs.p95 = Math.max(endpoint.latencyMs.p95, durationMs);
+  endpoint.latencyMs.p99 = Math.max(endpoint.latencyMs.p99, durationMs);
+  endpoint.lastStatus = status;
+  endpoint.lastSeenAt = new Date().toISOString();
+
+  state.observability.apiMetrics.totalRequests += 1;
+  state.observability.apiMetrics.byEndpoint[key] = endpoint;
+
+  const endpointKeys = Object.keys(state.observability.apiMetrics.byEndpoint);
+  if (endpointKeys.length > 40) {
+    const sortedByLastSeen = endpointKeys.sort(
+      (a, b) =>
+        new Date(state.observability.apiMetrics.byEndpoint[b].lastSeenAt).getTime() -
+        new Date(state.observability.apiMetrics.byEndpoint[a].lastSeenAt).getTime()
+    );
+
+    state.observability.apiMetrics.byEndpoint = sortedByLastSeen
+      .slice(0, 40)
+      .reduce((acc, currentKey) => ({ ...acc, [currentKey]: state.observability.apiMetrics.byEndpoint[currentKey] }), {});
+  }
+
+  persist(state);
+}
+
 export function initReliabilityTelemetry() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
   window.addEventListener('error', (event) => {
     registerJsTelemetry(event.message || 'Erro JavaScript desconhecido');
   });

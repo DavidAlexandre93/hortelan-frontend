@@ -86,3 +86,10 @@ npm run serve:ssr     # desenvolvimento com SSR via Vite middleware
 npm run build:ssr     # build do cliente + bundle SSR
 NODE_ENV=production npm run serve:ssr
 ```
+
+
+## Performance baseline e hardening
+
+- Rodar baseline automatizado: `npm run perf:baseline`
+- Relatório de baseline: `docs/performance-baseline.json`
+- Plano de execução: `docs/performance-hardening-plan.md`
