@@ -38,11 +38,18 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 O frontend agora tenta autenticar usando os endpoints do backend via `VITE_API_BASE_URL`.
 
-Crie um arquivo `.env` com:
+Crie um arquivo `.env` com base em `.env.example`:
 
 ```bash
 VITE_API_BASE_URL=http://localhost:3001
+VITE_ENABLE_DEMO_AUTH=false
+VITE_SENTRY_DSN=
+VITE_SENTRY_TRACES_SAMPLE_RATE=0.2
+VITE_SENTRY_REPLAY_SESSION_SAMPLE_RATE=0.05
+VITE_SENTRY_REPLAY_ERROR_SAMPLE_RATE=1
 ```
+
+> `VITE_ENABLE_DEMO_AUTH=true` habilita fallback local de autenticação apenas para demonstração.
 
 Endpoints utilizados no frontend:
 

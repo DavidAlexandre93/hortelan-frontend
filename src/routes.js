@@ -1,29 +1,36 @@
+import { Suspense, lazy } from 'react';
 import { Navigate, useRoutes } from 'react-router-dom';
 // layouts
 import DashboardLayout from './layouts/dashboard';
 import LogoOnlyLayout from './layouts/LogoOnlyLayout';
-//
-import Blog from './pages/Blog';
-import User from './pages/User';
-import { LoginForm } from './sections/auth/login';
-import NotFound from './pages/Page404';
-import Products from './pages/Products';
-import DashboardApp from './pages/DashboardApp';
-import Hortelan360 from './pages/Hortelan360';
-import Onboarding from './pages/Onboarding';
-import StatusPage from './pages/StatusPage';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import Security from './pages/Security';
-import ProfileSettings from './pages/ProfileSettings';
-import AlertCenter from './pages/AlertCenter';
-import Reports from './pages/Reports';
-import Subscriptions from './pages/Subscriptions';
-import HelpCenter from './pages/HelpCenter';
-import IntegrationsOps from './pages/IntegrationsOps';
-import Integrations from './pages/Integrations';
 import RequireAuth from './components/auth/RequireAuth';
 import RedirectIfAuth from './components/auth/RedirectIfAuth';
+
+const Blog = lazy(() => import('./pages/Blog'));
+const User = lazy(() => import('./pages/User'));
+const NotFound = lazy(() => import('./pages/Page404'));
+const Products = lazy(() => import('./pages/Products'));
+const DashboardApp = lazy(() => import('./pages/DashboardApp'));
+const Hortelan360 = lazy(() => import('./pages/Hortelan360'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
+const StatusPage = lazy(() => import('./pages/StatusPage'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Security = lazy(() => import('./pages/Security'));
+const ProfileSettings = lazy(() => import('./pages/ProfileSettings'));
+const AlertCenter = lazy(() => import('./pages/AlertCenter'));
+const Reports = lazy(() => import('./pages/Reports'));
+const Subscriptions = lazy(() => import('./pages/Subscriptions'));
+const HelpCenter = lazy(() => import('./pages/HelpCenter'));
+const IntegrationsOps = lazy(() => import('./pages/IntegrationsOps'));
+const Integrations = lazy(() => import('./pages/Integrations'));
+const LoginForm = lazy(() => import('./sections/auth/login').then((module) => ({ default: module.LoginForm })));
+
+const renderLazy = (Component) => (
+  <Suspense fallback={null}>
+    <Component />
+  </Suspense>
+);
 
 // ----------------------------------------------------------------------
 
@@ -38,28 +45,28 @@ export default function Router() {
       ),
       children: [
         { index: true, element: <Navigate to="app" replace /> },
-        { path: 'app', element: <DashboardApp /> },
-        { path: 'user', element: <User /> },
-        { path: 'products', element: <Products /> },
-        { path: 'blog', element: <Blog /> },
-        { path: 'hortelan-360', element: <Hortelan360 /> },
-        { path: 'onboarding', element: <Onboarding /> },
-        { path: 'status', element: <StatusPage /> },
-        { path: 'security', element: <Security /> },
-        { path: 'profile', element: <ProfileSettings /> },
-        { path: 'alertas', element: <AlertCenter /> },
-        { path: 'relatorios', element: <Reports /> },
-        { path: 'assinaturas', element: <Subscriptions /> },
-        { path: 'integracoes', element: <Integrations /> },
-        { path: 'suporte', element: <HelpCenter /> },
-        { path: 'integracoes/ops', element: <IntegrationsOps /> },
+        { path: 'app', element: renderLazy(DashboardApp) },
+        { path: 'user', element: renderLazy(User) },
+        { path: 'products', element: renderLazy(Products) },
+        { path: 'blog', element: renderLazy(Blog) },
+        { path: 'hortelan-360', element: renderLazy(Hortelan360) },
+        { path: 'onboarding', element: renderLazy(Onboarding) },
+        { path: 'status', element: renderLazy(StatusPage) },
+        { path: 'security', element: renderLazy(Security) },
+        { path: 'profile', element: renderLazy(ProfileSettings) },
+        { path: 'alertas', element: renderLazy(AlertCenter) },
+        { path: 'relatorios', element: renderLazy(Reports) },
+        { path: 'assinaturas', element: renderLazy(Subscriptions) },
+        { path: 'integracoes', element: renderLazy(Integrations) },
+        { path: 'suporte', element: renderLazy(HelpCenter) },
+        { path: 'integracoes/ops', element: renderLazy(IntegrationsOps) },
       ],
     },
     {
       path: 'login',
       element: (
         <RedirectIfAuth>
-          <LoginForm />
+          {renderLazy(LoginForm)}
         </RedirectIfAuth>
       ),
     },
@@ -67,24 +74,24 @@ export default function Router() {
       path: 'register',
       element: (
         <RedirectIfAuth>
-          <LoginForm />
+          {renderLazy(LoginForm)}
         </RedirectIfAuth>
       ),
     },
     {
       path: 'forgot-password',
-      element: <ForgotPassword />,
+      element: renderLazy(ForgotPassword),
     },
     {
       path: 'reset-password',
-      element: <ResetPassword />,
+      element: renderLazy(ResetPassword),
     },
     {
       path: '/',
       element: <LogoOnlyLayout />,
       children: [
         { path: '/', element: <Navigate to="/login" /> },
-        { path: '404', element: <NotFound /> },
+        { path: '404', element: renderLazy(NotFound) },
         { path: '*', element: <Navigate to="/404" /> },
       ],
     },

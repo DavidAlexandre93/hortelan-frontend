@@ -20,5 +20,16 @@ export default defineConfig({
   },
   build: {
     outDir: 'build',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          mui: ['@mui/material', '@mui/lab', '@emotion/react', '@emotion/styled'],
+          charts: ['apexcharts', 'react-apexcharts'],
+          motion: ['framer-motion', 'pixi.js', '@pixi/particle-emitter'],
+          sentry: ['@sentry/react'],
+        },
+      },
+    },
   },
 });

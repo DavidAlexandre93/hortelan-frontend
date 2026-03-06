@@ -81,18 +81,22 @@ function isProduction() {
 startApp();
 initReliabilityTelemetry();
 
-Sentry.init({
-  dsn: 'https://f7d0115af398cb54893ae4664e744519@o4506036623114240.ingest.sentry.io/4506036634976256',
-  integrations: [
-    new Sentry.BrowserTracing({
-      tracePropagationTargets: ['localhost', /^https:\/\/yourserver\.io\/api/],
-    }),
-    new Sentry.Replay(),
-  ],
-  tracesSampleRate: 1.0,
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
-});
+const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
+
+if (sentryDsn) {
+  Sentry.init({
+    dsn: sentryDsn,
+    integrations: [
+      new Sentry.BrowserTracing({
+        tracePropagationTargets: ['localhost', /^https:\/\/yourserver\.io\/api/],
+      }),
+      new Sentry.Replay(),
+    ],
+    tracesSampleRate: Number(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE || 0.2),
+    replaysSessionSampleRate: Number(import.meta.env.VITE_SENTRY_REPLAY_SESSION_SAMPLE_RATE || 0.05),
+    replaysOnErrorSampleRate: Number(import.meta.env.VITE_SENTRY_REPLAY_ERROR_SAMPLE_RATE || 1.0),
+  });
+}
 
 const appTree = (
   <HelmetProvider>
