@@ -1,17 +1,10 @@
 name: CD - Deploy GitHub Pages
 
 on:
-  push:
+  workflow_run:
+    workflows: ['CI - Plataforma de Qualidade e Segurança']
+    types: [completed]
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'vite.config.js'
-      - 'index.html'
-      - 'jsconfig.json'
-      - '.github/workflows/cd.yml'
   workflow_dispatch:
 
 permissions:
@@ -20,11 +13,12 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -42,7 +36,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Instalar dependências
-        run: npm ci
+        run: npm install --no-audit
 
       - name: Build
         run: npm run build

@@ -26,7 +26,7 @@ jobs:
           cache: npm
 
       - name: Instalar dependências
-        run: npm ci
+        run: npm install --no-audit
 
       - name: OSV-Scanner
         uses: google/osv-scanner-action@v1
