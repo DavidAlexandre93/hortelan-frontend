@@ -41,7 +41,7 @@
     "@alwaysmeticulous/recorder-loader": "^2.79.0",
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
-    "@faker-js/faker": "^7.3.0",
+    "@faker-js/faker": "^10.3.0",
     "@hookform/resolvers": "^2.9.3",
     "@iconify/react": "^3.2.2",
     "@mui/icons-material": "^5.14.13",
