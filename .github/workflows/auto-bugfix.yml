@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout branch principal (read-only)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: refs/heads/main
           persist-credentials: false
@@ -67,7 +67,7 @@ jobs:
 
     steps:
       - name: Checkout branch principal
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: refs/heads/main
           persist-credentials: false
