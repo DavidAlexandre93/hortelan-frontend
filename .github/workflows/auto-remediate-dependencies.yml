@@ -14,6 +14,7 @@ concurrency:
 
 jobs:
   prepare-remediation:
+    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
     name: Preparar remediação automática
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -21,9 +22,10 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout (read-only)
+      - name: Checkout branch principal (read-only)
         uses: actions/checkout@v4
         with:
+          ref: refs/heads/main
           persist-credentials: false
 
       - name: Setup Node.js
@@ -64,6 +66,7 @@ jobs:
           path: /tmp/auto-remediate.patch
 
   create-pr:
+    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
     name: Criar PR de remediação
     needs: prepare-remediation
     runs-on: ubuntu-latest
@@ -72,8 +75,10 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout
+      - name: Checkout branch principal
         uses: actions/checkout@v4
+        with:
+          ref: refs/heads/main
 
       - name: Baixar patch
         uses: actions/download-artifact@v4
