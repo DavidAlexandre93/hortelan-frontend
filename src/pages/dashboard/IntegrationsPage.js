@@ -18,8 +18,8 @@ import ScienceRoundedIcon from '@mui/icons-material/ScienceRounded';
 import LocalShippingRoundedIcon from '@mui/icons-material/LocalShippingRounded';
 import MarkEmailReadRoundedIcon from '@mui/icons-material/MarkEmailReadRounded';
 import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded';
-import Page from '../components/Page';
-import useAuth from '../auth/useAuth';
+import Page from '../../components/Page';
+import useAuth from '../../auth/useAuth';
 
 const INTEGRATION_SECTIONS = [
   {

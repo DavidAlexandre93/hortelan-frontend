@@ -24,7 +24,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import Page from '../components/Page';
+import Page from '../../components/Page';
 
 const accountStatusColor = {
   ativa: 'success',

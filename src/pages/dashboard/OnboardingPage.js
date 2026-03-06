@@ -31,7 +31,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import Page from '../components/Page';
+import Page from '../../components/Page';
 
 const steps = ['Perfil', 'Primeira horta', 'Ambiente', 'IoT e ativação'];
 const structureTypes = ['Vaso', 'Canteiro', 'Módulo', 'Torre', 'Reservatório'];

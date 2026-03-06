@@ -18,11 +18,11 @@ import {
   Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { motion } from '../lib/motionReact';
-import useGSAP from '../hooks/useGSAP';
-import Page from '../components/Page';
-import { gamificationBlueprint, hortelanModules, releaseRoadmap, wowFeatures } from '../data/hortelanBlueprint';
-import GSAPTypingText from '../components/GSAPTypingText';
+import { motion } from '../../lib/motionReact';
+import useGSAP from '../../hooks/useGSAP';
+import Page from '../../components/Page';
+import { gamificationBlueprint, hortelanModules, releaseRoadmap, wowFeatures } from '../../data/hortelanBlueprint';
+import GSAPTypingText from '../../components/GSAPTypingText';
 
 const MotionCard = motion(Card);
 const MotionAccordion = motion(Accordion);

@@ -18,9 +18,9 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import Iconify from '../components/Iconify';
-import Page from '../components/Page';
-import useAuth from '../auth/useAuth';
+import Iconify from '../../components/Iconify';
+import Page from '../../components/Page';
+import useAuth from '../../auth/useAuth';
 
 const CULTIVATION_LEVEL_OPTIONS = [
   { value: 'iniciante', label: 'Iniciante' },

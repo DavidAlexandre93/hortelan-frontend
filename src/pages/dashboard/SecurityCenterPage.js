@@ -24,9 +24,9 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Page from '../components/Page';
-import useAuth from '../auth/useAuth';
-import { getPasswordChangeHistory } from '../auth/session';
+import Page from '../../components/Page';
+import useAuth from '../../auth/useAuth';
+import { getPasswordChangeHistory } from '../../auth/session';
 
 const METHOD_LABELS = {
   seed: 'Inicialização do sistema',

@@ -33,7 +33,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import Page from '../components/Page';
+import Page from '../../components/Page';
 
 const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short',

@@ -27,12 +27,12 @@ import ShoppingCartCheckoutIcon from '@mui/icons-material/ShoppingCartCheckout';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PaidIcon from '@mui/icons-material/Paid';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
-import Page from '../components/Page';
-import HortelanPromoBanner from '../components/HortelanPromoBanner';
-import useGSAP from '../hooks/useGSAP';
-import productCatalog, { categories } from '../data/productCatalog';
-import { motion, useScroll, useTransform } from '../lib/motionReact';
-import GSAPTypingText from '../components/GSAPTypingText';
+import Page from '../../components/Page';
+import HortelanPromoBanner from '../../components/HortelanPromoBanner';
+import useGSAP from '../../hooks/useGSAP';
+import productCatalog, { categories } from '../../data/productCatalog';
+import { motion, useScroll, useTransform } from '../../lib/motionReact';
+import GSAPTypingText from '../../components/GSAPTypingText';
 
 const sortMap = {
   preco: (a, b) => a.preco - b.preco,

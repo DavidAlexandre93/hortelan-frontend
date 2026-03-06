@@ -28,7 +28,7 @@ import {
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
-import Page from '../components/Page';
+import Page from '../../components/Page';
 
 const alertTypes = [
   'Sensor offline',
