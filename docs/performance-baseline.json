@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-03-06T03:06:24.413Z",
+  "targetSLO": {
+    "frontendRouteP95Ms": 1500,
+    "frontendRouteP99Ms": 2500,
+    "apiErrorRatePercent": 1,
+    "buildTimeSeconds": 60
+  },
+  "checks": {
+    "build": {
+      "exitCode": 0,
+      "durationMs": 26714,
+      "durationSeconds": 26.71
+    },
+    "frontendAudit": {
+      "exitCode": 0,
+      "durationMs": 670,
+      "durationSeconds": 0.67
+    }
+  },
+  "distSummary": {
+    "bundleCount": 36,
+    "totalSizeKb": 4607.85,
+    "topBundles": [
+      {
+        "file": "build/assets/index-BaKy9Qds.js",
+        "sizeKb": 2992.25
+      },
+      {
+        "file": "build/assets/charts-mRm2UTag.js",
+        "sizeKb": 528.7
+      },
+      {
+        "file": "build/assets/mui-B3NNhHv8.js",
+        "sizeKb": 363.68
+      },
+      {
+        "file": "build/assets/react-CcW4e7yl.js",
+        "sizeKb": 160.28
+      },
+      {
+        "file": "build/assets/MonitoringPage-Ccl4OWP2.js",
+        "sizeKb": 159.36
+      },
+      {
+        "file": "build/assets/motion-Bbkfe1uD.js",
+        "sizeKb": 115.86
+      },
+      {
+        "file": "build/assets/FormProvider-CnfXjjEA.js",
+        "sizeKb": 45.04
+      },
+      {
+        "file": "build/assets/identity-BrVR6TWu.js",
+        "sizeKb": 35.55
+      },
+      {
+        "file": "build/assets/SpeciesCatalogPage-qHF91-b1.js",
+        "sizeKb": 21.47
+      },
+      {
+        "file": "build/assets/ProfileSettingsPage-D5VY27YF.js",
+        "sizeKb": 19.65
+      }
+    ]
+  }
+}
