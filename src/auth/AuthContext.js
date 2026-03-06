@@ -27,6 +27,8 @@ import {
 } from './session';
 import { loginWithBackend, socialLoginWithBackend } from '../services/authApi';
 
+const ENABLE_DEMO_AUTH = import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true';
+
 export const AuthContext = createContext(null);
 
 
@@ -99,6 +101,10 @@ export function AuthProvider({ children }) {
         twoFactorCode,
       });
     } catch (error) {
+      if (!ENABLE_DEMO_AUTH) {
+        return { error: 'Serviço de autenticação indisponível. Tente novamente em instantes.' };
+      }
+
       result = loginWithEmailAndPassword({
         email,
         password,
@@ -164,6 +170,10 @@ export function AuthProvider({ children }) {
     try {
       result = await socialLoginWithBackend({ provider, remember, trustDevice, deviceName });
     } catch (error) {
+      if (!ENABLE_DEMO_AUTH) {
+        return { error: 'Serviço de autenticação social indisponível. Tente novamente em instantes.' };
+      }
+
       result = loginWithSocialProvider({ provider, remember, trustDevice, deviceName });
     }
 

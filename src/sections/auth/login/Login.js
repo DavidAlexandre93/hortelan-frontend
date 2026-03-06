@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
-import { useMemo, useState } from 'react';
-import { Link as RouterLink, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link as RouterLink, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 // form
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -21,6 +21,8 @@ import { DEFAULT_AUTH_REDIRECT } from '../../../utils/authRedirect';
 import AuthSocial from '../AuthSocial';
 import { RegisterForm } from '../register';
 
+
+const ENABLE_DEMO_AUTH = import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true';
 const RootStyle = styled('div')(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
     display: 'flex',
@@ -282,11 +284,9 @@ export default function LoginForm() {
   const smUp = useResponsive('up', 'sm');
   const mdUp = useResponsive('up', 'md');
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
 
-  const isRegisterMode = useMemo(
-    () => location.pathname === '/register' || searchParams.get('mode') === 'register',
-    [location.pathname, searchParams]
-  );
+  const isRegisterMode = location.pathname === '/register' || searchParams.get('mode') === 'register';
 
   if (location.pathname !== '/login' && location.pathname !== '/register') {
     return <Navigate to="/login" replace />;
@@ -350,7 +350,7 @@ export default function LoginForm() {
                 ? 'Preencha seus dados e confirme seu e-mail para acessar a plataforma.'
                 : 'Use seu e-mail e senha para continuar.'}
             </Typography>
-            {!isRegisterMode && (
+            {!isRegisterMode && ENABLE_DEMO_AUTH && (
               <Typography sx={{ color: 'text.secondary', mb: 5 }}>
                 Acesso de demonstração: <strong>davidfernandes@hortelanagtech.com</strong> / <strong>admin</strong>.
               </Typography>
