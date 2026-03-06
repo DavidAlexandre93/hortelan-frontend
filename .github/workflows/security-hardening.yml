@@ -1,0 +1,54 @@
+name: Segurança - Hardening Contínuo
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  vulnerability-scans:
+    name: Vulnerability scans (OSV + Trivy + Gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: OSV-Scanner
+        uses: google/osv-scanner-action@v1
+        with:
+          scan-args: --lockfile=package-lock.json --recursive ./
+
+      - name: Trivy filesystem scan (HIGH/CRITICAL)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+          format: sarif
+          output: trivy-results.sarif
+
+      - name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+      - name: Gitleaks scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,116 @@
+name: Auto Remediation - Bugs de Qualidade
+
+on:
+  schedule:
+    - cron: "40 */6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: auto-bugfix-main
+  cancel-in-progress: true
+
+jobs:
+  prepare-fix:
+    name: Preparar correções automáticas
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout branch principal (read-only)
+        uses: actions/checkout@v4
+        with:
+          ref: refs/heads/main
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Auto-fix de lint e lockfile
+        run: |
+          npm run lint:fix || true
+          npm install --package-lock-only
+
+      - name: Validação pós-correção
+        run: |
+          npm run lint
+          npm test
+          npm run build
+
+      - name: Gerar patch das alterações
+        run: |
+          git add -A
+          git diff --cached > /tmp/auto-bugfix.patch
+
+      - name: Publicar patch
+        uses: actions/upload-artifact@v4
+        with:
+          name: auto-bugfix-patch
+          path: /tmp/auto-bugfix.patch
+
+  create-pr:
+    name: Criar PR automático
+    needs: prepare-fix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout branch principal
+        uses: actions/checkout@v4
+        with:
+          ref: refs/heads/main
+          persist-credentials: false
+
+      - name: Baixar patch
+        uses: actions/download-artifact@v4
+        with:
+          name: auto-bugfix-patch
+          path: /tmp
+
+      - name: Aplicar patch
+        run: |
+          if [ ! -s /tmp/auto-bugfix.patch ]; then
+            echo "Patch vazio. Nada para aplicar.";
+            exit 0;
+          fi
+          git apply /tmp/auto-bugfix.patch
+
+      - name: Criar PR automático para bug detectado
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "fix(ci): auto-correção de bug detectado no pipeline"
+          title: "fix(ci): auto-correção para falha detectada no CI"
+          body: |
+            ## 🤖 Correção automática de bug detectado no CI
+
+            Este PR foi criado automaticamente por execução agendada/manual para corrigir problemas recorrentes de qualidade.
+
+            ### Ações realizadas
+            - `npm run lint:fix`
+            - Regeneração de lockfile
+            - Reexecução de validações críticas
+
+            ### Validações executadas
+            - `npm run lint`
+            - `npm test`
+            - `npm run build`
+
+            > Revise os ajustes antes do merge para garantir aderência à regra de negócio.
+          labels: |
+            bug
+            ci
+            automated-pr
+          branch: automation/ci-bugfix
+          delete-branch: true
