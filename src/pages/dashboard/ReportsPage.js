@@ -22,7 +22,7 @@ import {
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import TimelineRoundedIcon from '@mui/icons-material/TimelineRounded';
-import Page from '../components/Page';
+import Page from '../../components/Page';
 
 const operationalRows = [
   {

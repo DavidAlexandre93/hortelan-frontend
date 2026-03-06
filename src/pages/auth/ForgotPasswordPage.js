@@ -5,10 +5,10 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 import { Alert, Card, Container, Link, Stack, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-import Page from '../components/Page';
-import { FormProvider, RHFTextField } from '../components/hook-form';
-import { requestPasswordReset } from '../auth/session';
-import { requestResetWithBackend } from '../services/authApi';
+import Page from '../../components/Page';
+import { FormProvider, RHFTextField } from '../../components/hook-form';
+import { requestPasswordReset } from '../../auth/session';
+import { requestResetWithBackend } from '../../services/authApi';
 
 export default function ForgotPassword() {
   const [response, setResponse] = useState(null);

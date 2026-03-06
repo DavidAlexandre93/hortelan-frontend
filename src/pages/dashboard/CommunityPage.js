@@ -22,8 +22,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import Page from '../components/Page';
-import Iconify from '../components/Iconify';
+import Page from '../../components/Page';
+import Iconify from '../../components/Iconify';
 
 const interestFeeds = [
   'Feed geral',

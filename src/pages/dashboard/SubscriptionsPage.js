@@ -20,8 +20,8 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import Page from '../components/Page';
-import useAuth from '../auth/useAuth';
+import Page from '../../components/Page';
+import useAuth from '../../auth/useAuth';
 
 const PLAN_CATALOG = {
   free: {

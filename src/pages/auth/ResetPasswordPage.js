@@ -5,11 +5,11 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 import { Alert, Card, Container, Link, Stack, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-import Page from '../components/Page';
-import { FormProvider, RHFTextField } from '../components/hook-form';
-import { resetPasswordWithToken, validatePasswordResetToken } from '../auth/session';
-import { resetPasswordWithBackend, validateResetTokenWithBackend } from '../services/authApi';
-import { evaluatePasswordPolicy } from '../auth/securityPolicy';
+import Page from '../../components/Page';
+import { FormProvider, RHFTextField } from '../../components/hook-form';
+import { resetPasswordWithToken, validatePasswordResetToken } from '../../auth/session';
+import { resetPasswordWithBackend, validateResetTokenWithBackend } from '../../services/authApi';
+import { evaluatePasswordPolicy } from '../../auth/securityPolicy';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();

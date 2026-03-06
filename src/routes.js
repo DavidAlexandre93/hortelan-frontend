@@ -6,24 +6,24 @@ import LogoOnlyLayout from './layouts/LogoOnlyLayout';
 import RequireAuth from './components/auth/RequireAuth';
 import RedirectIfAuth from './components/auth/RedirectIfAuth';
 
-const Blog = lazy(() => import('./pages/Blog'));
-const User = lazy(() => import('./pages/User'));
-const NotFound = lazy(() => import('./pages/Page404'));
-const Products = lazy(() => import('./pages/Products'));
-const DashboardApp = lazy(() => import('./pages/DashboardApp'));
-const Hortelan360 = lazy(() => import('./pages/Hortelan360'));
-const Onboarding = lazy(() => import('./pages/Onboarding'));
-const StatusPage = lazy(() => import('./pages/StatusPage'));
-const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
-const ResetPassword = lazy(() => import('./pages/ResetPassword'));
-const Security = lazy(() => import('./pages/Security'));
-const ProfileSettings = lazy(() => import('./pages/ProfileSettings'));
-const AlertCenter = lazy(() => import('./pages/AlertCenter'));
-const Reports = lazy(() => import('./pages/Reports'));
-const Subscriptions = lazy(() => import('./pages/Subscriptions'));
+const CommunityPage = lazy(() => import('./pages/dashboard/CommunityPage'));
+const AdminPanelPage = lazy(() => import('./pages/dashboard/AdminPanelPage'));
+const NotFoundPage = lazy(() => import('./pages/errors/NotFoundPage'));
+const SpeciesCatalogPage = lazy(() => import('./pages/dashboard/SpeciesCatalogPage'));
+const MonitoringPage = lazy(() => import('./pages/dashboard/MonitoringPage'));
+const Hortelan360Page = lazy(() => import('./pages/dashboard/Hortelan360Page'));
+const OnboardingPage = lazy(() => import('./pages/dashboard/OnboardingPage'));
+const PlatformStatusPage = lazy(() => import('./pages/dashboard/PlatformStatusPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
+const SecurityCenterPage = lazy(() => import('./pages/dashboard/SecurityCenterPage'));
+const ProfileSettingsPage = lazy(() => import('./pages/dashboard/ProfileSettingsPage'));
+const AlertCenterPage = lazy(() => import('./pages/dashboard/AlertCenterPage'));
+const ReportsPage = lazy(() => import('./pages/dashboard/ReportsPage'));
+const SubscriptionsPage = lazy(() => import('./pages/dashboard/SubscriptionsPage'));
 const HelpCenter = lazy(() => import('./pages/HelpCenter'));
-const IntegrationsOps = lazy(() => import('./pages/IntegrationsOps'));
-const Integrations = lazy(() => import('./pages/Integrations'));
+const IntegrationsOperationsPage = lazy(() => import('./pages/dashboard/IntegrationsOperationsPage'));
+const IntegrationsPage = lazy(() => import('./pages/dashboard/IntegrationsPage'));
 const LoginForm = lazy(() => import('./sections/auth/login').then((module) => ({ default: module.LoginForm })));
 
 const renderLazy = (Component) => (
@@ -45,21 +45,21 @@ export default function Router() {
       ),
       children: [
         { index: true, element: <Navigate to="app" replace /> },
-        { path: 'app', element: renderLazy(DashboardApp) },
-        { path: 'user', element: renderLazy(User) },
-        { path: 'products', element: renderLazy(Products) },
-        { path: 'blog', element: renderLazy(Blog) },
-        { path: 'hortelan-360', element: renderLazy(Hortelan360) },
-        { path: 'onboarding', element: renderLazy(Onboarding) },
-        { path: 'status', element: renderLazy(StatusPage) },
-        { path: 'security', element: renderLazy(Security) },
-        { path: 'profile', element: renderLazy(ProfileSettings) },
-        { path: 'alertas', element: renderLazy(AlertCenter) },
-        { path: 'relatorios', element: renderLazy(Reports) },
-        { path: 'assinaturas', element: renderLazy(Subscriptions) },
-        { path: 'integracoes', element: renderLazy(Integrations) },
+        { path: 'app', element: renderLazy(MonitoringPage) },
+        { path: 'user', element: renderLazy(AdminPanelPage) },
+        { path: 'products', element: renderLazy(SpeciesCatalogPage) },
+        { path: 'blog', element: renderLazy(CommunityPage) },
+        { path: 'hortelan-360', element: renderLazy(Hortelan360Page) },
+        { path: 'onboarding', element: renderLazy(OnboardingPage) },
+        { path: 'status', element: renderLazy(PlatformStatusPage) },
+        { path: 'security', element: renderLazy(SecurityCenterPage) },
+        { path: 'profile', element: renderLazy(ProfileSettingsPage) },
+        { path: 'alertas', element: renderLazy(AlertCenterPage) },
+        { path: 'relatorios', element: renderLazy(ReportsPage) },
+        { path: 'assinaturas', element: renderLazy(SubscriptionsPage) },
+        { path: 'integracoes', element: renderLazy(IntegrationsPage) },
         { path: 'suporte', element: renderLazy(HelpCenter) },
-        { path: 'integracoes/ops', element: renderLazy(IntegrationsOps) },
+        { path: 'integracoes/ops', element: renderLazy(IntegrationsOperationsPage) },
       ],
     },
     {
@@ -80,18 +80,18 @@ export default function Router() {
     },
     {
       path: 'forgot-password',
-      element: renderLazy(ForgotPassword),
+      element: renderLazy(ForgotPasswordPage),
     },
     {
       path: 'reset-password',
-      element: renderLazy(ResetPassword),
+      element: renderLazy(ResetPasswordPage),
     },
     {
       path: '/',
       element: <LogoOnlyLayout />,
       children: [
         { path: '/', element: <Navigate to="/login" /> },
-        { path: '404', element: renderLazy(NotFound) },
+        { path: '404', element: renderLazy(NotFoundPage) },
         { path: '*', element: <Navigate to="/404" /> },
       ],
     },

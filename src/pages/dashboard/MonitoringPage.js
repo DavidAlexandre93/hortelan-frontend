@@ -31,10 +31,10 @@ import {
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 // components
-import Page from '../components/Page';
-import Iconify from '../components/Iconify';
-import BlockchainPanel from '../components/BlockchainPanel';
-import HortelanPromoBanner from '../components/HortelanPromoBanner';
+import Page from '../../components/Page';
+import Iconify from '../../components/Iconify';
+import BlockchainPanel from '../../components/BlockchainPanel';
+import HortelanPromoBanner from '../../components/HortelanPromoBanner';
 // sections
 import {
   AppTasks,
@@ -47,7 +47,7 @@ import {
   AppCurrentSubject,
   AppConversionRates,
   AppSensorAnalytics,
-} from '../sections/@dashboard/app';
+} from '../../sections/@dashboard/app';
 
 // ----------------------------------------------------------------------
 

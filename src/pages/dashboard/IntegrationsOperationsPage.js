@@ -18,7 +18,7 @@ import {
   Typography,
   Button,
 } from '@mui/material';
-import Page from '../components/Page';
+import Page from '../../components/Page';
 import {
   getReliabilityState,
   logAutomationRun,
@@ -26,7 +26,7 @@ import {
   logUserAction,
   registerFrontendUsage,
   updateFeatureFlag,
-} from '../services/platformReliability';
+} from '../../services/platformReliability';
 
 const formatDate = (iso) => new Date(iso).toLocaleString('pt-BR');
 
