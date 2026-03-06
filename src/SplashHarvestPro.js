@@ -53,7 +53,7 @@ export default function SplashHarvestPro({ onFinish }) {
 
   useEffect(() => {
     const controls = animate(p, 1, {
-      duration: 24,
+      duration: 8,
       ease: "linear",
       onComplete: () => {
         setDone(true);
@@ -65,7 +65,7 @@ export default function SplashHarvestPro({ onFinish }) {
 
   // “soja procedural” full-screen (mais densa)
   const plants = useMemo(() => {
-    const count = 2600;
+    const count = 1400;
     const arr = [];
     for (let i = 0; i < count; i++) {
       const x = Math.random() * 100;

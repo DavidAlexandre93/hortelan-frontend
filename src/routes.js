@@ -27,7 +27,7 @@ const IntegrationsPage = lazy(() => import('./pages/dashboard/IntegrationsPage')
 const LoginForm = lazy(() => import('./sections/auth/login').then((module) => ({ default: module.LoginForm })));
 
 const renderLazy = (Component) => (
-  <Suspense fallback={null}>
+  <Suspense fallback={<div style={{ minHeight: "100vh", background: "#F7FAFC" }} />}>
     <Component />
   </Suspense>
 );
