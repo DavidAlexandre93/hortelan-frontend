@@ -21,19 +21,33 @@ class SplashErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
-      return (
-        <div style={{ minHeight: '100vh', background: '#0b1220', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>
-          Carregando plataforma Hortelan...
-        </div>
-      );
+      return null;
     }
 
     return this.props.children;
   }
 }
 
+function SplashFallback() {
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#0b1220',
+        color: '#fff',
+        display: 'grid',
+        placeItems: 'center',
+        fontWeight: 700,
+      }}
+    >
+      Carregando plataforma Hortelan...
+    </div>
+  );
+}
+
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const [showFallbackSplash, setShowFallbackSplash] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -55,11 +69,26 @@ export default function App() {
     }
   }, [location.pathname, navigate]);
 
-  return showSplash ? (
-    <SplashErrorBoundary onError={() => setShowSplash(false)}>
+  const handleSplashError = useCallback(() => {
+    setShowFallbackSplash(true);
+
+    // Mantém uma splash mínima visível antes de carregar o Router.
+    window.setTimeout(() => {
+      setShowSplash(false);
+    }, 1800);
+  }, []);
+
+  if (!showSplash) {
+    return <Router />;
+  }
+
+  if (showFallbackSplash) {
+    return <SplashFallback />;
+  }
+
+  return (
+    <SplashErrorBoundary onError={handleSplashError}>
       <SplashHarvestPro onFinish={handleSplashFinish} />
     </SplashErrorBoundary>
-  ) : (
-    <Router />
   );
 }
