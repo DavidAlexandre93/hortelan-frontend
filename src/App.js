@@ -3,28 +3,17 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import SplashHarvestPro from "./SplashHarvestPro";
 import Router from "./routes";
 
-const SPLASH_SEEN_STORAGE_KEY = 'hortelan:splash-seen';
-
-function shouldShowSplash() {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-
-  return window.sessionStorage.getItem(SPLASH_SEEN_STORAGE_KEY) !== '1';
-}
-
 export default function App() {
-  const [showSplash, setShowSplash] = useState(() => shouldShowSplash());
+  const [showSplash, setShowSplash] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleSplashFinish = () => {
-    window.sessionStorage.setItem(SPLASH_SEEN_STORAGE_KEY, '1');
     setShowSplash(false);
 
     // Garante a splash como primeira tela em qualquer rota de entrada.
-    // Faz o redirecionamento para login apenas quando o usuário abre a raiz.
-    if (location.pathname === '/') {
+    // Se a aplicação chegar na raiz ou na página 404, redireciona para login.
+    if (location.pathname === '/' || location.pathname === '/404') {
       navigate('/login', { replace: true, state: { forceLogin: true } });
     }
   };
