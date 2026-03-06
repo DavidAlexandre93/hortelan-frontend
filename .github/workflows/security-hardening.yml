@@ -34,7 +34,7 @@ jobs:
           scan-args: --lockfile=package-lock.json --recursive ./
 
       - name: Trivy filesystem scan (HIGH/CRITICAL)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@0.34.2
         with:
           scan-type: fs
           scan-ref: .
