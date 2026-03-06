@@ -1,0 +1,78 @@
+name: Auto Remediation - Bugs de Qualidade
+
+on:
+  workflow_run:
+    workflows:
+      - CI - Plataforma de Qualidade e Segurança
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: auto-bugfix-${{ github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  auto-fix:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout branch com falha
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Auto-fix de lint e lockfile
+        run: |
+          npm run lint:fix || true
+          npm install --package-lock-only
+
+      - name: Validação pós-correção
+        run: |
+          npm run lint
+          npm test
+          npm run build
+
+      - name: Criar PR automático para bug detectado
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'fix(ci): auto-correção de bug detectado no pipeline'
+          title: 'fix(ci): auto-correção para falha detectada no CI'
+          body: |
+            ## 🤖 Correção automática de bug detectado no CI
+
+            Este PR foi criado automaticamente após detecção de falha na pipeline principal.
+
+            ### Ações realizadas
+            - `npm run lint:fix`
+            - Regeneração de lockfile
+            - Reexecução de validações críticas
+
+            ### Validações executadas
+            - `npm run lint`
+            - `npm test`
+            - `npm run build`
+
+            > Revise os ajustes antes do merge para garantir aderência à regra de negócio.
+          labels: |
+            bug
+            ci
+            automated-pr
+          branch: automation/ci-bugfix
+          delete-branch: true

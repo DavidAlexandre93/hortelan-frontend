@@ -1,37 +1,25 @@
-name: CI - Qualidade
+name: CI - Plataforma de Qualidade e Segurança
 
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'vite.config.js'
-      - 'index.html'
-      - 'jsconfig.json'
-      - '.github/workflows/ci.yml'
   push:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'vite.config.js'
-      - 'index.html'
-      - 'jsconfig.json'
-      - '.github/workflows/ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  quality:
+  validate:
+    name: Validação Full Stack (lint, build, testes, auditorias)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
@@ -49,5 +37,65 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Testes
+        run: npm test
+
       - name: Build
         run: npm run build
+
+      - name: Auditoria de front-end
+        run: npm run audit:frontend
+
+      - name: NPM Audit (moderate+)
+        run: npm audit --audit-level=moderate
+
+  semgrep:
+    name: SAST com Semgrep
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Semgrep scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/default
+            p/secrets
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Inicializar CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Analisar
+        uses: github/codeql-action/analyze@v3
+
+  dependency-review:
+    name: Revisão de dependências
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate

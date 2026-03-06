@@ -3,27 +3,63 @@ updates:
   - package-ecosystem: npm
     directory: '/'
     schedule:
-      interval: weekly
-      day: monday
+      interval: daily
+      time: '07:30'
+      timezone: 'America/Sao_Paulo'
+    open-pull-requests-limit: 20
+    allow:
+      - dependency-type: direct
+      - dependency-type: indirect
+    labels:
+      - dependencies
+      - security
+      - npm
+    commit-message:
+      prefix: 'chore(deps)'
+      include: scope
+    groups:
+      react-ecosystem:
+        patterns:
+          - 'react*'
+          - '@testing-library/*'
+      mui-ecosystem:
+        patterns:
+          - '@mui/*'
+          - '@emotion/*'
+      tooling:
+        patterns:
+          - 'eslint*'
+          - 'prettier'
+          - 'vite'
+          - '@vitejs/*'
+
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: daily
       time: '08:00'
       timezone: 'America/Sao_Paulo'
     open-pull-requests-limit: 10
     labels:
       - dependencies
-      - npm
-    commit-message:
-      prefix: 'chore(deps)'
-
-  - package-ecosystem: github-actions
-    directory: '/'
-    schedule:
-      interval: weekly
-      day: monday
-      time: '08:30'
-      timezone: 'America/Sao_Paulo'
-    open-pull-requests-limit: 5
-    labels:
-      - dependencies
       - github-actions
+      - security
     commit-message:
       prefix: 'chore(ci)'
+      include: scope
+
+  - package-ecosystem: npm
+    directory: '/'
+    target-branch: main
+    schedule:
+      interval: daily
+      time: '09:00'
+      timezone: 'America/Sao_Paulo'
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - security
+      - security-patch
+    commit-message:
+      prefix: 'fix(security)'
+    applies-to: security-updates

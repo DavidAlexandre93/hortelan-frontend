@@ -1,0 +1,79 @@
+name: Auto Remediation - Dependências Vulneráveis
+
+on:
+  schedule:
+    - cron: '20 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: auto-remediate-deps
+  cancel-in-progress: true
+
+jobs:
+  remediate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Tentar correção automática de vulnerabilidades
+        run: |
+          npm audit fix || true
+          npm update || true
+          npm dedupe || true
+
+      - name: Reinstalar lockfile limpo
+        run: npm install --package-lock-only
+
+      - name: Validar qualidade após correção
+        run: |
+          npm run lint
+          npm test
+          npm run build
+          npm audit --audit-level=moderate
+
+      - name: Criar PR automático de remediação
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'fix(security): remediar dependências vulneráveis automaticamente'
+          title: 'fix(security): remediação automática de vulnerabilidades de dependências'
+          body: |
+            ## 🤖 Remediação automática de segurança
+
+            Este PR foi criado automaticamente para corrigir vulnerabilidades em dependências detectadas por auditorias contínuas.
+
+            ### Alterações aplicadas
+            - `npm audit fix`
+            - `npm update`
+            - `npm dedupe`
+            - Regeneração do `package-lock.json`
+
+            ### Validações executadas
+            - `npm run lint`
+            - `npm test`
+            - `npm run build`
+            - `npm audit --audit-level=moderate`
+
+            > Se este PR existir sem mudanças relevantes, ele pode ser fechado com segurança.
+          labels: |
+            dependencies
+            security
+            automated-pr
+          branch: automation/security-dependency-remediation
+          delete-branch: true
