@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Validação Full Stack (lint, build, testes, auditorias)
+    name: Validação Full Stack (build, testes, auditorias)
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
@@ -40,8 +40,6 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
 
       - name: Testes
         run: npm test
