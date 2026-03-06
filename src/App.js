@@ -1,7 +1,36 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { Component, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
 import SplashHarvestPro from "./SplashHarvestPro";
 import Router from "./routes";
+
+class SplashErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error) {
+    // eslint-disable-next-line no-console
+    console.error('Falha ao renderizar SplashHarvestPro.', error);
+    this.props.onError?.();
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ minHeight: '100vh', background: '#0b1220', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>
+          Carregando plataforma Hortelan...
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -27,7 +56,9 @@ export default function App() {
   }, [location.pathname, navigate]);
 
   return showSplash ? (
-    <SplashHarvestPro onFinish={handleSplashFinish} />
+    <SplashErrorBoundary onError={() => setShowSplash(false)}>
+      <SplashHarvestPro onFinish={handleSplashFinish} />
+    </SplashErrorBoundary>
   ) : (
     <Router />
   );
