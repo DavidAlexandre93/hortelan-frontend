@@ -45,7 +45,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@iconify/react": "^3.2.2",
     "@mui/icons-material": "^7.3.9",
-    "@mui/lab": "^6.0.0-dev.20240529-082515-213b5e33ab",
+    "@mui/lab": "^7.0.0-beta.17",
     "@mui/material": "^7.3.9",
     "@mui/styles": "^6.4.8",
     "@sentry/react": "^10.42.0",
