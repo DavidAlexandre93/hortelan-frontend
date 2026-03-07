@@ -72,14 +72,15 @@ export const styles = {
   // HUD
   hud: {
     position: "absolute",
-    left: 34,
-    top: 26,
+    left: "clamp(12px, 3.4vw, 34px)",
+    top: "clamp(12px, 2.6vh, 26px)",
     zIndex: 5,
+    width: "min(420px, calc(100vw - clamp(24px, 6.8vw, 68px)))",
     color: "#0F172A",
     fontFamily: "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
   },
-  loadingText: { fontSize: 18, fontWeight: 800, opacity: 0.92, textShadow: "0 1px 0 rgba(255,255,255,0.35)" },
-  progressOuter: { marginTop: 10, width: 420, height: 14, borderRadius: 999, background: "rgba(226,232,240,0.95)", overflow: "hidden", boxShadow: "0 10px 28px rgba(0,0,0,0.10)" },
+  loadingText: { fontSize: "clamp(15px, 1.8vw, 18px)", fontWeight: 800, opacity: 0.92, textShadow: "0 1px 0 rgba(255,255,255,0.35)" },
+  progressOuter: { marginTop: 10, width: "100%", maxWidth: 420, height: 14, borderRadius: 999, background: "rgba(226,232,240,0.95)", overflow: "hidden", boxShadow: "0 10px 28px rgba(0,0,0,0.10)" },
   progressInner: { height: "100%", width: "100%", borderRadius: 999, background: "linear-gradient(90deg, #3AA66A, #6FCF97)" },
 
   fade: { position: "absolute", inset: 0, background: "#FFFFFF", pointerEvents: "none" },

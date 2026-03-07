@@ -13,6 +13,7 @@ import { tryLoadAndStartRecorder } from '@alwaysmeticulous/recorder-loader';
 import { initReliabilityTelemetry } from './services/platformReliability';
 import { AuthProvider } from './auth/AuthContext';
 import GlobalErrorBoundary from './components/GlobalErrorBoundary';
+import ThemeProvider from './theme';
 
 // ----------------------------------------------------------------------
 
@@ -74,13 +75,15 @@ if (sentryDsn) {
 
 const appTree = (
   <HelmetProvider>
-    <AuthProvider>
-      <BrowserRouter>
-        <GlobalErrorBoundary>
-          <App />
-        </GlobalErrorBoundary>
-      </BrowserRouter>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <GlobalErrorBoundary>
+            <App />
+          </GlobalErrorBoundary>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   </HelmetProvider>
 );
 
