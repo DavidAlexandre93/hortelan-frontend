@@ -9,10 +9,11 @@ import * as Sentry from '@sentry/react';
 //
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-import { tryLoadAndStartRecorder } from '@alwaysmeticulous/recorder-loader';
 import { initReliabilityTelemetry } from './services/platformReliability';
 import { AuthProvider } from './auth/AuthContext';
 import GlobalErrorBoundary from './components/GlobalErrorBoundary';
+import ThemeProvider from './theme';
+import AutoTranslateBootstrap from './components/localization/AutoTranslateBootstrap';
 
 // ----------------------------------------------------------------------
 
@@ -40,7 +41,9 @@ window.addEventListener('unhandledrejection', () => {
 });
 
 async function startApp() {
-  if (!isProduction()) {
+  if (import.meta.env.DEV && !isProduction()) {
+    const { tryLoadAndStartRecorder } = await import('@alwaysmeticulous/recorder-loader');
+
     await tryLoadAndStartRecorder({
       projectId: '9RzrB10MByJLLtuC4PyNAlrQtV4yPeDdiOG0Wflo',
       isProduction: false,
@@ -61,10 +64,10 @@ if (sentryDsn) {
   Sentry.init({
     dsn: sentryDsn,
     integrations: [
-      new Sentry.BrowserTracing({
+      Sentry.browserTracingIntegration({
         tracePropagationTargets: ['localhost', /^https:\/\/yourserver\.io\/api/],
       }),
-      new Sentry.Replay(),
+      Sentry.replayIntegration(),
     ],
     tracesSampleRate: Number(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE || 0.2),
     replaysSessionSampleRate: Number(import.meta.env.VITE_SENTRY_REPLAY_SESSION_SAMPLE_RATE || 0.05),
@@ -74,13 +77,16 @@ if (sentryDsn) {
 
 const appTree = (
   <HelmetProvider>
-    <AuthProvider>
-      <BrowserRouter>
-        <GlobalErrorBoundary>
-          <App />
-        </GlobalErrorBoundary>
-      </BrowserRouter>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <AutoTranslateBootstrap />
+          <GlobalErrorBoundary>
+            <App />
+          </GlobalErrorBoundary>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   </HelmetProvider>
 );
 

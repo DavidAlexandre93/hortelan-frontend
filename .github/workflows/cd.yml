@@ -1,26 +1,30 @@
-name: CD - Deploy GitHub Pages
+name: CD - Multi-Environment Frontend Delivery
 
 on:
   workflow_run:
-    workflows: ['CI - Plataforma de Qualidade e Segurança']
+    workflows: ["CI - Frontend Quality, Security and Reliability"]
     types: [completed]
-    branches: [main]
+    branches: [main, develop]
   workflow_dispatch:
+    inputs:
+      promote_to_production:
+        description: "Promote latest staging artifact to production"
+        required: false
+        default: "false"
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages-${{ github.ref }}
-  cancel-in-progress: true
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  build:
+  build-release-artifact:
+    name: Build release artifact
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -32,28 +36,85 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Instalar dependências
-        run: npm install --no-audit
+      - name: Install dependencies
+        run: npm ci --no-audit
 
       - name: Build
         run: npm run build
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+      - name: Upload release bundle
+        uses: actions/upload-artifact@v4
         with:
-          path: ./dist
+          name: release-build
+          path: build
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  deploy-development:
+    name: Deploy development
+    needs: build-release-artifact
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.head_branch == 'develop'
     runs-on: ubuntu-latest
-    needs: build
+    environment:
+      name: development
 
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-build
+          path: build
+      - name: Deploy development
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL_DEV }}
+          DEPLOY_WEBHOOK_TOKEN: ${{ secrets.DEPLOY_WEBHOOK_TOKEN_DEV }}
+        run: node scripts/ci/deploy-environment.mjs development
+
+  deploy-staging:
+    name: Deploy staging
+    needs: build-release-artifact
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-build
+          path: build
+      - name: Deploy staging
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL_STAGING }}
+          DEPLOY_WEBHOOK_TOKEN: ${{ secrets.DEPLOY_WEBHOOK_TOKEN_STAGING }}
+        run: node scripts/ci/deploy-environment.mjs staging
+
+  promotion-check:
+    name: Promotion rules validation
+    needs: deploy-staging
+    if: github.event_name == 'workflow_dispatch' && inputs.promote_to_production == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate promotion rules
+        run: node scripts/ci/promotion-rules.mjs staging production success true
+
+  deploy-production:
+    name: Deploy production
+    needs: promotion-check
+    if: github.event_name == 'workflow_dispatch' && inputs.promote_to_production == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-build
+          path: build
+      - name: Deploy production
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL_PROD }}
+          DEPLOY_WEBHOOK_TOKEN: ${{ secrets.DEPLOY_WEBHOOK_TOKEN_PROD }}
+        run: node scripts/ci/deploy-environment.mjs production

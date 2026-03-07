@@ -21,7 +21,9 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    host: '127.0.0.1',
+    port: 5173,
+    strictPort: false,
   },
   build: {
     outDir: 'build',
@@ -31,7 +33,7 @@ export default defineConfig({
           react: ['react', 'react-dom', 'react-router-dom'],
           mui: ['@mui/material', '@mui/lab', '@emotion/react', '@emotion/styled'],
           charts: ['apexcharts', 'react-apexcharts'],
-          motion: ['framer-motion', 'pixi.js', '@pixi/particle-emitter'],
+          motion: ['framer-motion'],
           sentry: ['@sentry/react'],
         },
       },

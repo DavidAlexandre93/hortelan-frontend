@@ -26,8 +26,23 @@ const IntegrationsOperationsPage = lazy(() => import('./pages/dashboard/Integrat
 const IntegrationsPage = lazy(() => import('./pages/dashboard/IntegrationsPage'));
 const LoginForm = lazy(() => import('./sections/auth/login').then((module) => ({ default: module.LoginForm })));
 
-const renderLazy = (Component) => (
-  <Suspense fallback={<div style={{ minHeight: "100vh", background: "#F7FAFC" }} />}>
+const lazyModuleFallback = (
+  <div
+    style={{
+      minHeight: '100vh',
+      display: 'grid',
+      placeItems: 'center',
+      background: '#0b1220',
+      color: '#ffffff',
+      fontWeight: 700,
+    }}
+  >
+    Carregando módulo...
+  </div>
+);
+
+const renderLazy = (Component, fallback = lazyModuleFallback) => (
+  <Suspense fallback={fallback}>
     <Component />
   </Suspense>
 );
@@ -63,36 +78,42 @@ export default function Router() {
       ],
     },
     {
-      path: 'login',
+      path: '/login',
       element: (
         <RedirectIfAuth>
-          {renderLazy(LoginForm)}
+          {renderLazy(LoginForm, null)}
         </RedirectIfAuth>
       ),
     },
     {
-      path: 'register',
+      path: '/register',
       element: (
         <RedirectIfAuth>
-          {renderLazy(LoginForm)}
+          {renderLazy(LoginForm, null)}
         </RedirectIfAuth>
       ),
     },
     {
-      path: 'forgot-password',
+      path: '/forgot-password',
       element: renderLazy(ForgotPasswordPage),
     },
     {
-      path: 'reset-password',
+      path: '/reset-password',
       element: renderLazy(ResetPasswordPage),
     },
     {
+      path: '/404',
+      element: renderLazy(NotFoundPage),
+    },
+    {
       path: '/',
+      element: <Navigate to="/login" replace />,
+    },
+    {
+      path: '/auth',
       element: <LogoOnlyLayout />,
       children: [
-        { path: '/', element: <Navigate to="/login" /> },
-        { path: '404', element: renderLazy(NotFoundPage) },
-        { path: '*', element: <Navigate to="/404" /> },
+        { index: true, element: <Navigate to="/login" replace /> },
       ],
     },
     {
