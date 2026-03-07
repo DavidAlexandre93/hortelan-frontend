@@ -1,31 +1,25 @@
-name: CI - Plataforma de Qualidade e Segurança
+name: CI - Frontend Quality, Security and Reliability
 
 on:
   pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
+    branches: [main, develop]
   push:
-    branches: [main]
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
+    branches: [main, develop]
   workflow_dispatch:
 
 permissions:
   contents: read
+  security-events: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  validate:
-    name: Validação Full Stack (build, testes, auditorias)
+  quality-gate:
+    name: Quality gate (lint, format, unit, coverage, build)
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -37,46 +31,42 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Instalar dependências
-        run: npm install --no-audit
+      - name: Install dependencies
+        run: npm ci --no-audit
 
+      - name: Lint
+        run: npm run lint
 
-      - name: Testes
-        run: npm test
+      - name: Formatting check
+        run: npm run format:check
 
-      - name: Build
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Coverage tests
+        run: npm run test:coverage
+
+      - name: Build validation
         run: npm run build
 
-      - name: Auditoria de front-end
+      - name: Frontend architectural audit
         run: npm run audit:frontend
 
-      - name: NPM Audit (informativo)
+      - name: Dependency vulnerability analysis
         continue-on-error: true
-        run: npm audit --audit-level=moderate
+        run: npm audit --audit-level=high
 
-  semgrep:
-    name: SAST com Semgrep
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Semgrep scan
-        uses: returntocorp/semgrep-action@v1
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
         with:
-          semgrep-version: latest
-          config: >-
-            p/default
-            p/secrets
+          name: frontend-build
+          path: build
 
-  dependency-review:
-    name: Revisão de dependências
-    if: github.event_name == 'pull_request'
+  quality-control:
+    name: Quality control (CodeQL + dependency review)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
+    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout
@@ -86,3 +76,14 @@ jobs:
         uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: moderate
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v4
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v4
