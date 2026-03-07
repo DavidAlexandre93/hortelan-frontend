@@ -4,10 +4,10 @@ import { sample } from 'lodash';
 // ----------------------------------------------------------------------
 
 const users = [...Array(24)].map((_, index) => ({
-  id: faker.datatype.uuid(),
+  id: faker.string.uuid(),
   avatarUrl: `/static/mock-images/avatars/avatar_${index + 1}.jpg`,
   name: sample(['Garden01', 'Garden02', 'Garden03', 'Garden04', 'Garden05']),
-  company: faker.company.companyName(),
+  company: faker.company.name(),
   isVerified: faker.datatype.boolean(),
   status: sample(['Active', 'Inactive']),
   role: sample([

@@ -365,7 +365,7 @@ export default function DashboardApp() {
   );
   const [agendaTarefas, setAgendaTarefas] = useState([
     {
-      id: faker.datatype.uuid(),
+      id: faker.string.uuid(),
       tipo: 'Rega',
       titulo: 'Rega das mudas da Estufa A',
       descricao: 'Aplicar rega leve no início da manhã.',
@@ -373,8 +373,8 @@ export default function DashboardApp() {
       responsavel: 'Ana',
       vencimento: todayString,
       checklist: [
-        { id: faker.datatype.uuid(), texto: 'Conferir umidade antes de regar', concluido: false },
-        { id: faker.datatype.uuid(), texto: 'Registrar volume de água aplicado', concluido: false },
+        { id: faker.string.uuid(), texto: 'Conferir umidade antes de regar', concluido: false },
+        { id: faker.string.uuid(), texto: 'Registrar volume de água aplicado', concluido: false },
       ],
       concluida: false,
       observacoes: [],
@@ -382,28 +382,28 @@ export default function DashboardApp() {
       insumos: [],
     },
     {
-      id: faker.datatype.uuid(),
+      id: faker.string.uuid(),
       tipo: 'Verificação de pragas',
       titulo: 'Inspeção visual no canteiro B',
       descricao: 'Verificar sinais de pulgões e manchas foliares.',
       periodicidade: 'Semanal',
       responsavel: 'Bruno',
       vencimento: twoDaysAgoString,
-      checklist: [{ id: faker.datatype.uuid(), texto: 'Inspecionar verso das folhas', concluido: false }],
+      checklist: [{ id: faker.string.uuid(), texto: 'Inspecionar verso das folhas', concluido: false }],
       concluida: false,
       observacoes: [],
       fotos: [],
       insumos: [],
     },
     {
-      id: faker.datatype.uuid(),
+      id: faker.string.uuid(),
       tipo: 'Troca de água (hidroponia)',
       titulo: 'Troca parcial da solução nutritiva',
       descricao: 'Renovar 30% do reservatório.',
       periodicidade: 'Quinzenal',
       responsavel: 'Equipe Hidroponia',
       vencimento: tomorrowString,
-      checklist: [{ id: faker.datatype.uuid(), texto: 'Medição de pH após troca', concluido: false }],
+      checklist: [{ id: faker.string.uuid(), texto: 'Medição de pH após troca', concluido: false }],
       concluida: false,
       observacoes: [],
       fotos: [],
@@ -449,7 +449,7 @@ export default function DashboardApp() {
 
     setPlantas((prev) => [
       {
-        id: faker.datatype.uuid(),
+        id: faker.string.uuid(),
         ...novaPlanta,
         familia: cropCatalog[novaPlanta.especie].family,
         ciclo: cropCatalog[novaPlanta.especie].cycle,
@@ -457,7 +457,7 @@ export default function DashboardApp() {
         fotos: [],
         observacoes: [],
         tarefas: (baseTasksByPhase[novaPlanta.faseCultivo] || []).map((titulo) => ({
-          id: faker.datatype.uuid(),
+          id: faker.string.uuid(),
           titulo,
           concluida: false,
           prioridade: 'média',
@@ -524,7 +524,7 @@ export default function DashboardApp() {
               ...planta,
               eventos: [
                 {
-                  id: faker.datatype.uuid(),
+                  id: faker.string.uuid(),
                   tipo: draft.tipo,
                   data: draft.data,
                   detalhes: draft.detalhes,
@@ -556,7 +556,7 @@ export default function DashboardApp() {
               ...planta,
               fotos: [
                 {
-                  id: faker.datatype.uuid(),
+                  id: faker.string.uuid(),
                   data: draft.data,
                   url: draft.url,
                   legenda: draft.legenda || '',
@@ -588,7 +588,7 @@ export default function DashboardApp() {
               ...planta,
               observacoes: [
                 {
-                  id: faker.datatype.uuid(),
+                  id: faker.string.uuid(),
                   data: draft.data,
                   texto: draft.texto,
                 },
@@ -665,7 +665,7 @@ export default function DashboardApp() {
 
     setAutomationRules((prev) => [
       {
-        id: faker.datatype.uuid(),
+        id: faker.string.uuid(),
         ...automationDraft,
       },
       ...prev,
@@ -683,7 +683,7 @@ export default function DashboardApp() {
               ...planta,
               tarefas: [
                 {
-                  id: faker.datatype.uuid(),
+                  id: faker.string.uuid(),
                   titulo,
                   concluida: false,
                   prioridade: 'média',
@@ -733,7 +733,7 @@ export default function DashboardApp() {
 
     setAgendamentosAtivos((prev) => [
       {
-        id: faker.datatype.uuid(),
+        id: faker.string.uuid(),
         ...programacao,
       },
       ...prev,
@@ -941,7 +941,7 @@ export default function DashboardApp() {
 
     setNovaTarefaAgenda((prev) => ({
       ...prev,
-      checklist: [...prev.checklist, { id: faker.datatype.uuid(), texto, concluido: false }],
+      checklist: [...prev.checklist, { id: faker.string.uuid(), texto, concluido: false }],
     }));
     setNovoChecklistItem('');
   };
@@ -951,7 +951,7 @@ export default function DashboardApp() {
 
     setAgendaTarefas((prev) => [
       {
-        id: faker.datatype.uuid(),
+        id: faker.string.uuid(),
         ...novaTarefaAgenda,
         titulo: novaTarefaAgenda.titulo.trim(),
         descricao: novaTarefaAgenda.descricao.trim(),
@@ -2707,7 +2707,7 @@ export default function DashboardApp() {
             <AppNewsUpdate
               title="Relevant community information"
               list={[...Array(5)].map((_, index) => ({
-                id: faker.datatype.uuid(),
+                id: faker.string.uuid(),
                 title: 'Relevant post in community',
                 description: 'Visit the community to learn more',
                 image: `/static/mock-images/covers/cover_${index + 1}.jpg`,
@@ -2720,7 +2720,7 @@ export default function DashboardApp() {
             <AppOrderTimeline
               title="Garden Timeline"
               list={[...Array(5)].map((_, index) => ({
-                id: faker.datatype.uuid(),
+                id: faker.string.uuid(),
                 title: [
                   'Garden01 registered',
                   'Purchase of accessories',
