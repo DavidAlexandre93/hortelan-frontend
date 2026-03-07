@@ -62,6 +62,30 @@ function ensureAuthResultShape(result) {
   return { error: 'Resposta de autenticação inválida. Tente novamente.' };
 }
 
+function getAuthResultFromBackendError(error) {
+  const payload = error?.payload;
+
+  if (payload && typeof payload === 'object') {
+    if (payload.requiresTwoFactor) {
+      return payload;
+    }
+
+    if (payload.data && typeof payload.data === 'object' && payload.data.requiresTwoFactor) {
+      return payload.data;
+    }
+
+    if (payload.error) {
+      return { error: payload.error };
+    }
+
+    if (payload.message) {
+      return { error: payload.message };
+    }
+  }
+
+  return null;
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => getAuthenticatedUser());
   const [sessions, setSessions] = useState(() => getUserSessions());
@@ -101,19 +125,23 @@ export function AuthProvider({ children }) {
         twoFactorCode,
       });
     } catch (error) {
-      if (!ENABLE_DEMO_AUTH) {
-        return { error: 'Serviço de autenticação indisponível. Tente novamente em instantes.' };
-      }
+      const backendResult = getAuthResultFromBackendError(error);
 
-      result = loginWithEmailAndPassword({
-        email,
-        password,
-        remember,
-        trustDevice,
-        deviceName,
-        challengeId,
-        twoFactorCode,
-      });
+      if (backendResult) {
+        result = backendResult;
+      } else if (!ENABLE_DEMO_AUTH) {
+        return { error: 'Serviço de autenticação indisponível. Tente novamente em instantes.' };
+      } else {
+        result = loginWithEmailAndPassword({
+          email,
+          password,
+          remember,
+          trustDevice,
+          deviceName,
+          challengeId,
+          twoFactorCode,
+        });
+      }
     }
 
     result = ensureAuthResultShape(result);
@@ -170,11 +198,15 @@ export function AuthProvider({ children }) {
     try {
       result = await socialLoginWithBackend({ provider, remember, trustDevice, deviceName });
     } catch (error) {
-      if (!ENABLE_DEMO_AUTH) {
-        return { error: 'Serviço de autenticação social indisponível. Tente novamente em instantes.' };
-      }
+      const backendResult = getAuthResultFromBackendError(error);
 
-      result = loginWithSocialProvider({ provider, remember, trustDevice, deviceName });
+      if (backendResult) {
+        result = backendResult;
+      } else if (!ENABLE_DEMO_AUTH) {
+        return { error: 'Serviço de autenticação social indisponível. Tente novamente em instantes.' };
+      } else {
+        result = loginWithSocialProvider({ provider, remember, trustDevice, deviceName });
+      }
     }
 
     result = ensureAuthResultShape(result);
