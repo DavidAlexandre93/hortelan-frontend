@@ -54,6 +54,7 @@
     "apexcharts": "^3.35.3",
     "change-case": "^4.1.2",
     "date-fns": "^4.1.0",
+    "framer-motion": "^11.11.17",
     "history": "^5.3.0",
     "lodash": "^4.17.21",
     "numeral": "^2.0.6",
@@ -66,10 +67,7 @@
     "react-router-dom": "^7.13.1",
     "simplebar": "^6.3.3",
     "simplebar-react": "^3.3.2",
-    "yup": "^1.7.1",
-    "framer-motion": "^11.11.17",
-    "pixi.js": "^8.16.0",
-    "@pixi/particle-emitter": "^5.0.8"
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@babel/core": "^7.18.6",
