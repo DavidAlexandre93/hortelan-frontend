@@ -30,7 +30,7 @@ import MenuPopover from '../../components/MenuPopover';
 
 const NOTIFICATIONS = [
   {
-    id: faker.datatype.uuid(),
+    id: faker.string.uuid(),
     title: 'Your order is placed',
     description: 'waiting for shipping',
     avatar: null,
@@ -39,8 +39,8 @@ const NOTIFICATIONS = [
     isUnRead: true,
   },
   {
-    id: faker.datatype.uuid(),
-    title: faker.name.findName(),
+    id: faker.string.uuid(),
+    title: faker.person.fullName(),
     description: 'answered to your comment on community',
     avatar: '/static/mock-images/avatars/avatar_2.jpg',
     type: 'friend_interactive',
@@ -48,7 +48,7 @@ const NOTIFICATIONS = [
     isUnRead: true,
   },
   {
-    id: faker.datatype.uuid(),
+    id: faker.string.uuid(),
     title: 'You have new comment in the your post community',
     description: '5 unread answers',
     type: 'chat_message',
@@ -56,7 +56,7 @@ const NOTIFICATIONS = [
     isUnRead: false,
   },
   {
-    id: faker.datatype.uuid(),
+    id: faker.string.uuid(),
     title: 'You have new comment in the your post community',
     description: '4 unread answers',
     type: 'chat_message',
@@ -64,7 +64,7 @@ const NOTIFICATIONS = [
     isUnRead: false,
   },
   {
-    id: faker.datatype.uuid(),
+    id: faker.string.uuid(),
     title: 'Delivery processing',
     description: 'Your order is being shipped',
     avatar: null,
