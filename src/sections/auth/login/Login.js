@@ -22,7 +22,6 @@ import AuthSocial from '../AuthSocial';
 import { RegisterForm } from '../register';
 
 
-const ENABLE_DEMO_AUTH = import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true';
 const RootStyle = styled('div')(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
     display: 'flex',
@@ -350,7 +349,7 @@ export default function LoginForm() {
                 ? 'Preencha seus dados e confirme seu e-mail para acessar a plataforma.'
                 : 'Use seu e-mail e senha para continuar.'}
             </Typography>
-            {!isRegisterMode && ENABLE_DEMO_AUTH && (
+            {!isRegisterMode && (
               <Typography sx={{ color: 'text.secondary', mb: 5 }}>
                 Acesso de demonstração: <strong>davidfernandes@hortelanagtech.com</strong> / <strong>admin</strong>.
               </Typography>
