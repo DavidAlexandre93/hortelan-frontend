@@ -33,7 +33,7 @@ export default defineConfig({
           react: ['react', 'react-dom', 'react-router-dom'],
           mui: ['@mui/material', '@mui/lab', '@emotion/react', '@emotion/styled'],
           charts: ['apexcharts', 'react-apexcharts'],
-          motion: ['framer-motion', 'pixi.js', '@pixi/particle-emitter'],
+          motion: ['framer-motion'],
           sentry: ['@sentry/react'],
         },
       },
