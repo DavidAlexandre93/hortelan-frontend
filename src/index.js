@@ -13,6 +13,7 @@ import { initReliabilityTelemetry } from './services/platformReliability';
 import { AuthProvider } from './auth/AuthContext';
 import GlobalErrorBoundary from './components/GlobalErrorBoundary';
 import ThemeProvider from './theme';
+import AutoTranslateBootstrap from './components/localization/AutoTranslateBootstrap';
 
 // ----------------------------------------------------------------------
 
@@ -79,6 +80,7 @@ const appTree = (
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
+          <AutoTranslateBootstrap />
           <GlobalErrorBoundary>
             <App />
           </GlobalErrorBoundary>
