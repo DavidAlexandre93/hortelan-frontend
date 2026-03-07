@@ -11,9 +11,10 @@
 
 ### ✨ [Live Demo](https://hortelan-frontend.vercel.app/dashboard/app)
 
-## Support is contiguous 
+## Support is contiguous
 
 Leave a ⭐️ If this project got you going!
+
 <p>
   <a href="https://www.buymeacoffee.com/davidfernandes"> <img align="left" src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" height="50" width="210" alt="buymeacoffee.com/davidfernandes" /></a>
 </p>
@@ -32,7 +33,6 @@ yarn dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
 
 ## Backend API
 
@@ -60,7 +60,6 @@ Endpoints utilizados no frontend:
 - `GET /auth/validate-reset-token?token=...`
 - `POST /auth/reset-password`
 
-
 ## Blockchain + SSR
 
 ### Blockchain (EVM)
@@ -87,9 +86,34 @@ npm run build:ssr     # build do cliente + bundle SSR
 NODE_ENV=production npm run serve:ssr
 ```
 
-
 ## Performance baseline e hardening
 
 - Rodar baseline automatizado: `npm run perf:baseline`
 - Relatório de baseline: `docs/performance-baseline.json`
 - Plano de execução: `docs/performance-hardening-plan.md`
+
+## CI/CD (qualidade, segurança e promoção)
+
+O frontend possui pipeline completo em GitHub Actions com:
+
+- Instalação reprodutível de dependências (`npm ci`);
+- Lint (`npm run lint`) e validação de formatação (`npm run format:check`);
+- Testes unitários (`npm run test:unit`) e cobertura (`npm run test:coverage`);
+- Validação de build (`npm run build`);
+- Auditoria arquitetural do frontend (`npm run audit:frontend`);
+- Análise de vulnerabilidades (`npm audit --audit-level=high` + CodeQL + dependency review);
+- Geração de artefatos (`build`) para promoção entre ambientes.
+
+### Estratégia de deploy por ambiente
+
+- `develop` -> deploy automático em `development`.
+- `main` -> deploy automático em `staging`.
+- `production` -> promoção manual por `workflow_dispatch` com `promote_to_production=true`, passando pelas regras de promoção e aprovação de ambiente.
+
+Os jobs de deploy utilizam webhooks por ambiente:
+
+- `DEPLOY_WEBHOOK_URL_DEV`
+- `DEPLOY_WEBHOOK_URL_STAGING`
+- `DEPLOY_WEBHOOK_URL_PROD`
+
+Opcionalmente, um token Bearer correspondente por ambiente (`DEPLOY_WEBHOOK_TOKEN_*`).
