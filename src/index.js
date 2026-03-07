@@ -5,6 +5,7 @@ import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import * as Sentry from '@sentry/react';
+import { Analytics } from '@vercel/analytics/react';
 
 //
 import App from './App';
@@ -84,6 +85,7 @@ const appTree = (
           <GlobalErrorBoundary>
             <App />
           </GlobalErrorBoundary>
+          <Analytics />
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>
