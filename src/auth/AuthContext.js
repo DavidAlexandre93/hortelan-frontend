@@ -31,6 +31,29 @@ const ENABLE_DEMO_AUTH = import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true';
 
 export const AuthContext = createContext(null);
 
+function isApiBaseUrlLikelyMisconfigured(error) {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const currentHost = window.location?.hostname || '';
+  const isLocalEnvironment = ['localhost', '127.0.0.1', '0.0.0.0'].includes(currentHost);
+
+  if (isLocalEnvironment) {
+    return false;
+  }
+
+  return error?.status === 404 || error?.status === 405;
+}
+
+function canUseDemoAuthFallback(error) {
+  if (ENABLE_DEMO_AUTH) {
+    return true;
+  }
+
+  return isApiBaseUrlLikelyMisconfigured(error);
+}
+
 
 function getAuthPayload(result) {
   if (!result || typeof result !== 'object') {
@@ -129,7 +152,7 @@ export function AuthProvider({ children }) {
 
       if (backendResult) {
         result = backendResult;
-      } else if (!ENABLE_DEMO_AUTH) {
+      } else if (!canUseDemoAuthFallback(error)) {
         return { error: 'Serviço de autenticação indisponível. Tente novamente em instantes.' };
       } else {
         result = loginWithEmailAndPassword({
@@ -202,7 +225,7 @@ export function AuthProvider({ children }) {
 
       if (backendResult) {
         result = backendResult;
-      } else if (!ENABLE_DEMO_AUTH) {
+      } else if (!canUseDemoAuthFallback(error)) {
         return { error: 'Serviço de autenticação social indisponível. Tente novamente em instantes.' };
       } else {
         result = loginWithSocialProvider({ provider, remember, trustDevice, deviceName });
