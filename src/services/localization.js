@@ -82,6 +82,21 @@ const GOOGLE_TRANSLATE_LANGUAGES = [
   ...new Set([...LANGS.map((lang) => lang.value), ...Object.values(COUNTRY_LANGUAGE_MAP)]),
 ].join(',');
 
+const normalizeLanguageCode = (languageCode) => {
+  if (!languageCode) return 'pt';
+
+  const normalizedCode = languageCode.toLowerCase();
+
+  if (normalizedCode === 'pt-br' || normalizedCode === 'pt_br') return 'pt';
+  if (normalizedCode === 'en-us' || normalizedCode === 'en_us') return 'en';
+  if (normalizedCode === 'es-es' || normalizedCode === 'es_es') return 'es';
+  if (normalizedCode === 'fr-fr' || normalizedCode === 'fr_fr') return 'fr';
+  if (normalizedCode === 'ja-jp' || normalizedCode === 'ja_jp') return 'ja';
+
+  const [baseLanguage] = normalizedCode.split(/[-_]/);
+  return LANGS.some((lang) => lang.value === baseLanguage) ? baseLanguage : 'pt';
+};
+
 const mapCountryToLanguage = (countryCode) => {
   if (!countryCode) return 'pt';
   const upperCountryCode = countryCode.toUpperCase();
@@ -94,13 +109,15 @@ const mapCountryToLanguage = (countryCode) => {
 const applyGoogleLanguage = (language) => {
   if (!language || typeof document === 'undefined') return;
 
-  if (pendingLanguage !== language) {
+  const normalizedLanguage = normalizeLanguageCode(language);
+
+  if (pendingLanguage !== normalizedLanguage) {
     languageSyncAttempts = 0;
   }
 
-  pendingLanguage = language;
+  pendingLanguage = normalizedLanguage;
 
-  const cookieValue = `/${SOURCE_LANGUAGE}/${language}`;
+  const cookieValue = `/${SOURCE_LANGUAGE}/${normalizedLanguage}`;
   document.cookie = `${GOOGLE_COOKIE_KEY}=${cookieValue};path=/`;
 
   if (typeof window !== 'undefined' && window.location?.hostname) {
@@ -108,8 +125,8 @@ const applyGoogleLanguage = (language) => {
   }
 
   const select = document.querySelector('select.goog-te-combo');
-  if (select && select.value !== language) {
-    select.value = language;
+  if (select && select.value !== normalizedLanguage) {
+    select.value = normalizedLanguage;
     select.dispatchEvent(new Event('change'));
     pendingLanguage = null;
     languageSyncAttempts = 0;
@@ -118,7 +135,7 @@ const applyGoogleLanguage = (language) => {
       window.clearTimeout(languageSyncTimer);
       languageSyncTimer = null;
     }
-  } else if (select && select.value === language) {
+  } else if (select && select.value === normalizedLanguage) {
     pendingLanguage = null;
     languageSyncAttempts = 0;
   }
@@ -127,7 +144,7 @@ const applyGoogleLanguage = (language) => {
     scheduleLanguageSync();
   }
 
-  document.documentElement.setAttribute('lang', language);
+  document.documentElement.setAttribute('lang', normalizedLanguage);
 };
 
 const scheduleLanguageSync = () => {
@@ -205,7 +222,8 @@ const ensureTranslateDomSetup = () => {
 
 const getStoredLanguage = () => {
   if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem(STORAGE_KEY);
+  const storedLanguage = window.localStorage.getItem(STORAGE_KEY);
+  return storedLanguage ? normalizeLanguageCode(storedLanguage) : null;
 };
 
 const detectLanguageFromBrowser = () => {
@@ -269,6 +287,7 @@ const detectLanguageByGeolocation = async () => {
 export {
   LANGS,
   STORAGE_KEY,
+  normalizeLanguageCode,
   applyGoogleLanguage,
   ensureGoogleTranslate,
   ensureTranslateDomSetup,
