@@ -16,6 +16,7 @@ import {
   ListItemAvatar,
   ListItemText,
   MenuItem,
+  Paper,
   Select,
   Slider,
   Stack,
@@ -158,6 +159,19 @@ const severityColors = {
   Baixa: 'default',
 };
 
+const sectionCardSx = {
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const sectionCardContentSx = {
+  p: { xs: 2, md: 3 },
+  '&:last-child': {
+    pb: { xs: 2, md: 3 },
+  },
+};
+
 export default function AlertCenter() {
   const [tab, setTab] = useState('ativos');
   const [query, setQuery] = useState('');
@@ -196,21 +210,21 @@ export default function AlertCenter() {
     <Page title="Central de Alertas">
       <Container maxWidth="xl">
         <Stack spacing={3}>
-          <Box>
+          <Paper variant="outlined" sx={{ px: { xs: 2, md: 3 }, py: { xs: 1.5, md: 2 } }}>
             <Typography variant="h4" gutterBottom>
               Central de alertas
             </Typography>
             <Typography color="text.secondary">
               Monitore alertas ativos, histórico resolvido, políticas de notificação e gestão de incidentes em um único painel.
             </Typography>
-          </Box>
+          </Paper>
 
           <Grid container spacing={3}>
             <Grid item xs={12} lg={8}>
-              <Card>
-                <CardContent>
+              <Card sx={sectionCardSx}>
+                <CardContent sx={sectionCardContentSx}>
                   <Stack spacing={2.5}>
-                    <Tabs value={tab} onChange={(_, value) => setTab(value)}>
+                    <Tabs value={tab} onChange={(_, value) => setTab(value)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
                       <Tab value="ativos" label="Alertas ativos" />
                       <Tab value="resolvidos" label="Alertas resolvidos" />
                     </Tabs>
@@ -265,21 +279,29 @@ export default function AlertCenter() {
                       </Grid>
                     </Grid>
 
-                    <List disablePadding>
-                      {filteredAlerts.map((alert) => (
-                        <ListItem key={alert.id} divider secondaryAction={<Chip size="small" label={alert.severity} color={severityColors[alert.severity]} />}>
-                          <ListItemAvatar>
-                            <Avatar sx={{ bgcolor: alert.status === 'ativo' ? 'warning.lighter' : 'success.lighter' }}>
-                              {alert.status === 'ativo' ? <WarningAmberRoundedIcon color="warning" /> : <CheckCircleRoundedIcon color="success" />}
-                            </Avatar>
-                          </ListItemAvatar>
-                          <ListItemText
-                            primary={`${alert.id} • ${alert.title}`}
-                            secondary={`${alert.type} • ${alert.garden} • origem: ${alert.source} • ${alert.time}`}
-                          />
-                        </ListItem>
-                      ))}
-                    </List>
+                    <Paper variant="outlined">
+                      <List disablePadding>
+                        {filteredAlerts.map((alert) => (
+                          <ListItem
+                            key={alert.id}
+                            divider
+                            alignItems="flex-start"
+                            secondaryAction={<Chip size="small" label={alert.severity} color={severityColors[alert.severity]} />}
+                            sx={{ py: 1.25, pr: 10 }}
+                          >
+                            <ListItemAvatar>
+                              <Avatar sx={{ bgcolor: alert.status === 'ativo' ? 'warning.lighter' : 'success.lighter' }}>
+                                {alert.status === 'ativo' ? <WarningAmberRoundedIcon color="warning" /> : <CheckCircleRoundedIcon color="success" />}
+                              </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText
+                              primary={`${alert.id} • ${alert.title}`}
+                              secondary={`${alert.type} • ${alert.garden} • origem: ${alert.source} • ${alert.time}`}
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Paper>
                     {filteredAlerts.length === 0 && <Alert severity="info">Nenhum alerta encontrado para os filtros aplicados.</Alert>}
                   </Stack>
                 </CardContent>
@@ -289,7 +311,7 @@ export default function AlertCenter() {
             <Grid item xs={12} lg={4}>
               <Stack spacing={3}>
                 <Card>
-                  <CardContent>
+                  <CardContent sx={sectionCardContentSx}>
                     <Stack spacing={1.5}>
                       <Typography variant="h6">Tipos de alerta monitorados</Typography>
                       <Stack direction="row" gap={1} flexWrap="wrap">
@@ -302,7 +324,7 @@ export default function AlertCenter() {
                 </Card>
 
                 <Card>
-                  <CardContent>
+                  <CardContent sx={sectionCardContentSx}>
                     <Stack spacing={1.5}>
                       <Typography variant="h6">Notificações</Typography>
                       <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -329,7 +351,7 @@ export default function AlertCenter() {
                 </Card>
 
                 <Card>
-                  <CardContent>
+                  <CardContent sx={sectionCardContentSx}>
                     <Stack spacing={1.5}>
                       <Typography variant="h6">Política de notificações</Typography>
                       <Alert severity="warning" icon={<ErrorOutlineRoundedIcon />}>
@@ -373,38 +395,42 @@ export default function AlertCenter() {
           </Grid>
 
           <Card>
-            <CardContent>
+            <CardContent sx={sectionCardContentSx}>
               <Stack spacing={2}>
                 <Typography variant="h6">Gestão de incidentes (fase avançada)</Typography>
                 <Typography variant="body2" color="text.secondary">
                   Fluxo operacional: abrir incidente, atribuir responsável, registrar comentários internos, atualizar status e acompanhar tempo de resolução.
                 </Typography>
                 <Divider />
-                <List disablePadding>
-                  {incidentsSeed.map((incident) => (
-                    <ListItem
-                      key={incident.id}
-                      divider
-                      secondaryAction={
-                        <Stack direction="row" spacing={1}>
-                          <Chip label={incident.status} color={incident.status === 'resolvido' ? 'success' : 'warning'} size="small" />
-                          <Chip label={`TTR ${incident.resolutionTime}`} variant="outlined" size="small" />
-                        </Stack>
-                      }
-                    >
-                      <ListItemText
-                        primary={`${incident.id} • ${incident.title}`}
-                        secondary={
-                          <>
-                            Responsável: {incident.owner}
-                            <br />
-                            Comentários: {incident.comments.join(' • ')}
-                          </>
+                <Paper variant="outlined">
+                  <List disablePadding>
+                    {incidentsSeed.map((incident) => (
+                      <ListItem
+                        key={incident.id}
+                        divider
+                        alignItems="flex-start"
+                        sx={{ py: 1.25, pr: { xs: 2, md: 22 } }}
+                        secondaryAction={
+                          <Stack direction="row" spacing={1}>
+                            <Chip label={incident.status} color={incident.status === 'resolvido' ? 'success' : 'warning'} size="small" />
+                            <Chip label={`TTR ${incident.resolutionTime}`} variant="outlined" size="small" />
+                          </Stack>
                         }
-                      />
-                    </ListItem>
-                  ))}
-                </List>
+                      >
+                        <ListItemText
+                          primary={`${incident.id} • ${incident.title}`}
+                          secondary={
+                            <>
+                              Responsável: {incident.owner}
+                              <br />
+                              Comentários: {incident.comments.join(' • ')}
+                            </>
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Paper>
               </Stack>
             </CardContent>
           </Card>
