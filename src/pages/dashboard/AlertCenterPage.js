@@ -309,88 +309,94 @@ export default function AlertCenter() {
             </Grid>
 
             <Grid item xs={12} lg={4}>
-              <Stack spacing={3}>
-                <Card>
-                  <CardContent sx={sectionCardContentSx}>
-                    <Stack spacing={1.5}>
-                      <Typography variant="h6">Tipos de alerta monitorados</Typography>
-                      <Stack direction="row" gap={1} flexWrap="wrap">
-                        {alertTypes.map((type) => (
-                          <Chip key={type} label={type} variant="outlined" size="small" />
-                        ))}
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={4} lg={12}>
+                  <Card>
+                    <CardContent sx={sectionCardContentSx}>
+                      <Stack spacing={1.5}>
+                        <Typography variant="h6">Tipos de alerta monitorados</Typography>
+                        <Stack direction="row" gap={1} flexWrap="wrap">
+                          {alertTypes.map((type) => (
+                            <Chip key={type} label={type} variant="outlined" size="small" />
+                          ))}
+                        </Stack>
                       </Stack>
-                    </Stack>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Grid>
 
-                <Card>
-                  <CardContent sx={sectionCardContentSx}>
-                    <Stack spacing={1.5}>
-                      <Typography variant="h6">Notificações</Typography>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="body2">Web push (navegador)</Typography>
-                        <Switch checked={policy.webPush} onChange={(event) => setPolicy((prev) => ({ ...prev, webPush: event.target.checked }))} />
+                <Grid item xs={12} md={4} lg={12}>
+                  <Card>
+                    <CardContent sx={sectionCardContentSx}>
+                      <Stack spacing={1.5}>
+                        <Typography variant="h6">Notificações</Typography>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="body2">Web push (navegador)</Typography>
+                          <Switch checked={policy.webPush} onChange={(event) => setPolicy((prev) => ({ ...prev, webPush: event.target.checked }))} />
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="body2">E-mail</Typography>
+                          <Switch checked={policy.email} onChange={(event) => setPolicy((prev) => ({ ...prev, email: event.target.checked }))} />
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="body2">In-app</Typography>
+                          <Switch checked={policy.inApp} onChange={(event) => setPolicy((prev) => ({ ...prev, inApp: event.target.checked }))} />
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="body2">WhatsApp/SMS (futuro)</Typography>
+                          <Switch
+                            checked={policy.whatsappSms}
+                            onChange={(event) => setPolicy((prev) => ({ ...prev, whatsappSms: event.target.checked }))}
+                          />
+                        </Stack>
                       </Stack>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="body2">E-mail</Typography>
-                        <Switch checked={policy.email} onChange={(event) => setPolicy((prev) => ({ ...prev, email: event.target.checked }))} />
-                      </Stack>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="body2">In-app</Typography>
-                        <Switch checked={policy.inApp} onChange={(event) => setPolicy((prev) => ({ ...prev, inApp: event.target.checked }))} />
-                      </Stack>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="body2">WhatsApp/SMS (futuro)</Typography>
-                        <Switch
-                          checked={policy.whatsappSms}
-                          onChange={(event) => setPolicy((prev) => ({ ...prev, whatsappSms: event.target.checked }))}
-                        />
-                      </Stack>
-                    </Stack>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Grid>
 
-                <Card>
-                  <CardContent sx={sectionCardContentSx}>
-                    <Stack spacing={1.5}>
-                      <Typography variant="h6">Política de notificações</Typography>
-                      <Alert severity="warning" icon={<ErrorOutlineRoundedIcon />}>
-                        Silenciamento por tipo e janela de silêncio entre 22:00 e 06:00.
-                      </Alert>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="body2">Silenciar tipos específicos</Typography>
-                        <Switch checked={policy.silenceByType} onChange={(event) => setPolicy((prev) => ({ ...prev, silenceByType: event.target.checked }))} />
+                <Grid item xs={12} md={4} lg={12}>
+                  <Card>
+                    <CardContent sx={sectionCardContentSx}>
+                      <Stack spacing={1.5}>
+                        <Typography variant="h6">Política de notificações</Typography>
+                        <Alert severity="warning" icon={<ErrorOutlineRoundedIcon />}>
+                          Silenciamento por tipo e janela de silêncio entre 22:00 e 06:00.
+                        </Alert>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="body2">Silenciar tipos específicos</Typography>
+                          <Switch checked={policy.silenceByType} onChange={(event) => setPolicy((prev) => ({ ...prev, silenceByType: event.target.checked }))} />
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="body2">Horário de silêncio</Typography>
+                          <Switch
+                            checked={policy.silenceWindow}
+                            onChange={(event) => setPolicy((prev) => ({ ...prev, silenceWindow: event.target.checked }))}
+                          />
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="body2">Escalonamento crítico persistente</Typography>
+                          <Switch
+                            checked={policy.escalation}
+                            onChange={(event) => setPolicy((prev) => ({ ...prev, escalation: event.target.checked }))}
+                          />
+                        </Stack>
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">
+                            Frequência máxima ({policy.maxFrequencyPerHour} notificação(ões)/hora)
+                          </Typography>
+                          <Slider
+                            value={policy.maxFrequencyPerHour}
+                            min={1}
+                            max={10}
+                            valueLabelDisplay="auto"
+                            onChange={(_, value) => setPolicy((prev) => ({ ...prev, maxFrequencyPerHour: value }))}
+                          />
+                        </Box>
                       </Stack>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="body2">Horário de silêncio</Typography>
-                        <Switch
-                          checked={policy.silenceWindow}
-                          onChange={(event) => setPolicy((prev) => ({ ...prev, silenceWindow: event.target.checked }))}
-                        />
-                      </Stack>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="body2">Escalonamento crítico persistente</Typography>
-                        <Switch
-                          checked={policy.escalation}
-                          onChange={(event) => setPolicy((prev) => ({ ...prev, escalation: event.target.checked }))}
-                        />
-                      </Stack>
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">
-                          Frequência máxima ({policy.maxFrequencyPerHour} notificação(ões)/hora)
-                        </Typography>
-                        <Slider
-                          value={policy.maxFrequencyPerHour}
-                          min={1}
-                          max={10}
-                          valueLabelDisplay="auto"
-                          onChange={(_, value) => setPolicy((prev) => ({ ...prev, maxFrequencyPerHour: value }))}
-                        />
-                      </Box>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              </Stack>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
             </Grid>
           </Grid>
 
