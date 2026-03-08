@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 // material
 import { styled } from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
 import { Box, Link, Button, Drawer, Typography, Avatar, Stack, Paper, TextField } from '@mui/material';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 // hooks
@@ -140,28 +141,74 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
             </Typography>
           </Box>
 
-          <Paper variant="outlined" sx={{ width: 1, p: 1.25, borderRadius: 2 }}>
-            <Stack spacing={1.25}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <SmartToyIcon color="primary" fontSize="small" />
-                <Typography variant="subtitle2">Hortelan Bot</Typography>
+          <Paper
+            variant="outlined"
+            sx={(theme) => ({
+              width: 1,
+              p: 1.5,
+              borderRadius: 3,
+              borderColor: alpha(theme.palette.primary.main, 0.25),
+              background: `linear-gradient(165deg, ${alpha(theme.palette.primary.light, 0.18)} 0%, ${theme.palette.background.paper} 35%, ${alpha(theme.palette.success.light, 0.12)} 100%)`,
+              boxShadow: `0 14px 36px ${alpha(theme.palette.grey[900], 0.16)}`,
+            })}
+          >
+            <Stack spacing={1.4}>
+              <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Avatar
+                    sx={(theme) => ({
+                      width: 28,
+                      height: 28,
+                      bgcolor: alpha(theme.palette.primary.main, 0.16),
+                      color: 'primary.main',
+                    })}
+                  >
+                    <SmartToyIcon fontSize="small" />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="subtitle2">Hortelan Bot</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.2 }}>
+                      Assistente inteligente da operação
+                    </Typography>
+                  </Box>
+                </Stack>
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'success.main', boxShadow: '0 0 0 4px rgba(34,197,94,0.18)' }} />
               </Stack>
 
-              <Stack spacing={0.75} sx={{ maxHeight: 180, overflowY: 'auto', pr: 0.5 }}>
+              <Stack
+                spacing={0.9}
+                sx={(theme) => ({
+                  maxHeight: 200,
+                  overflowY: 'auto',
+                  px: 0.5,
+                  py: 0.25,
+                  borderRadius: 2,
+                  bgcolor: alpha(theme.palette.background.neutral || theme.palette.grey[500], 0.18),
+                })}
+              >
                 {messages.map((message, index) => (
                   <Box
                     key={`${message.role}-${index}`}
-                    sx={{
+                    sx={(theme) => ({
                       alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
-                      bgcolor: message.role === 'user' ? 'primary.main' : 'grey.200',
+                      bgcolor:
+                        message.role === 'user'
+                          ? `linear-gradient(130deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`
+                          : alpha(theme.palette.background.paper, 0.94),
                       color: message.role === 'user' ? 'primary.contrastText' : 'text.primary',
-                      px: 1,
-                      py: 0.75,
-                      borderRadius: 1.25,
+                      px: 1.15,
+                      py: 0.9,
+                      borderRadius: 2,
+                      borderTopRightRadius: message.role === 'user' ? 0.5 : 2,
+                      borderTopLeftRadius: message.role === 'user' ? 2 : 0.5,
                       maxWidth: '92%',
-                    }}
+                      boxShadow:
+                        message.role === 'user'
+                          ? `0 8px 16px ${alpha(theme.palette.primary.dark, 0.35)}`
+                          : `0 4px 14px ${alpha(theme.palette.grey[700], 0.1)}`,
+                    })}
                   >
-                    <Typography variant="caption" sx={{ display: 'block', whiteSpace: 'pre-wrap' }}>
+                    <Typography variant="caption" sx={{ display: 'block', whiteSpace: 'pre-wrap', lineHeight: 1.45 }}>
                       {message.content}
                     </Typography>
                   </Box>
@@ -179,9 +226,26 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
                     handleSendMessage();
                   }
                 }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 1.8,
+                    bgcolor: 'background.paper',
+                  },
+                }}
               />
 
-              <Button onClick={handleSendMessage} variant="contained" fullWidth>
+              <Button
+                onClick={handleSendMessage}
+                variant="contained"
+                fullWidth
+                sx={{
+                  py: 1,
+                  borderRadius: 1.8,
+                  boxShadow: (theme) => `0 12px 20px ${alpha(theme.palette.primary.dark, 0.35)}`,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                }}
+              >
                 Enviar para o Chat Bot
               </Button>
             </Stack>
