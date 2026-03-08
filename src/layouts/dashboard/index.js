@@ -163,8 +163,8 @@ export default function DashboardLayout() {
               variant="outlined"
               size="small"
             />
-            <Typography variant="h4">{context.title}</Typography>
-            <Typography sx={{ opacity: 0.9, maxWidth: 840 }}>{context.subtitle}</Typography>
+            <Typography variant="h4" sx={{ fontSize: { xs: '1.35rem', sm: '1.65rem', md: '2rem' }, lineHeight: 1.2 }}>{context.title}</Typography>
+            <Typography sx={{ opacity: 0.9, maxWidth: 840, fontSize: { xs: '0.9rem', sm: '1rem' } }}>{context.subtitle}</Typography>
           </Stack>
         </Box>
 

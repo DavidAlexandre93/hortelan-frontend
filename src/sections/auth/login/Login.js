@@ -23,22 +23,25 @@ import { RegisterForm } from '../register';
 
 
 const RootStyle = styled('div')(({ theme }) => ({
+  minHeight: '100dvh',
   [theme.breakpoints.up('md')]: {
     display: 'flex',
   },
 }));
 
 const HeaderStyle = styled('header')(({ theme }) => ({
-  top: 0,
   zIndex: 9,
   lineHeight: 0,
   width: '100%',
   display: 'flex',
   alignItems: 'center',
-  position: 'absolute',
-  padding: theme.spacing(3),
+  position: 'relative',
+  padding: theme.spacing(2.5, 2),
   justifyContent: 'space-between',
+  gap: theme.spacing(1.5),
   [theme.breakpoints.up('md')]: {
+    top: 0,
+    position: 'absolute',
     alignItems: 'flex-start',
     padding: theme.spacing(7, 5, 0, 7),
   },
@@ -56,6 +59,9 @@ const SectionStyle = styled(Card)(({ theme }) => ({
   border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
   background: `linear-gradient(160deg, ${alpha(theme.palette.primary.lighter, 0.42)} 0%, ${alpha(theme.palette.info.lighter, 0.28)} 45%, ${theme.palette.background.paper} 100%)`,
   boxShadow: `0 20px 40px ${alpha(theme.palette.primary.dark, 0.12)}`,
+  [theme.breakpoints.down('lg')]: {
+    maxWidth: 420,
+  },
 }));
 
 const leafFloat = keyframes`
@@ -113,11 +119,14 @@ const Cable = styled('div')(({ theme }) => ({
 const ContentStyle = styled('div')(({ theme }) => ({
   maxWidth: 480,
   margin: 'auto',
-  minHeight: '100vh',
+  minHeight: '100dvh',
   display: 'flex',
   justifyContent: 'center',
   flexDirection: 'column',
-  padding: theme.spacing(12, 0),
+  padding: theme.spacing(5, 0, 6),
+  [theme.breakpoints.up('md')]: {
+    padding: theme.spacing(12, 0),
+  },
 }));
 
 function LoginFields() {
@@ -307,7 +316,7 @@ export default function LoginForm() {
     <Page title={isRegisterMode ? 'Cadastro' : 'Login'}>
       <RootStyle>
         <HeaderStyle>
-          <Logo sx={{ width: 120, height: 120 }} />
+          <Logo sx={{ width: { xs: 76, sm: 94, md: 120 }, height: { xs: 76, sm: 94, md: 120 } }} />
           {smUp && (
             <Typography variant="body2" sx={{ mt: { md: -2 } }}>
               {isRegisterMode ? 'Já tem uma conta? ' : 'Não tem uma conta? '}
@@ -344,7 +353,7 @@ export default function LoginForm() {
           </SectionStyle>
         )}
 
-        <Container maxWidth="sm">
+        <Container maxWidth="sm" sx={{ px: { xs: 2.25, sm: 3 } }}>
           <ContentStyle>
             <Typography variant="h4" gutterBottom>
               {isRegisterMode ? 'Cadastre-se para começar' : 'Entrar na Hortelan'}

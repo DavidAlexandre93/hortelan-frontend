@@ -52,7 +52,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
 
   const isDesktop = useResponsive('up', 'lg');
   const { user } = useAuth();
-  const mobileDrawerWidth = { xs: '86vw', sm: 320 };
+  const mobileDrawerWidth = { xs: '90vw', sm: 340 };
   const [prompt, setPrompt] = useState('');
   const [messages, setMessages] = useState([{ role: 'bot', content: BOT_GREETING }]);
   const [isChatExpanded, setIsChatExpanded] = useState(false);
@@ -104,11 +104,11 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
         '& .simplebar-content': { height: 1, display: 'flex', flexDirection: 'column' },
       }}
     >
-      <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
+      <Box sx={{ px: { xs: 2, sm: 2.5 }, py: { xs: 2, sm: 3 }, display: 'inline-flex' }}>
         <Logo sx={{ width: 80, height: 80 }} />
       </Box>
 
-      <Box sx={{ mb: 5, mx: 2.5 }}>
+      <Box sx={{ mb: 4, mx: { xs: 2, sm: 2.5 } }}>
         <Link underline="none" component={RouterLink} to="#">
           <AccountStyle>
             <Avatar src={user?.photoURL || ''} alt={user?.name || 'Usuário'} />
@@ -128,7 +128,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
 
       <Box sx={{ flexGrow: 1 }} />
 
-      <Box sx={{ px: 2.5, pb: 3, mt: 10 }}>
+      <Box sx={{ px: { xs: 2, sm: 2.5 }, pb: 3, mt: { xs: 6, sm: 10 } }}>
         <Stack alignItems="center" spacing={3} sx={{ pt: 5, borderRadius: 2, position: 'relative' }}>
           <Box
             component="img"
@@ -154,8 +154,8 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
             })}
           >
             <Stack spacing={1.4}>
-              <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
-                <Stack direction="row" spacing={1} alignItems="center">
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
                   <Avatar
                     sx={(theme) => ({
                       width: 28,
@@ -166,14 +166,14 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
                   >
                     <SmartToyIcon fontSize="small" />
                   </Avatar>
-                  <Box>
-                    <Typography variant="subtitle2">Hortelan Bot</Typography>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="subtitle2" noWrap>Hortelan Bot</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.2 }}>
                       Assistente inteligente da operação
                     </Typography>
                   </Box>
                 </Stack>
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
                   <Box
                     sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'success.main', boxShadow: '0 0 0 4px rgba(34,197,94,0.18)' }}
                   />
@@ -192,8 +192,8 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
               <Stack
                 spacing={0.9}
                 sx={(theme) => ({
-                  maxHeight: isChatExpanded ? 320 : 200,
-                  minHeight: isChatExpanded ? 320 : 140,
+                  maxHeight: isChatExpanded ? { xs: 260, sm: 320 } : { xs: 170, sm: 200 },
+                  minHeight: isChatExpanded ? { xs: 220, sm: 320 } : { xs: 120, sm: 140 },
                   overflowY: 'auto',
                   px: 0.5,
                   py: 0.25,
