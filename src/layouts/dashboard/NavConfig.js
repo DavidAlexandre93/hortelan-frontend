@@ -7,7 +7,7 @@ const getIcon = (name) => <Iconify icon={name} width={22} height={22} />;
 
 const navConfig = [
   { title: 'monitoramento', path: '/dashboard/app', icon: getIcon('eva:pie-chart-2-fill') },
-  { title: 'administração', path: '/dashboard/user', icon: getIcon('eva:people-fill') },
+  { title: 'administração', path: '/dashboard/admin', icon: getIcon('eva:people-fill') },
   { title: 'catálogo de espécies', path: '/dashboard/products', icon: getIcon('eva:shopping-bag-fill') },
   { title: 'onboarding', path: '/dashboard/onboarding', icon: getIcon('eva:navigation-2-fill') },
   { title: 'hortelan 360', path: '/dashboard/hortelan-360', icon: getIcon('eva:layers-fill') },

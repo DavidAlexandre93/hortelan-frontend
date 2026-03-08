@@ -61,7 +61,8 @@ export default function Router() {
       children: [
         { index: true, element: <Navigate to="app" replace /> },
         { path: 'app', element: renderLazy(MonitoringPage) },
-        { path: 'user', element: renderLazy(AdminPanelPage) },
+        { path: 'admin', element: renderLazy(AdminPanelPage) },
+        { path: 'user', element: <Navigate to="/dashboard/admin" replace /> },
         { path: 'products', element: renderLazy(SpeciesCatalogPage) },
         { path: 'blog', element: renderLazy(CommunityPage) },
         { path: 'hortelan-360', element: renderLazy(Hortelan360Page) },
