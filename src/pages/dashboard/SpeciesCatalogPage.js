@@ -368,7 +368,7 @@ export default function ProductsMarketplace() {
         </Paper>
 
         <Grid className="gsap-story-section" container spacing={3} alignItems="stretch">
-          <Grid item xs={12} md={5}>
+          <Grid item xs={12} sm={5}>
             <Card className="gsap-story-card" sx={{ height: '100%' }}>
               <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, height: '100%' }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>
@@ -411,7 +411,7 @@ export default function ProductsMarketplace() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={7}>
+          <Grid item xs={12} sm={7}>
             {selectedProduct && (
               <Card className="gsap-story-card" sx={{ height: '100%' }}>
                 <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}>
