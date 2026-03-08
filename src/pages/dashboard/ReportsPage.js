@@ -13,6 +13,7 @@ import {
   ListItem,
   ListItemText,
   MenuItem,
+  Paper,
   Stack,
   Tab,
   Tabs,
@@ -262,7 +263,7 @@ export default function Reports() {
   return (
     <Page title="Relatórios">
       <Container maxWidth="xl">
-        <Stack spacing={3}>
+        <Stack spacing={3} sx={{ pb: 3 }}>
           <Box>
             <Typography variant="h4" gutterBottom>
               Relatórios e histórico unificado
@@ -273,7 +274,7 @@ export default function Reports() {
           </Box>
 
           <Card>
-            <CardContent>
+            <CardContent sx={{ p: { xs: 2, md: 3 }, '&:last-child': { pb: { xs: 2, md: 3 } } }}>
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'stretch', md: 'center' }}>
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                   <Button variant="contained" startIcon={<DownloadRoundedIcon />} onClick={exportCsv}>
@@ -295,8 +296,15 @@ export default function Reports() {
           </Card>
 
           <Card>
-            <CardContent>
-              <Tabs value={tab} onChange={(_, value) => setTab(value)}>
+            <CardContent
+              sx={{
+                p: { xs: 2, md: 3 },
+                '&:last-child': { pb: { xs: 2, md: 3 } },
+                '& .MuiCard-root, & .MuiPaper-root': { height: '100%' },
+                '& .MuiCardContent-root:last-child': { pb: 2.5 },
+              }}
+            >
+              <Tabs value={tab} onChange={(_, value) => setTab(value)} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile>
                 <Tab value="operacional" label="Relatórios operacionais" />
                 <Tab value="cultivo" label="Relatórios de cultivo" />
                 <Tab value="manutencao" label="Relatórios de manutenção" />
@@ -307,10 +315,10 @@ export default function Reports() {
               <Divider sx={{ my: 2 }} />
 
               {tab === 'operacional' && (
-                <Grid container spacing={2}>
+                <Grid container spacing={2} alignItems="stretch">
                   {operationalRows.map((row) => (
                     <Grid item xs={12} md={6} key={row.period}>
-                      <Card variant="outlined">
+                      <Paper variant="outlined" sx={{ borderRadius: 2 }}>
                         <CardContent>
                           <Stack spacing={1.5}>
                             <Typography variant="h6">{row.period}</Typography>
@@ -329,17 +337,17 @@ export default function Reports() {
                             </Box>
                           </Stack>
                         </CardContent>
-                      </Card>
+                      </Paper>
                     </Grid>
                   ))}
                 </Grid>
               )}
 
               {tab === 'cultivo' && (
-                <Grid container spacing={2}>
+                <Grid container spacing={2} alignItems="stretch">
                   {cultivationRows.map((row) => (
                     <Grid item xs={12} md={4} key={row.plant}>
-                      <Card variant="outlined">
+                      <Card variant="outlined" sx={{ borderRadius: 2 }}>
                         <CardContent>
                           <Stack spacing={1}>
                             <Typography variant="h6">{row.plant}</Typography>
@@ -356,10 +364,10 @@ export default function Reports() {
               )}
 
               {tab === 'manutencao' && (
-                <Grid container spacing={2}>
+                <Grid container spacing={2} alignItems="stretch">
                   {maintenanceRows.map((row) => (
                     <Grid item xs={12} md={6} key={row.period}>
-                      <Card variant="outlined">
+                      <Card variant="outlined" sx={{ borderRadius: 2 }}>
                         <CardContent>
                           <Stack spacing={1}>
                             <Typography variant="h6">{row.period}</Typography>
@@ -381,7 +389,7 @@ export default function Reports() {
                     Visão institucional com múltiplas unidades (escolas, condomínios, empresas e projetos sociais) em um painel consolidado.
                   </Alert>
 
-                  <Card variant="outlined">
+                  <Paper variant="outlined" sx={{ borderRadius: 2 }}>
                     <CardContent>
                       <Stack spacing={1}>
                         <Typography variant="h6">Perfis institucionais</Typography>
@@ -392,12 +400,12 @@ export default function Reports() {
                         </Stack>
                       </Stack>
                     </CardContent>
-                  </Card>
+                  </Paper>
 
-                  <Grid container spacing={2}>
+                  <Grid container spacing={2} alignItems="stretch">
                     {institutionalUnits.map((row) => (
                       <Grid item xs={12} md={4} key={row.unit}>
-                        <Card variant="outlined" sx={{ height: '100%' }}>
+                        <Card variant="outlined" sx={{ borderRadius: 2 }}>
                           <CardContent>
                             <Stack spacing={1}>
                               <Typography variant="h6">{row.unit}</Typography>
@@ -414,7 +422,7 @@ export default function Reports() {
                     ))}
                   </Grid>
 
-                  <Card variant="outlined">
+                  <Paper variant="outlined" sx={{ borderRadius: 2 }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Módulo educacional (fase futura)
@@ -427,7 +435,7 @@ export default function Reports() {
                         ))}
                       </List>
                     </CardContent>
-                  </Card>
+                  </Paper>
                 </Stack>
               )}
 
@@ -451,7 +459,8 @@ export default function Reports() {
                     <MenuItem value="photo">Fotos</MenuItem>
                   </TextField>
 
-                  <List>
+                  <Paper variant="outlined" sx={{ borderRadius: 2 }}>
+                    <List sx={{ py: 0 }}>
                     {historyRows.map((row) => (
                       <ListItem key={`${row.timestamp}-${row.title}`} divider>
                         <ListItemText
@@ -465,7 +474,8 @@ export default function Reports() {
                         />
                       </ListItem>
                     ))}
-                  </List>
+                    </List>
+                  </Paper>
                 </Stack>
               )}
             </CardContent>
