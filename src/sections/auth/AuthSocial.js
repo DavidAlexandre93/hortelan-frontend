@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // material
 import { Stack, Button, Divider, Typography, Alert } from '@mui/material';
+import GoogleIcon from '@mui/icons-material/Google';
+import AppleIcon from '@mui/icons-material/Apple';
 // component
-import Iconify from '../../components/Iconify';
 import useAuth from '../../auth/useAuth';
 import { DEFAULT_AUTH_REDIRECT } from '../../utils/authRedirect';
 
@@ -41,11 +42,11 @@ export default function AuthSocial() {
 
       <Stack direction="row" spacing={2}>
         <Button fullWidth size="large" color="inherit" variant="outlined" onClick={() => handleSocialLogin('google')}>
-          <Iconify icon="eva:google-fill" color="#DF3E30" width={22} height={22} />
+          <GoogleIcon sx={{ color: '#DF3E30' }} />
         </Button>
 
         <Button fullWidth size="large" color="inherit" variant="outlined" onClick={() => handleSocialLogin('apple')}>
-          <Iconify icon="mdi:apple" color="#000000" width={22} height={22} />
+          <AppleIcon sx={{ color: '#000000' }} />
         </Button>
       </Stack>
 
