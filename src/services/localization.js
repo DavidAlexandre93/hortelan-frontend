@@ -123,6 +123,10 @@ const applyGoogleLanguage = (language) => {
     languageSyncAttempts = 0;
   }
 
+  if (pendingLanguage) {
+    scheduleLanguageSync();
+  }
+
   document.documentElement.setAttribute('lang', language);
 };
 
