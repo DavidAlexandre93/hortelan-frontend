@@ -19,15 +19,18 @@ const RootStyle = styled('div')({
 
 const MainStyle = styled('div')(({ theme }) => ({
   flexGrow: 1,
+  width: 0,
+  minWidth: 0,
   overflow: 'auto',
   minHeight: '100%',
-  paddingTop: APP_BAR_MOBILE + 24,
-  paddingLeft: theme.spacing(2),
-  paddingRight: theme.spacing(2),
+  paddingTop: APP_BAR_MOBILE + 16,
+  paddingLeft: theme.spacing(1.5),
+  paddingRight: theme.spacing(1.5),
   paddingBottom: theme.spacing(10),
   [theme.breakpoints.up('sm')]: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
+    paddingTop: APP_BAR_MOBILE + 24,
   },
   [theme.breakpoints.up('lg')]: {
     paddingTop: APP_BAR_DESKTOP + 24,

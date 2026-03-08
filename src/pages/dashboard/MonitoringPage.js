@@ -1071,7 +1071,7 @@ export default function DashboardApp() {
                 <Typography variant="h5" sx={{ mb: 2 }}>
                   Widgets personalizáveis do dashboard
                 </Typography>
-                <FormGroup row>
+                <FormGroup row sx={{ rowGap: 1, columnGap: 1, '& .MuiFormControlLabel-root': { mr: 1 } }}>
                   <FormControlLabel
                     control={<Switch checked={enabledWidgets.resumoHortas} onChange={onToggleWidget('resumoHortas')} />}
                     label="Resumo das hortas"
@@ -1390,8 +1390,13 @@ export default function DashboardApp() {
                     </Typography>
                     <Stack spacing={1}>
                       {automationDraft.condicoes.map((condicao, index) => (
-                        <Stack key={`condicao-${index}`} direction="row" spacing={1} alignItems="center">
-                          <FormControl size="small" sx={{ minWidth: 180 }}>
+                        <Stack
+                          key={`condicao-${index}`}
+                          direction={{ xs: 'column', sm: 'row' }}
+                          spacing={1}
+                          alignItems={{ xs: 'stretch', sm: 'center' }}
+                        >
+                          <FormControl size="small" sx={{ minWidth: { sm: 180 } }}>
                             <InputLabel id={`condicao-sensor-${index}`}>Sensor</InputLabel>
                             <Select
                               labelId={`condicao-sensor-${index}`}
@@ -1406,7 +1411,7 @@ export default function DashboardApp() {
                               ))}
                             </Select>
                           </FormControl>
-                          <FormControl size="small" sx={{ minWidth: 90 }}>
+                          <FormControl size="small" sx={{ minWidth: { sm: 90 } }}>
                             <InputLabel id={`condicao-operador-${index}`}>Op.</InputLabel>
                             <Select
                               labelId={`condicao-operador-${index}`}
@@ -1448,8 +1453,13 @@ export default function DashboardApp() {
                     </Typography>
                     <Stack spacing={1}>
                       {automationDraft.dependencias.map((dependencia, index) => (
-                        <Stack key={`dependencia-${index}`} direction="row" spacing={1} alignItems="center">
-                          <FormControl size="small" sx={{ minWidth: 180 }}>
+                        <Stack
+                          key={`dependencia-${index}`}
+                          direction={{ xs: 'column', sm: 'row' }}
+                          spacing={1}
+                          alignItems={{ xs: 'stretch', sm: 'center' }}
+                        >
+                          <FormControl size="small" sx={{ minWidth: { sm: 180 } }}>
                             <InputLabel id={`dependencia-sensor-${index}`}>Sensor</InputLabel>
                             <Select
                               labelId={`dependencia-sensor-${index}`}
@@ -1464,7 +1474,7 @@ export default function DashboardApp() {
                               ))}
                             </Select>
                           </FormControl>
-                          <FormControl size="small" sx={{ minWidth: 120 }}>
+                          <FormControl size="small" sx={{ minWidth: { sm: 120 } }}>
                             <InputLabel id={`dependencia-status-${index}`}>Status</InputLabel>
                             <Select
                               labelId={`dependencia-status-${index}`}
@@ -2138,7 +2148,7 @@ export default function DashboardApp() {
               <CardContent>
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }} sx={{ mb: 3 }}>
                   <Typography variant="h5">Planejamento de plantio inteligente</Typography>
-                  <FormControl sx={{ minWidth: 220 }}>
+                  <FormControl fullWidth sx={{ maxWidth: { md: 320 } }}>
                     <InputLabel id="regiao-label">Sazonalidade por região</InputLabel>
                     <Select labelId="regiao-label" label="Sazonalidade por região" value={region} onChange={(event) => setRegion(event.target.value)}>
                       {regionOptions.map((option) => (
