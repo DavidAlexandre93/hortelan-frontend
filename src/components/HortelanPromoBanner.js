@@ -78,9 +78,13 @@ export default function HortelanPromoBanner({ sx, className }) {
         position: 'relative',
         borderRadius: 2,
         overflow: 'hidden',
-        transform: 'perspective(1100px) rotateX(calc(var(--pointer-y) * -1)) rotateY(var(--pointer-x))',
+        width: '100%',
+        maxHeight: { xs: 220, sm: 280, md: 340 },
+        minHeight: { xs: 170, sm: 210, md: 260 },
+        transform: 'perspective(1100px) rotateX(calc(var(--pointer-y) * -0.35)) rotateY(calc(var(--pointer-x) * 0.35))',
         transition: 'transform 180ms ease-out, box-shadow 180ms ease-out',
         boxShadow: (theme) => theme.shadows[10],
+        bgcolor: 'background.paper',
         '&:hover': {
           boxShadow: (theme) => theme.shadows[16],
         },
@@ -102,7 +106,15 @@ export default function HortelanPromoBanner({ sx, className }) {
         className="promo-banner-media"
         src="/static/logos.png"
         alt="Banner Hortelan AgTech Ltda - Tecnologia Sustentável para Hortas Inteligentes"
-        sx={{ width: '100%', display: 'block', borderRadius: 2 }}
+        sx={{
+          width: '100%',
+          height: '100%',
+          display: 'block',
+          borderRadius: 2,
+          objectFit: 'contain',
+          objectPosition: 'center',
+          p: { xs: 1.5, sm: 2 },
+        }}
       />
       <Box
         className="promo-banner-rays"
