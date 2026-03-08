@@ -25,6 +25,7 @@ import {
   InputLabel,
   MenuItem,
   Paper,
+  Pagination,
   Select,
   Stack,
   Table,
@@ -170,8 +171,12 @@ function buildInitialActuators() {
 }
 
 export default function StatusPage() {
+  const MAX_STREAM_EVENTS = 100;
+  const STREAM_EVENTS_PER_PAGE = 10;
+
   const [selectedArea, setSelectedArea] = useState('all');
   const [events, setEvents] = useState([]);
+  const [eventPage, setEventPage] = useState(1);
   const [alerts, setAlerts] = useState(() => buildInitialAlerts());
   const [actuators, setActuators] = useState(() => buildInitialActuators());
   const [automationSuspendedAt, setAutomationSuspendedAt] = useState(null);
@@ -199,7 +204,7 @@ export default function StatusPage() {
         message: `${template.text} em ${device.name}`,
       };
 
-      setEvents((prev) => [event, ...prev].slice(0, 40));
+      setEvents((prev) => [event, ...prev].slice(0, MAX_STREAM_EVENTS));
 
       if (template.type === 'alert' && Math.random() > 0.45) {
         setAlerts((prev) => [
@@ -229,6 +234,21 @@ export default function StatusPage() {
     () => (selectedArea === 'all' ? alerts : alerts.filter((alert) => alert.areaId === selectedArea)),
     [alerts, selectedArea]
   );
+  const totalEventPages = Math.max(1, Math.ceil(filteredEvents.length / STREAM_EVENTS_PER_PAGE));
+  const paginatedEvents = useMemo(() => {
+    const start = (eventPage - 1) * STREAM_EVENTS_PER_PAGE;
+    return filteredEvents.slice(start, start + STREAM_EVENTS_PER_PAGE);
+  }, [filteredEvents, eventPage]);
+
+  useEffect(() => {
+    setEventPage(1);
+  }, [selectedArea]);
+
+  useEffect(() => {
+    if (eventPage > totalEventPages) {
+      setEventPage(totalEventPages);
+    }
+  }, [eventPage, totalEventPages]);
 
   const activeAlerts = filteredAlerts.filter((alert) => !alert.acknowledgedAt);
   const ackedAlerts = filteredAlerts.filter((alert) => alert.acknowledgedAt);
@@ -548,12 +568,12 @@ export default function StatusPage() {
                     </Box>
                     <Chip
                       icon={<AccessTimeRoundedIcon />}
-                      label={`Último: ${events[0] ? dateTimeFormatter.format(new Date(events[0].createdAt)) : '-'}`}
+                      label={`Último: ${events[0] ? dateTimeFormatter.format(new Date(events[0].createdAt)) : '-'} • ${filteredEvents.length}/${MAX_STREAM_EVENTS}`}
                     />
                   </Stack>
                   <Stack spacing={1.2}>
                     {filteredEvents.length === 0 && <Alert severity="info">Aguardando eventos...</Alert>}
-                    {filteredEvents.map((event) => (
+                    {paginatedEvents.map((event) => (
                       <Alert key={event.id} severity={event.severity === 'success' ? 'success' : event.severity === 'warning' ? 'warning' : 'info'}>
                         <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
                           <Typography variant="body2">
@@ -565,6 +585,17 @@ export default function StatusPage() {
                         </Stack>
                       </Alert>
                     ))}
+                    {filteredEvents.length > STREAM_EVENTS_PER_PAGE && (
+                      <Stack alignItems="center" sx={{ pt: 1 }}>
+                        <Pagination
+                          color="primary"
+                          count={totalEventPages}
+                          page={eventPage}
+                          onChange={(_, page) => setEventPage(page)}
+                          size="small"
+                        />
+                      </Stack>
+                    )}
                   </Stack>
                 </CardContent>
               </Card>
