@@ -34,7 +34,7 @@ const renderLazy = (Component, fallback = null) => (
 
 // ----------------------------------------------------------------------
 
-const LEGACY_ONBOARDING_ROUTES = new Set(['hortelan-360', 'hortelan360']);
+const LEGACY_ONBOARDING_ROUTES = new Set(['hortelan-360', 'hortelan360', 'hortelan_360', 'hortelan 360']);
 
 function LegacyOnboardingRedirect() {
   const { legacyPath = '' } = useParams();
@@ -64,6 +64,8 @@ export default function Router() {
         { path: 'blog', element: renderLazy(CommunityPage) },
         { path: 'hortelan-360', element: renderLazy(Hortelan360Page) },
         { path: 'hortelan360', element: <Navigate to="/dashboard/hortelan-360" replace /> },
+        { path: 'hortelan_360', element: <Navigate to="/dashboard/hortelan-360" replace /> },
+        { path: 'hortelan 360', element: <Navigate to="/dashboard/hortelan-360" replace /> },
         { path: 'onboarding/:legacyPath', element: <LegacyOnboardingRedirect /> },
         { path: 'onboarding', element: renderLazy(OnboardingPage) },
         { path: 'status', element: renderLazy(PlatformStatusPage) },
@@ -126,6 +128,14 @@ export default function Router() {
     },
     {
       path: '/hortelan360',
+      element: <Navigate to="/dashboard/hortelan-360" replace />,
+    },
+    {
+      path: '/hortelan_360',
+      element: <Navigate to="/dashboard/hortelan-360" replace />,
+    },
+    {
+      path: '/hortelan 360',
       element: <Navigate to="/dashboard/hortelan-360" replace />,
     },
     {
