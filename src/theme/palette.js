@@ -98,30 +98,43 @@ const CHART_COLORS = {
   red: ['#FF6C40', '#FF8F6D', '#FFBD98', '#FFF2D4'],
 };
 
-const palette = {
-  common: { black: '#000', white: '#fff' },
-  primary: { ...PRIMARY },
-  secondary: { ...SECONDARY },
-  info: { ...INFO },
-  success: { ...SUCCESS },
-  warning: { ...WARNING },
-  error: { ...ERROR },
-  grey: GREY,
-  gradients: GRADIENTS,
-  chart: CHART_COLORS,
-  divider: GREY[500_24],
-  text: { primary: GREY[800], secondary: GREY[600], disabled: GREY[500] },
-  background: { paper: '#fff', default: GREY[100], neutral: GREY[200] },
-  action: {
-    active: GREY[600],
-    hover: GREY[500_8],
-    selected: GREY[500_16],
-    disabled: GREY[500_80],
-    disabledBackground: GREY[500_24],
-    focus: GREY[500_24],
-    hoverOpacity: 0.08,
-    disabledOpacity: 0.48,
-  },
-};
+function getPalette(mode = 'light') {
+  const isLight = mode === 'light';
 
-export default palette;
+  return {
+    mode,
+    common: { black: '#000', white: '#fff' },
+    primary: { ...PRIMARY },
+    secondary: { ...SECONDARY },
+    info: { ...INFO },
+    success: { ...SUCCESS },
+    warning: { ...WARNING },
+    error: { ...ERROR },
+    grey: GREY,
+    gradients: GRADIENTS,
+    chart: CHART_COLORS,
+    divider: GREY[500_24],
+    text: {
+      primary: isLight ? GREY[800] : '#fff',
+      secondary: isLight ? GREY[600] : GREY[500],
+      disabled: GREY[500],
+    },
+    background: {
+      paper: isLight ? '#fff' : GREY[800],
+      default: isLight ? GREY[100] : GREY[900],
+      neutral: isLight ? GREY[200] : alpha(GREY[500], 0.12),
+    },
+    action: {
+      active: isLight ? GREY[600] : GREY[500],
+      hover: GREY[500_8],
+      selected: GREY[500_16],
+      disabled: GREY[500_80],
+      disabledBackground: GREY[500_24],
+      focus: GREY[500_24],
+      hoverOpacity: 0.08,
+      disabledOpacity: 0.48,
+    },
+  };
+}
+
+export default getPalette;
