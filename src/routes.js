@@ -26,22 +26,7 @@ const IntegrationsOperationsPage = lazy(() => import('./pages/dashboard/Integrat
 const IntegrationsPage = lazy(() => import('./pages/dashboard/IntegrationsPage'));
 const LoginForm = lazy(() => import('./sections/auth/login').then((module) => ({ default: module.LoginForm })));
 
-const lazyModuleFallback = (
-  <div
-    style={{
-      minHeight: '100vh',
-      display: 'grid',
-      placeItems: 'center',
-      background: '#0b1220',
-      color: '#ffffff',
-      fontWeight: 700,
-    }}
-  >
-    Carregando módulo...
-  </div>
-);
-
-const renderLazy = (Component, fallback = lazyModuleFallback) => (
+const renderLazy = (Component, fallback = null) => (
   <Suspense fallback={fallback}>
     <Component />
   </Suspense>
