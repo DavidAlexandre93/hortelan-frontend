@@ -1079,7 +1079,7 @@ export default function DashboardApp() {
 
   return (
     <Page title="Dashboard">
-      <Container maxWidth="xl">
+      <Container maxWidth={false} sx={{ px: { xs: 2, md: 3 } }}>
         <Typography variant="h4" sx={{ mb: 5 }}>
           Welcome {user?.name || 'User'} to the Hortelan AgTech Ltda System
         </Typography>
