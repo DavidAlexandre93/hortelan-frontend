@@ -304,7 +304,7 @@ export default function LoginForm() {
     <Page title={isRegisterMode ? 'Cadastro' : 'Login'}>
       <RootStyle>
         <HeaderStyle>
-          <Logo />
+          <Logo sx={{ width: 120, height: 120 }} />
           {smUp && (
             <Typography variant="body2" sx={{ mt: { md: -2 } }}>
               {isRegisterMode ? 'Já tem uma conta? ' : 'Não tem uma conta? '}
