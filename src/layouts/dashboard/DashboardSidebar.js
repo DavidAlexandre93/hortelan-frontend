@@ -1,9 +1,10 @@
 import PropTypes from 'prop-types';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 // material
 import { styled } from '@mui/material/styles';
-import { Box, Link, Button, Drawer, Typography, Avatar, Stack } from '@mui/material';
+import { Box, Link, Button, Drawer, Typography, Avatar, Stack, Paper, TextField } from '@mui/material';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 // hooks
 import useResponsive from '../../hooks/useResponsive';
 // components
@@ -16,11 +17,7 @@ import useAuth from '../../auth/useAuth';
 
 // ----------------------------------------------------------------------
 
-const HORTELAN_SOCIAL_LINKS = [
-  { label: 'Instagram', href: 'https://www.instagram.com/hortelan_agtech/' },
-  { label: 'YouTube', href: 'https://www.youtube.com/@HortelanAgTechLtda' },
-  { label: 'E-mail', href: 'mailto:hortelanagtechltda@gmail.com' },
-];
+const BOT_GREETING = 'Olá! Eu sou o Hortelan Bot 🤖. Posso ajudar com monitoramento, irrigação, sensores e operações da plataforma.';
 
 const DRAWER_WIDTH = 280;
 
@@ -52,6 +49,41 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
   const isDesktop = useResponsive('up', 'lg');
   const { user } = useAuth();
   const mobileDrawerWidth = { xs: '86vw', sm: 320 };
+  const [prompt, setPrompt] = useState('');
+  const [messages, setMessages] = useState([{ role: 'bot', content: BOT_GREETING }]);
+
+  const hortelanReply = useMemo(
+    () => (question) => {
+      const normalized = question.toLowerCase();
+
+      if (normalized.includes('irrig')) {
+        return 'Para irrigação, acesse Monitoramento > Irrigação e valide umidade do solo + agenda automática antes de confirmar os ciclos.';
+      }
+
+      if (normalized.includes('sensor') || normalized.includes('dispositivo')) {
+        return 'No painel de dispositivos, confira firmware, conexão e bateria. Se quiser, posso te guiar no checklist de diagnóstico.';
+      }
+
+      if (normalized.includes('relatório') || normalized.includes('relatorio')) {
+        return 'Você pode gerar relatórios em Dashboard > Relatórios para acompanhar consumo, eventos críticos e desempenho por período.';
+      }
+
+      return 'Entendi! Posso te ajudar com irrigação, alertas, sensores, relatórios e onboarding da plataforma Hortelan. Me conte seu objetivo.';
+    },
+    []
+  );
+
+  const handleSendMessage = () => {
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt) return;
+
+    setMessages((prev) => [
+      ...prev,
+      { role: 'user', content: trimmedPrompt },
+      { role: 'bot', content: hortelanReply(trimmedPrompt) },
+    ]);
+    setPrompt('');
+  };
 
   useEffect(() => {
     if (isOpenSidebar) {
@@ -104,17 +136,56 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
               Precisa de ajuda com a sua operação?
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Fale com o time Hortelan AgTech Ltda por nossos canais oficiais.
+              Converse direto com o nosso chat bot de IA especializado na plataforma Hortelan.
             </Typography>
           </Box>
 
-          <Stack spacing={1.25} sx={{ width: 1 }}>
-            {HORTELAN_SOCIAL_LINKS.map((social) => (
-              <Button key={social.label} href={social.href} target="_blank" rel="noopener noreferrer" variant="contained" fullWidth>
-                {social.label}
+          <Paper variant="outlined" sx={{ width: 1, p: 1.25, borderRadius: 2 }}>
+            <Stack spacing={1.25}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <SmartToyIcon color="primary" fontSize="small" />
+                <Typography variant="subtitle2">Hortelan Bot</Typography>
+              </Stack>
+
+              <Stack spacing={0.75} sx={{ maxHeight: 180, overflowY: 'auto', pr: 0.5 }}>
+                {messages.map((message, index) => (
+                  <Box
+                    key={`${message.role}-${index}`}
+                    sx={{
+                      alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
+                      bgcolor: message.role === 'user' ? 'primary.main' : 'grey.200',
+                      color: message.role === 'user' ? 'primary.contrastText' : 'text.primary',
+                      px: 1,
+                      py: 0.75,
+                      borderRadius: 1.25,
+                      maxWidth: '92%',
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ display: 'block', whiteSpace: 'pre-wrap' }}>
+                      {message.content}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+
+              <TextField
+                size="small"
+                placeholder="Ex.: Como configuro alertas de irrigação?"
+                value={prompt}
+                onChange={(event) => setPrompt(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+              />
+
+              <Button onClick={handleSendMessage} variant="contained" fullWidth>
+                Enviar para o Chat Bot
               </Button>
-            ))}
-          </Stack>
+            </Stack>
+          </Paper>
         </Stack>
       </Box>
     </Scrollbar>
