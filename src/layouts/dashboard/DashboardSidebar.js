@@ -100,7 +100,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
       }}
     >
       <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
-        <Logo />
+        <Logo sx={{ width: 80, height: 80 }} />
       </Box>
 
       <Box sx={{ mb: 5, mx: 2.5 }}>
