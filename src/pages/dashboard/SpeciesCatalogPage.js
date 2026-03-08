@@ -534,88 +534,92 @@ export default function ProductsMarketplace() {
           </Grid>
 
           <Grid item xs={12} md={7}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Checkout
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Endereço de entrega"
-                      value={checkout.endereco}
-                      onChange={(event) => setCheckout((prev) => ({ ...prev, endereco: event.target.value }))}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Método de entrega</InputLabel>
-                      <Select
-                        value={checkout.entrega}
-                        label="Método de entrega"
-                        onChange={(event) => setCheckout((prev) => ({ ...prev, entrega: event.target.value }))}
-                      >
-                        <MenuItem value="padrão">Padrão</MenuItem>
-                        <MenuItem value="expresso">Expresso</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Meio de pagamento</InputLabel>
-                      <Select
-                        value={checkout.pagamento}
-                        label="Meio de pagamento"
-                        onChange={(event) => setCheckout((prev) => ({ ...prev, pagamento: event.target.value }))}
-                      >
-                        <MenuItem value="pix">Pix</MenuItem>
-                        <MenuItem value="cartão">Cartão</MenuItem>
-                        <MenuItem value="boleto">Boleto</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                </Grid>
-                <Alert icon={<PaidIcon />} severity="info" sx={{ mt: 2 }}>
-                  Resumo do pedido: {cartItemsDetailed.length} itens, total de R$ {total.toFixed(2)}.
-                </Alert>
-                <Button fullWidth className="gsap-glow-button" variant="contained" sx={{ mt: 2 }}>
-                  Confirmar pedido
-                </Button>
-              </CardContent>
-            </Card>
+            <Grid container spacing={3} alignItems="stretch" sx={{ height: '100%' }}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ height: '100%' }}>
+                  <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}>
+                    <Typography variant="h6" sx={{ mb: 2 }}>
+                      Checkout
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Endereço de entrega"
+                          value={checkout.endereco}
+                          onChange={(event) => setCheckout((prev) => ({ ...prev, endereco: event.target.value }))}
+                        />
+                      </Grid>
+                      <Grid item xs={6}>
+                        <FormControl fullWidth>
+                          <InputLabel>Método de entrega</InputLabel>
+                          <Select
+                            value={checkout.entrega}
+                            label="Método de entrega"
+                            onChange={(event) => setCheckout((prev) => ({ ...prev, entrega: event.target.value }))}
+                          >
+                            <MenuItem value="padrão">Padrão</MenuItem>
+                            <MenuItem value="expresso">Expresso</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <FormControl fullWidth>
+                          <InputLabel>Meio de pagamento</InputLabel>
+                          <Select
+                            value={checkout.pagamento}
+                            label="Meio de pagamento"
+                            onChange={(event) => setCheckout((prev) => ({ ...prev, pagamento: event.target.value }))}
+                          >
+                            <MenuItem value="pix">Pix</MenuItem>
+                            <MenuItem value="cartão">Cartão</MenuItem>
+                            <MenuItem value="boleto">Boleto</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                    <Alert icon={<PaidIcon />} severity="info" sx={{ mt: 2 }}>
+                      Resumo do pedido: {cartItemsDetailed.length} itens, total de R$ {total.toFixed(2)}.
+                    </Alert>
+                    <Button fullWidth className="gsap-glow-button" variant="contained" sx={{ mt: 2 }}>
+                      Confirmar pedido
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Card sx={{ height: '100%' }}>
+                  <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                    <Typography variant="h6" sx={{ mb: 1 }}>
+                      Área do cliente (pedidos)
+                    </Typography>
+                    {orders.map((order) => (
+                      <Paper key={order.id} variant="outlined" sx={{ p: 1.5, mb: 1.5, borderRadius: 2 }}>
+                        <Typography variant="subtitle2">{order.id}</Typography>
+                        <Typography variant="body2">Itens: {order.itens}</Typography>
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+                          <LocalShippingIcon fontSize="small" />
+                          <Typography variant="body2">Status: {order.status}</Typography>
+                        </Stack>
+                        <Typography variant="body2">Rastreamento: {order.rastreio}</Typography>
+                        <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                          <Button size="small" variant="outlined">
+                            Recompra rápida
+                          </Button>
+                          <Button size="small">Solicitar suporte/troca</Button>
+                        </Stack>
+                      </Paper>
+                    ))}
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
           </Grid>
         </Grid>
 
         <Grid className="gsap-reveal-section" container spacing={3} alignItems="stretch" sx={{ mt: 1, mb: 4 }}>
-          <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <Typography variant="h6" sx={{ mb: 1 }}>
-                  Área do cliente (pedidos)
-                </Typography>
-                {orders.map((order) => (
-                  <Paper key={order.id} variant="outlined" sx={{ p: 1.5, mb: 1.5, borderRadius: 2 }}>
-                    <Typography variant="subtitle2">{order.id}</Typography>
-                    <Typography variant="body2">Itens: {order.itens}</Typography>
-                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
-                      <LocalShippingIcon fontSize="small" />
-                      <Typography variant="body2">Status: {order.status}</Typography>
-                    </Stack>
-                    <Typography variant="body2">Rastreamento: {order.rastreio}</Typography>
-                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                      <Button size="small" variant="outlined">
-                        Recompra rápida
-                      </Button>
-                      <Button size="small">Solicitar suporte/troca</Button>
-                    </Stack>
-                  </Paper>
-                ))}
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12}>
             <Card sx={{ height: '100%' }}>
               <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <Typography variant="h6" sx={{ mb: 1 }}>
