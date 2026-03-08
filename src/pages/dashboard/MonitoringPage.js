@@ -35,6 +35,7 @@ import Page from '../../components/Page';
 import Iconify from '../../components/Iconify';
 import BlockchainPanel from '../../components/BlockchainPanel';
 import HortelanPromoBanner from '../../components/HortelanPromoBanner';
+import useAuth from '../../auth/useAuth';
 // sections
 import {
   AppTasks,
@@ -319,6 +320,7 @@ const historicoClimaticoCorrelacionado = [
 
 export default function DashboardApp() {
   const theme = useTheme();
+  const { user } = useAuth();
   const formatDateInput = (date) => date.toISOString().slice(0, 10);
   const today = new Date();
   const todayString = formatDateInput(today);
@@ -1060,7 +1062,7 @@ export default function DashboardApp() {
     <Page title="Dashboard">
       <Container maxWidth="xl">
         <Typography variant="h4" sx={{ mb: 5 }}>
-          Welcome User to the Hortelan AgTech Ltda System
+          Welcome {user?.name || 'User'} to the Hortelan AgTech Ltda System
         </Typography>
 
         <HortelanPromoBanner sx={{ mb: 4 }} />
