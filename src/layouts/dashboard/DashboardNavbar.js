@@ -28,10 +28,11 @@ const APPBAR_MOBILE = 64;
 const APPBAR_DESKTOP = 92;
 
 const RootStyle = styled(AppBar)(({ theme }) => ({
-  boxShadow: 'none',
-  backdropFilter: 'blur(6px)',
-  WebkitBackdropFilter: 'blur(6px)', // Fix on Mobile
-  backgroundColor: alpha(theme.palette.background.default, 0.72),
+  backdropFilter: 'blur(14px)',
+  WebkitBackdropFilter: 'blur(14px)', // Fix on Mobile
+  background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.88)} 0%, ${alpha(theme.palette.primary.lighter, 0.45)} 48%, ${alpha(theme.palette.info.lighter, 0.36)} 100%)`,
+  borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
+  boxShadow: `0 10px 28px ${alpha(theme.palette.info.dark, 0.08)}`,
   [theme.breakpoints.up('lg')]: {
     width: `calc(100% - ${DRAWER_WIDTH + 1}px)`,
   },
@@ -139,6 +140,26 @@ export default function DashboardNavbar({ onOpenSidebar }) {
 
         <Searchbar />
         <Box sx={{ flexGrow: 1 }} />
+
+        <Box
+          sx={(theme) => ({
+            display: { xs: 'none', md: 'flex' },
+            alignItems: 'center',
+            px: 1.8,
+            py: 0.7,
+            borderRadius: 999,
+            mr: 1.5,
+            color: 'text.secondary',
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.18)}`,
+            background: `linear-gradient(120deg, ${alpha(theme.palette.primary.light, 0.12)}, ${alpha(theme.palette.info.light, 0.12)})`,
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: 0.6,
+            textTransform: 'uppercase',
+          })}
+        >
+          AgroTech Intelligence
+        </Box>
 
         <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
           <Mode />
