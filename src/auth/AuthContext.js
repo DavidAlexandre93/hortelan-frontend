@@ -46,8 +46,19 @@ function isApiBaseUrlLikelyMisconfigured(error) {
   return error?.status === 404 || error?.status === 405;
 }
 
+function isRunningLocallyWithVite() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const currentHost = window.location?.hostname || '';
+  const isLocalEnvironment = ['localhost', '127.0.0.1', '0.0.0.0'].includes(currentHost);
+
+  return Boolean(import.meta.env.DEV) && isLocalEnvironment;
+}
+
 function canUseDemoAuthFallback(error) {
-  if (ENABLE_DEMO_AUTH) {
+  if (ENABLE_DEMO_AUTH || isRunningLocallyWithVite()) {
     return true;
   }
 
