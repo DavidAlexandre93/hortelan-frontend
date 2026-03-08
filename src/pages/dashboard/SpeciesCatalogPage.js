@@ -296,7 +296,7 @@ export default function ProductsMarketplace() {
           ))}
         </Stack>
 
-        <Paper className="gsap-reveal-section" sx={{ p: 2, mb: 3 }}>
+        <Paper className="gsap-reveal-section" sx={{ p: { xs: 2, md: 3 }, mb: 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
               <TextField
@@ -367,25 +367,35 @@ export default function ProductsMarketplace() {
           </Grid>
         </Paper>
 
-        <Grid className="gsap-story-section" container spacing={3}>
+        <Grid className="gsap-story-section" container spacing={3} alignItems="stretch">
           <Grid item xs={12} md={5}>
-            <Card className="gsap-story-card">
-              <CardContent>
+            <Card className="gsap-story-card" sx={{ height: '100%' }}>
+              <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, height: '100%' }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>
                   Produtos ({filteredProducts.length})
                 </Typography>
                 <Stack spacing={1.5}>
                   {filteredProducts.map((product) => (
-                    <Paper key={product.id} className="gsap-product-row" variant="outlined" sx={{ p: 1.5, transition: 'transform 220ms ease' }}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
-                        <Box>
+                    <Paper
+                      key={product.id}
+                      className="gsap-product-row"
+                      variant="outlined"
+                      sx={{ p: 1.5, transition: 'transform 220ms ease', borderRadius: 2 }}
+                    >
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        justifyContent="space-between"
+                        alignItems={{ xs: 'flex-start', sm: 'center' }}
+                        spacing={1.5}
+                      >
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Typography variant="subtitle2">{product.nome}</Typography>
                           <Typography variant="body2" color="text.secondary">
                             {product.categoria} • {product.marca}
                           </Typography>
                           <Typography variant="body2">R$ {product.preco.toFixed(2)}</Typography>
                         </Box>
-                        <Stack direction="row" spacing={1}>
+                        <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
                           <Button size="small" className="gsap-glow-button" onClick={() => setSelectedProductId(product.id)}>
                             Detalhes
                           </Button>
@@ -403,8 +413,8 @@ export default function ProductsMarketplace() {
 
           <Grid item xs={12} md={7}>
             {selectedProduct && (
-              <Card className="gsap-story-card">
-                <CardContent>
+              <Card className="gsap-story-card" sx={{ height: '100%' }}>
+                <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}>
                   <Typography variant="h6" sx={{ mb: 1 }}>
                     Página de produto
                   </Typography>
@@ -456,24 +466,30 @@ export default function ProductsMarketplace() {
           </Grid>
         </Grid>
 
-        <Grid className="gsap-reveal-section" container spacing={3} sx={{ mt: 1 }}>
+        <Grid className="gsap-reveal-section" container spacing={3} alignItems="stretch" sx={{ mt: 1 }}>
           <Grid item xs={12} md={5}>
-            <Card>
-              <CardContent>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
                   <ShoppingCartCheckoutIcon />
                   <Typography variant="h6">Carrinho</Typography>
                 </Stack>
-                <Stack spacing={1.5}>
+                <Stack spacing={1.5} sx={{ flexGrow: 1 }}>
                   {cartItemsDetailed.map((item) => (
-                    <Paper key={item.id} variant="outlined" sx={{ p: 1.5 }}>
+                    <Paper key={item.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Typography variant="subtitle2">{item.product?.nome}</Typography>
                         <Button color="error" size="small" onClick={() => updateQuantity(item.id, 0)}>
                           Remover
                         </Button>
                       </Stack>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        justifyContent="space-between"
+                        alignItems={{ xs: 'flex-start', sm: 'center' }}
+                        spacing={1}
+                        sx={{ mt: 1 }}
+                      >
                         <TextField
                           type="number"
                           size="small"
@@ -518,8 +534,8 @@ export default function ProductsMarketplace() {
           </Grid>
 
           <Grid item xs={12} md={7}>
-            <Card>
-              <CardContent>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>
                   Checkout
                 </Typography>
@@ -571,15 +587,15 @@ export default function ProductsMarketplace() {
           </Grid>
         </Grid>
 
-        <Grid className="gsap-reveal-section" container spacing={3} sx={{ mt: 1, mb: 4 }}>
+        <Grid className="gsap-reveal-section" container spacing={3} alignItems="stretch" sx={{ mt: 1, mb: 4 }}>
           <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <Typography variant="h6" sx={{ mb: 1 }}>
                   Área do cliente (pedidos)
                 </Typography>
                 {orders.map((order) => (
-                  <Paper key={order.id} variant="outlined" sx={{ p: 1.5, mb: 1.5 }}>
+                  <Paper key={order.id} variant="outlined" sx={{ p: 1.5, mb: 1.5, borderRadius: 2 }}>
                     <Typography variant="subtitle2">{order.id}</Typography>
                     <Typography variant="body2">Itens: {order.itens}</Typography>
                     <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
@@ -600,8 +616,8 @@ export default function ProductsMarketplace() {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <Typography variant="h6" sx={{ mb: 1 }}>
                   Recomendações contextuais
                 </Typography>
