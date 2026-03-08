@@ -2600,6 +2600,16 @@ export default function DashboardApp() {
             </Card>
           </Grid>
 
+          <Grid item xs={12}>
+            <Divider sx={{ my: 1 }} />
+            <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>
+              Painel analítico consolidado
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Organização única dos dashboards com indicadores operacionais, sensores, custos e evolução das hortas.
+            </Typography>
+          </Grid>
+
           {sensorWidgets.map((sensor) => (
             <Grid key={sensor.title} item xs={12} sm={6} md={3}>
               <AppWidgetSummary title={sensor.title} total={sensor.total} color={sensor.color} icon1={sensor.icon1} />
@@ -2608,8 +2618,8 @@ export default function DashboardApp() {
 
           <Grid item xs={12} md={6} lg={8}>
             <AppWebsiteVisits
-              title="Garden performance analysis"
-              subheader="(+47%) than last year"
+              title="Desempenho das hortas"
+              subheader="Comparativo de produtividade mensal"
               chartLabels={[
                 '01/01/2022',
                 '02/01/2022',
@@ -2625,19 +2635,19 @@ export default function DashboardApp() {
               ]}
               chartData={[
                 {
-                  name: 'Garden01',
+                  name: 'Estufa A',
                   type: 'column',
                   fill: 'solid',
                   data: [23, 11, 22, 27, 13, 22, 37, 21, 44, 22, 30],
                 },
                 {
-                  name: 'Garden02',
+                  name: 'Canteiro B',
                   type: 'area',
                   fill: 'gradient',
                   data: [44, 55, 76, 67, 22, 43, 21, 41, 56, 27, 43],
                 },
                 {
-                  name: 'Garden03',
+                  name: 'Hidroponia',
                   type: 'line',
                   fill: 'solid',
                   data: [30, 25, 36, 30, 45, 35, 64, 52, 59, 36, 39],
@@ -2648,12 +2658,12 @@ export default function DashboardApp() {
 
           <Grid item xs={12} md={6} lg={4}>
             <AppCurrentVisits
-              title="Current gardens"
+              title="Distribuição de produção por horta"
               chartData={[
-                { label: 'Garden01', value: 4344 },
-                { label: 'Garden02', value: 5435 },
-                { label: 'Garden03', value: 1443 },
-                { label: 'Garden04', value: 4443 },
+                { label: 'Estufa A', value: 4344 },
+                { label: 'Canteiro B', value: 5435 },
+                { label: 'Hidroponia', value: 1443 },
+                { label: 'Jardim Vertical', value: 4443 },
               ]}
               chartColors={[
                 theme.palette.primary.main,
@@ -2666,19 +2676,19 @@ export default function DashboardApp() {
 
           <Grid item xs={12} md={6} lg={8}>
             <AppConversionRates
-              title="Total cost gardens"
-              subheader="(+47%) than last month"
+              title="Custos operacionais por horta"
+              subheader="Comparativo por unidade monitorada"
               chartData={[
-                { label: 'Garden01', value: 400 },
-                { label: 'Garden02', value: 430 },
-                { label: 'Garden03', value: 448 },
-                { label: 'Garden04', value: 470 },
-                { label: 'Garden05', value: 540 },
-                { label: 'Garden06', value: 580 },
-                { label: 'Garden07', value: 690 },
-                { label: 'Garden08', value: 1100 },
-                { label: 'Garden09', value: 1200 },
-                { label: 'Garden10', value: 1380 },
+                { label: 'Estufa A', value: 400 },
+                { label: 'Canteiro B', value: 430 },
+                { label: 'Hidroponia', value: 448 },
+                { label: 'Jardim Vertical', value: 470 },
+                { label: 'Mudas', value: 540 },
+                { label: 'Irrigação', value: 580 },
+                { label: 'Nutrientes', value: 690 },
+                { label: 'Manutenção', value: 1100 },
+                { label: 'Energia', value: 1200 },
+                { label: 'Logística', value: 1380 },
               ]}
             />
           </Grid>
@@ -2698,7 +2708,7 @@ export default function DashboardApp() {
               ]}
               chartData={[
                 { name: 'Estufa A', data: [82, 71, 65, 78, 73, 52, 69, 48] },
-                { name: 'Estufa B', data: [74, 67, 61, 70, 69, 45, 72, 41] },
+                { name: 'Canteiro B', data: [74, 67, 61, 70, 69, 45, 72, 41] },
                 { name: 'Hidroponia', data: [88, 69, 72, 66, 76, 81, 77, 64] },
               ]}
               chartColors={[...Array(8)].map(() => theme.palette.text.secondary)}
@@ -2707,11 +2717,11 @@ export default function DashboardApp() {
 
           <Grid item xs={12} md={6} lg={8}>
             <AppNewsUpdate
-              title="Relevant community information"
+              title="Atualizações e comunicados relevantes"
               list={[...Array(5)].map((_, index) => ({
                 id: faker.string.uuid(),
-                title: 'Relevant post in community',
-                description: 'Visit the community to learn more',
+                title: 'Atualização operacional registrada',
+                description: 'Acompanhe os detalhes no painel de monitoramento',
                 image: `/static/mock-images/covers/cover_${index + 1}.jpg`,
                 postedAt: faker.date.recent(),
               }))}
@@ -2720,15 +2730,15 @@ export default function DashboardApp() {
 
           <Grid item xs={12} md={6} lg={4}>
             <AppOrderTimeline
-              title="Garden Timeline"
+              title="Linha do tempo operacional"
               list={[...Array(5)].map((_, index) => ({
                 id: faker.string.uuid(),
                 title: [
-                  'Garden01 registered',
-                  'Purchase of accessories',
-                  'Support request made',
-                  'Garden02 registered',
-                  'Post made in community',
+                  'Estufa A registrada',
+                  'Compra de insumos concluída',
+                  'Chamado técnico aberto',
+                  'Canteiro B atualizado',
+                  'Checklist diário finalizado',
                 ][index],
                 type: `order${index + 1}`,
                 time: faker.date.past(),
@@ -2738,25 +2748,25 @@ export default function DashboardApp() {
 
           <Grid item xs={12} md={6} lg={4}>
             <AppTrafficBySite
-              title="Infrastructure monitoring"
+              title="Monitoramento de infraestrutura"
               list={[
                 {
-                  name: 'Water level',
+                  name: 'Nível de água',
                   value: 10,
                   icon: <Iconify icon={'icon-park:water-level'} color="#1877F2" width={32} height={32} />,
                 },
                 {
-                  name: 'Battery level',
+                  name: 'Nível da bateria',
                   value: 100,
                   icon: <Iconify icon={'emojione:battery'} color="#DF3E30" width={32} height={32} />,
                 },
                 {
-                  name: 'Pest Alert',
+                  name: 'Alertas de praga',
                   value: 0,
                   icon: <Iconify icon={'icon-park:bug'} color="#006097" width={32} height={32} />,
                 },
                 {
-                  name: 'Notifications',
+                  name: 'Notificações',
                   value: 0,
                   icon: <Iconify icon={'streamline-emojis:bell'} color="#1C9CEA" width={32} height={32} />,
                 },
@@ -2766,13 +2776,13 @@ export default function DashboardApp() {
 
           <Grid item xs={12} md={6} lg={8}>
             <AppTasks
-              title="Tasks to be carried out in the Garden"
+              title="Tarefas planejadas da operação"
               list={[
-                { id: '1', label: 'Schedule a professional to carry out pruning' },
-                { id: '2', label: 'Make an appointment with a professional to carry out pest control' },
-                { id: '3', label: 'Move plants to another location' },
-                { id: '4', label: 'Set soil humidity to 70%' },
-                { id: '5', label: 'Change water in the reservoir' },
+                { id: '1', label: 'Agendar poda preventiva para a Estufa A' },
+                { id: '2', label: 'Programar controle de pragas na Hidroponia' },
+                { id: '3', label: 'Reorganizar plantas no Jardim Vertical' },
+                { id: '4', label: 'Ajustar umidade do solo para 70%' },
+                { id: '5', label: 'Realizar troca de água do reservatório' },
               ]}
             />
           </Grid>

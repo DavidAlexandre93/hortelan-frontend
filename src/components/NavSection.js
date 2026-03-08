@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { NavLink as RouterLink, matchPath, useLocation } from 'react-router-dom';
 // material
 import { alpha, useTheme, styled } from '@mui/material/styles';
-import { Box, List, Collapse, ListItemText, ListItemIcon, ListItemButton } from '@mui/material';
+import { Box, List, Collapse, ListItemText, ListItemIcon, ListItemButton, Typography } from '@mui/material';
 //
 import Iconify from './Iconify';
 
@@ -14,12 +14,14 @@ const ListItemStyle = styled((props) => <ListItemButton disableGutters {...props
   height: 48,
   position: 'relative',
   textTransform: 'capitalize',
+  alignItems: 'center',
   color: theme.palette.text.secondary,
   borderRadius: theme.shape.borderRadius,
 }));
 
 const ListItemIconStyle = styled(ListItemIcon)({
   width: 22,
+  minWidth: 22,
   height: 22,
   color: 'inherit',
   display: 'flex',
@@ -68,7 +70,10 @@ function NavItem({ item, active }) {
           }}
         >
           <ListItemIconStyle>{icon && icon}</ListItemIconStyle>
-          <ListItemText disableTypography primary={title} />
+          <ListItemText
+            primary={<Typography variant="body2">{title}</Typography>}
+            sx={{ my: 0, ml: 1.5 }}
+          />
           {info && info}
           <Iconify
             icon={open ? 'eva:arrow-ios-downward-fill' : 'eva:arrow-ios-forward-fill'}
@@ -110,7 +115,10 @@ function NavItem({ item, active }) {
                       }}
                     />
                   </ListItemIconStyle>
-                  <ListItemText disableTypography primary={title} />
+                  <ListItemText
+                    primary={<Typography variant="body2">{title}</Typography>}
+                    sx={{ my: 0, ml: 1.5 }}
+                  />
                 </ListItemStyle>
               );
             })}
@@ -129,7 +137,10 @@ function NavItem({ item, active }) {
       }}
     >
       <ListItemIconStyle>{icon && icon}</ListItemIconStyle>
-      <ListItemText disableTypography primary={title} />
+      <ListItemText
+        primary={<Typography variant="body2">{title}</Typography>}
+        sx={{ my: 0, ml: 1.5 }}
+      />
       {info && info}
     </ListItemStyle>
   );
