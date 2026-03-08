@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 // material
 import { alpha, styled } from '@mui/material/styles';
-import { Box, Stack, AppBar, Toolbar, IconButton } from '@mui/material';
+import { Box, Stack, AppBar, Toolbar, IconButton, Tooltip } from '@mui/material';
 // components
 import Iconify from '../../components/Iconify';
 //
@@ -34,6 +34,13 @@ const ToolbarStyle = styled(Toolbar)(({ theme }) => ({
   },
 }));
 
+const languageFlags = [
+  { code: 'EUA', icon: 'circle-flags:us' },
+  { code: 'Brasil', icon: 'circle-flags:br' },
+  { code: 'França', icon: 'circle-flags:fr' },
+  { code: 'Espanha', icon: 'circle-flags:es' },
+];
+
 // ----------------------------------------------------------------------
 
 DashboardNavbar.propTypes = {
@@ -53,6 +60,24 @@ export default function DashboardNavbar({ onOpenSidebar }) {
 
         <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
           <Mode />
+          <Stack direction="row" alignItems="center" spacing={0.8} sx={{ mr: { xs: 0.5, sm: 0 } }}>
+            {languageFlags.map((flag) => (
+              <Tooltip key={flag.code} title={flag.code}>
+                <Box
+                  sx={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: '50%',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Iconify icon={flag.icon} width={24} height={24} />
+                </Box>
+              </Tooltip>
+            ))}
+          </Stack>
           <Box sx={{ display: { xs: 'none', md: 'inline-flex' } }}>
             <NotificationsPopover />
           </Box>
