@@ -40,6 +40,12 @@ const RootStyle = styled(AppBar)(({ theme }) => ({
 
 const ToolbarStyle = styled(Toolbar)(({ theme }) => ({
   minHeight: APPBAR_MOBILE,
+  paddingLeft: theme.spacing(1),
+  paddingRight: theme.spacing(1),
+  [theme.breakpoints.up('sm')]: {
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
+  },
   [theme.breakpoints.up('lg')]: {
     minHeight: APPBAR_DESKTOP,
     padding: theme.spacing(0, 5),
@@ -138,7 +144,9 @@ export default function DashboardNavbar({ onOpenSidebar }) {
           <Iconify icon="eva:menu-2-fill" />
         </IconButton>
 
-        <Searchbar />
+        <Box sx={{ minWidth: 0, flexShrink: 1 }}>
+          <Searchbar />
+        </Box>
         <Box sx={{ flexGrow: 1 }} />
 
         <Box
@@ -161,7 +169,7 @@ export default function DashboardNavbar({ onOpenSidebar }) {
           AgroTech Intelligence
         </Box>
 
-        <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
+        <Stack direction="row" alignItems="center" spacing={{ xs: 0.25, sm: 1.5 }} sx={{ flexShrink: 0 }}>
           <Mode />
           <LanguageFlags />
           <Box sx={{ display: { xs: 'none', md: 'inline-flex' } }}>

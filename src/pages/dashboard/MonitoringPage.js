@@ -1079,7 +1079,7 @@ export default function DashboardApp() {
 
   return (
     <Page title="Dashboard">
-      <Container maxWidth={false} sx={{ px: { xs: 2, md: 3 } }}>
+      <Container maxWidth={false} sx={{ px: { xs: 1.5, sm: 2, md: 3 } }}>
         <Card
           sx={(theme) => ({
             mb: 4,
@@ -1091,11 +1091,11 @@ export default function DashboardApp() {
             '&::after': {
               content: '""',
               position: 'absolute',
-              width: 320,
-              height: 320,
+              width: { xs: 220, sm: 280, md: 320 },
+              height: { xs: 220, sm: 280, md: 320 },
               borderRadius: '50%',
-              right: -140,
-              top: -150,
+              right: { xs: -110, sm: -120, md: -140 },
+              top: { xs: -120, sm: -135, md: -150 },
               backgroundColor: 'rgba(255,255,255,0.15)',
             },
           })}
