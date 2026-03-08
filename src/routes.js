@@ -66,6 +66,7 @@ export default function Router() {
         { path: 'products', element: renderLazy(SpeciesCatalogPage) },
         { path: 'blog', element: renderLazy(CommunityPage) },
         { path: 'hortelan-360', element: renderLazy(Hortelan360Page) },
+        { path: 'hortelan360', element: <Navigate to="/dashboard/hortelan-360" replace /> },
         { path: 'onboarding', element: renderLazy(OnboardingPage) },
         { path: 'status', element: renderLazy(PlatformStatusPage) },
         { path: 'security', element: renderLazy(SecurityCenterPage) },
