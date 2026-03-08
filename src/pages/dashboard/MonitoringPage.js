@@ -1080,9 +1080,39 @@ export default function DashboardApp() {
   return (
     <Page title="Dashboard">
       <Container maxWidth={false} sx={{ px: { xs: 2, md: 3 } }}>
-        <Typography variant="h4" sx={{ mb: 5 }}>
-          Welcome {user?.name || 'User'} to the Hortelan System
-        </Typography>
+        <Card
+          sx={(theme) => ({
+            mb: 4,
+            border: `1px solid ${theme.palette.primary.lighter}`,
+            background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 42%, ${theme.palette.info.main} 100%)`,
+            color: 'common.white',
+            overflow: 'hidden',
+            position: 'relative',
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              width: 320,
+              height: 320,
+              borderRadius: '50%',
+              right: -140,
+              top: -150,
+              backgroundColor: 'rgba(255,255,255,0.15)',
+            },
+          })}
+        >
+          <CardContent sx={{ position: 'relative', zIndex: 1 }}>
+            <Typography variant="overline" sx={{ opacity: 0.85, letterSpacing: 1.6 }}>
+              AgroTech Command Center
+            </Typography>
+            <Typography variant="h4" sx={{ mt: 1, mb: 1 }}>
+              Olá, {user?.name || 'Usuário'} 👋
+            </Typography>
+            <Typography sx={{ maxWidth: 700, opacity: 0.92 }}>
+              Bem-vindo ao painel inteligente da Hortelan. Acompanhe sensores, automações e alertas em tempo real para
+              elevar produtividade com decisões baseadas em dados.
+            </Typography>
+          </CardContent>
+        </Card>
 
         <Box sx={monitoringContentSx}>
           <Grid container spacing={3}>

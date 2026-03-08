@@ -294,11 +294,13 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
           open
           variant="persistent"
           PaperProps={{
-            sx: {
+            sx: (theme) => ({
               width: DRAWER_WIDTH,
-              bgcolor: 'background.default',
-              borderRightStyle: 'dashed',
-            },
+              bgcolor: alpha(theme.palette.background.paper, 0.9),
+              borderRight: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
+              backdropFilter: 'blur(8px)',
+              backgroundImage: `linear-gradient(170deg, ${alpha(theme.palette.primary.lighter, 0.28)} 0%, ${alpha(theme.palette.info.lighter, 0.2)} 45%, ${alpha(theme.palette.background.paper, 0.94)} 100%)`,
+            }),
           }}
         >
           {renderContent}

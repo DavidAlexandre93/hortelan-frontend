@@ -53,6 +53,9 @@ const SectionStyle = styled(Card)(({ theme }) => ({
   flexDirection: 'column',
   justifyContent: 'center',
   margin: theme.spacing(2, 0, 2, 2),
+  border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
+  background: `linear-gradient(160deg, ${alpha(theme.palette.primary.lighter, 0.42)} 0%, ${alpha(theme.palette.info.lighter, 0.28)} 45%, ${theme.palette.background.paper} 100%)`,
+  boxShadow: `0 20px 40px ${alpha(theme.palette.primary.dark, 0.12)}`,
 }));
 
 const leafFloat = keyframes`
@@ -327,8 +330,11 @@ export default function LoginForm() {
               <Leaf sx={{ bottom: '12%', right: '12%', width: 62, height: 92, animationDuration: '4.8s' }} />
               <Cable />
             </DecorativeScene>
-            <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
+            <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 1 }}>
               {isRegisterMode ? 'Crie sua conta na Hortelan' : 'Olá, bem-vindo de volta à Hortelan'}
+            </Typography>
+            <Typography sx={{ px: 5, mb: 4, color: 'text.secondary' }}>
+              Plataforma AgroTech com monitoramento inteligente, automações e decisões orientadas por dados em tempo real.
             </Typography>
             <img
               src={isRegisterMode ? '/static/illustrations/illustration_register.png' : '/static/illustrations/illustration_login.png'}
@@ -342,6 +348,25 @@ export default function LoginForm() {
           <ContentStyle>
             <Typography variant="h4" gutterBottom>
               {isRegisterMode ? 'Cadastre-se para começar' : 'Entrar na Hortelan'}
+            </Typography>
+
+            <Typography
+              variant="overline"
+              sx={(theme) => ({
+                color: 'primary.main',
+                fontWeight: 800,
+                letterSpacing: 1.2,
+                display: 'inline-flex',
+                alignSelf: 'flex-start',
+                px: 1.4,
+                py: 0.4,
+                borderRadius: 999,
+                mb: 1.5,
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.24)}`,
+                background: `linear-gradient(120deg, ${alpha(theme.palette.primary.light, 0.2)}, ${alpha(theme.palette.info.light, 0.15)})`,
+              })}
+            >
+              AgroTech Experience
             </Typography>
 
             <Typography sx={{ color: 'text.secondary', mb: isRegisterMode ? 5 : 1 }}>
