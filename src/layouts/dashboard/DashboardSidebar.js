@@ -6,6 +6,7 @@ import { styled } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
 import { Box, Link, Button, Drawer, Typography, Avatar, Stack, Paper, TextField } from '@mui/material';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
+import SendRoundedIcon from '@mui/icons-material/SendRounded';
 // hooks
 import useResponsive from '../../hooks/useResponsive';
 // components
@@ -237,16 +238,17 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
               <Button
                 onClick={handleSendMessage}
                 variant="contained"
-                fullWidth
+                aria-label="Enviar mensagem"
                 sx={{
-                  py: 1,
-                  borderRadius: 1.8,
+                  alignSelf: 'flex-end',
+                  minWidth: 0,
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
                   boxShadow: (theme) => `0 12px 20px ${alpha(theme.palette.primary.dark, 0.35)}`,
-                  textTransform: 'none',
-                  fontWeight: 700,
                 }}
               >
-                Enviar para o Chat Bot
+                <SendRoundedIcon fontSize="small" />
               </Button>
             </Stack>
           </Paper>
