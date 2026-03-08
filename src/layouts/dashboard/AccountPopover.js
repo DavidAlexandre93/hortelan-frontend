@@ -129,17 +129,21 @@ export default function AccountPopover() {
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Stack sx={{ p: 1 }}>
-          <MenuItem onClick={handleLogoutOthers}>
+          <MenuItem onClick={handleLogoutOthers} sx={{ alignItems: 'flex-start', whiteSpace: 'normal' }}>
             <ListItemText
               primary="Encerrar outras sessões"
               secondary="Mantém somente este dispositivo conectado"
+              primaryTypographyProps={{ sx: { whiteSpace: 'normal' } }}
+              secondaryTypographyProps={{ sx: { whiteSpace: 'normal' } }}
             />
           </MenuItem>
 
-          <MenuItem onClick={handleLogoutAll}>
+          <MenuItem onClick={handleLogoutAll} sx={{ alignItems: 'flex-start', whiteSpace: 'normal' }}>
             <ListItemText
               primary="Encerrar todas as sessões"
               secondary="Desconecta todos os dispositivos"
+              primaryTypographyProps={{ sx: { whiteSpace: 'normal' } }}
+              secondaryTypographyProps={{ sx: { whiteSpace: 'normal' } }}
             />
           </MenuItem>
 
