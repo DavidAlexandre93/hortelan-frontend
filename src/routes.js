@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { Navigate, useParams, useRoutes } from 'react-router-dom';
+import { Navigate, useRoutes } from 'react-router-dom';
 // layouts
 import DashboardLayout from './layouts/dashboard';
 import LogoOnlyLayout from './layouts/LogoOnlyLayout';
@@ -34,18 +34,6 @@ const renderLazy = (Component, fallback = null) => (
 
 // ----------------------------------------------------------------------
 
-const LEGACY_ONBOARDING_ROUTES = new Set(['hortelan-360', 'hortelan360', 'hortelan_360', 'hortelan 360']);
-
-function LegacyOnboardingRedirect() {
-  const { legacyPath = '' } = useParams();
-
-  if (LEGACY_ONBOARDING_ROUTES.has(legacyPath)) {
-    return <Navigate to="/dashboard/hortelan-360" replace />;
-  }
-
-  return <Navigate to="/dashboard/onboarding" replace />;
-}
-
 export default function Router() {
   return useRoutes([
     {
@@ -62,11 +50,7 @@ export default function Router() {
         { path: 'user', element: <Navigate to="/dashboard/admin" replace /> },
         { path: 'products', element: renderLazy(SpeciesCatalogPage) },
         { path: 'blog', element: renderLazy(CommunityPage) },
-        { path: 'hortelan-360', element: renderLazy(Hortelan360Page) },
-        { path: 'hortelan360', element: <Navigate to="/dashboard/hortelan-360" replace /> },
-        { path: 'hortelan_360', element: <Navigate to="/dashboard/hortelan-360" replace /> },
-        { path: 'hortelan 360', element: <Navigate to="/dashboard/hortelan-360" replace /> },
-        { path: 'onboarding/:legacyPath', element: <LegacyOnboardingRedirect /> },
+        { path: 'hortelan 360', element: renderLazy(Hortelan360Page) },
         { path: 'onboarding', element: renderLazy(OnboardingPage) },
         { path: 'status', element: renderLazy(PlatformStatusPage) },
         { path: 'security', element: renderLazy(SecurityCenterPage) },
