@@ -24,6 +24,7 @@ import {
   Grid,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   Stack,
   Table,
@@ -31,6 +32,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TableContainer,
   Typography,
 } from '@mui/material';
 import Page from '../../components/Page';
@@ -327,6 +329,25 @@ export default function StatusPage() {
     });
   };
 
+  const dashboardCardSx = {
+    height: '100%',
+    borderRadius: 2,
+  };
+
+  const dashboardCardContentSx = {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 1.5,
+  };
+
+  const sectionPaperSx = {
+    p: 2,
+    borderRadius: 2,
+    border: (theme) => `1px solid ${theme.palette.divider}`,
+    bgcolor: 'background.default',
+  };
+
   return (
     <Page title="Status operacional">
       <Container maxWidth="xl">
@@ -342,8 +363,8 @@ export default function StatusPage() {
 
           <Grid container spacing={2}>
             <Grid item xs={12} md={3}>
-              <Card>
-                <CardContent>
+              <Card sx={dashboardCardSx}>
+                <CardContent sx={dashboardCardContentSx}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Áreas monitoradas
                   </Typography>
@@ -352,8 +373,8 @@ export default function StatusPage() {
               </Card>
             </Grid>
             <Grid item xs={12} md={3}>
-              <Card>
-                <CardContent>
+              <Card sx={dashboardCardSx}>
+                <CardContent sx={dashboardCardContentSx}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Dispositivos totais
                   </Typography>
@@ -362,8 +383,8 @@ export default function StatusPage() {
               </Card>
             </Grid>
             <Grid item xs={12} md={3}>
-              <Card>
-                <CardContent>
+              <Card sx={dashboardCardSx}>
+                <CardContent sx={dashboardCardContentSx}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Dispositivos offline
                   </Typography>
@@ -374,8 +395,8 @@ export default function StatusPage() {
               </Card>
             </Grid>
             <Grid item xs={12} md={3}>
-              <Card>
-                <CardContent>
+              <Card sx={dashboardCardSx}>
+                <CardContent sx={dashboardCardContentSx}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Alertas pendentes
                   </Typography>
@@ -417,8 +438,8 @@ export default function StatusPage() {
 
           <Grid container spacing={3}>
             <Grid item xs={12} lg={4}>
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
+              <Card sx={dashboardCardSx}>
+                <CardContent sx={dashboardCardContentSx}>
                   <Typography variant="h6" sx={{ mb: 1 }}>
                     Controles manuais e automação
                   </Typography>
@@ -455,31 +476,29 @@ export default function StatusPage() {
                       : 'Automação ativa e monitorando atuadores automaticamente.'}
                   </Alert>
 
-                  <Stack spacing={1}>
+                  <Stack spacing={1.2}>
                     {filteredActuators.map((actuator) => (
-                      <Card key={actuator.id} variant="outlined">
-                        <CardContent sx={{ py: 1.5 }}>
-                          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                            <Box>
-                              <Typography variant="body2" fontWeight={700}>
-                                {actuator.name}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {actuator.areaName} • {actuator.id}
-                              </Typography>
-                            </Box>
-                            <Button
-                              size="small"
-                              variant={actuator.isOn ? 'contained' : 'outlined'}
-                              color={actuator.isOn ? 'error' : 'primary'}
-                              startIcon={<PowerSettingsNewRoundedIcon fontSize="small" />}
-                              onClick={() => handleActuatorToggle(actuator.id)}
-                            >
-                              {actuator.isOn ? 'Desligar' : 'Ligar'}
-                            </Button>
-                          </Stack>
-                        </CardContent>
-                      </Card>
+                      <Paper key={actuator.id} variant="outlined" sx={sectionPaperSx}>
+                        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                          <Box>
+                            <Typography variant="body2" fontWeight={700}>
+                              {actuator.name}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {actuator.areaName} • {actuator.id}
+                            </Typography>
+                          </Box>
+                          <Button
+                            size="small"
+                            variant={actuator.isOn ? 'contained' : 'outlined'}
+                            color={actuator.isOn ? 'error' : 'primary'}
+                            startIcon={<PowerSettingsNewRoundedIcon fontSize="small" />}
+                            onClick={() => handleActuatorToggle(actuator.id)}
+                          >
+                            {actuator.isOn ? 'Desligar' : 'Ligar'}
+                          </Button>
+                        </Stack>
+                      </Paper>
                     ))}
                   </Stack>
                 </CardContent>
@@ -487,8 +506,8 @@ export default function StatusPage() {
             </Grid>
 
             <Grid item xs={12} lg={4}>
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
+              <Card sx={dashboardCardSx}>
+                <CardContent sx={dashboardCardContentSx}>
                   <Typography variant="h6" sx={{ mb: 2 }}>
                     Mapa de hortas e dispositivos
                   </Typography>
@@ -496,21 +515,21 @@ export default function StatusPage() {
                     {greenhouseAreas
                       .filter((area) => selectedArea === 'all' || area.id === selectedArea)
                       .map((area) => (
-                        <Card key={area.id} variant="outlined">
-                          <CardContent sx={{ py: 1.5 }}>
-                            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                        <Paper key={area.id} variant="outlined" sx={sectionPaperSx}>
+                          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                            <Box>
                               <Typography fontWeight={700}>{area.name}</Typography>
-                              <Chip size="small" color={areaStatusConfig[area.status].color} label={areaStatusConfig[area.status].label} />
-                            </Stack>
-                            <Stack spacing={0.5}>
-                              {area.devices.map((device) => (
-                                <Typography key={device.id} variant="body2" color="text.secondary">
-                                  • {device.name} ({device.id}) — {device.connectionStatus}
-                                </Typography>
-                              ))}
-                            </Stack>
-                          </CardContent>
-                        </Card>
+                            </Box>
+                            <Chip size="small" color={areaStatusConfig[area.status].color} label={areaStatusConfig[area.status].label} />
+                          </Stack>
+                          <Stack spacing={0.5} sx={{ mt: 1 }}>
+                            {area.devices.map((device) => (
+                              <Typography key={device.id} variant="body2" color="text.secondary">
+                                • {device.name} ({device.id}) — {device.connectionStatus}
+                              </Typography>
+                            ))}
+                          </Stack>
+                        </Paper>
                       ))}
                   </Stack>
                 </CardContent>
@@ -518,9 +537,9 @@ export default function StatusPage() {
             </Grid>
 
             <Grid item xs={12} lg={8}>
-              <Card>
-                <CardContent>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+              <Card sx={dashboardCardSx}>
+                <CardContent sx={dashboardCardContentSx}>
+                  <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ mb: 2 }} spacing={1}>
                     <Box>
                       <Typography variant="h6">Lista de eventos em streaming</Typography>
                       <Typography variant="body2" color="text.secondary">
@@ -552,58 +571,60 @@ export default function StatusPage() {
             </Grid>
           </Grid>
 
-          <Card>
-            <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+          <Card sx={dashboardCardSx}>
+            <CardContent sx={dashboardCardContentSx}>
+              <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ mb: 2 }} spacing={1.5}>
                 <Box>
                   <Typography variant="h6">Histórico de execuções de regras</Typography>
                   <Typography variant="body2" color="text.secondary">
                     Execuções com sucesso/falha, motivo da execução e responsáveis pela criação/edição da regra.
                   </Typography>
                 </Box>
-                <Stack direction="row" spacing={1}>
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                   <Chip color="success" label={`Sucesso: ${successfulExecutions}`} />
                   <Chip color="error" label={`Falha: ${failedExecutions}`} />
                 </Stack>
               </Stack>
 
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Data</TableCell>
-                    <TableCell>Regra</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Motivo da execução</TableCell>
-                    <TableCell>Criada por</TableCell>
-                    <TableCell>Editada por</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredRuleExecutions.map((execution) => (
-                    <TableRow key={execution.id} hover>
-                      <TableCell>{dateTimeFormatter.format(new Date(execution.executedAt))}</TableCell>
-                      <TableCell>
-                        <Typography variant="body2" fontWeight={600}>
-                          {execution.ruleName}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {execution.areaName}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          size="small"
-                          color={execution.status === 'success' ? 'success' : 'error'}
-                          label={execution.status === 'success' ? 'Bem-sucedida' : 'Falha'}
-                        />
-                      </TableCell>
-                      <TableCell>{execution.reason}</TableCell>
-                      <TableCell>{execution.createdBy}</TableCell>
-                      <TableCell>{execution.editedBy}</TableCell>
+              <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Data</TableCell>
+                      <TableCell>Regra</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Motivo da execução</TableCell>
+                      <TableCell>Criada por</TableCell>
+                      <TableCell>Editada por</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHead>
+                  <TableBody>
+                    {filteredRuleExecutions.map((execution) => (
+                      <TableRow key={execution.id} hover>
+                        <TableCell>{dateTimeFormatter.format(new Date(execution.executedAt))}</TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={600}>
+                            {execution.ruleName}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {execution.areaName}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            size="small"
+                            color={execution.status === 'success' ? 'success' : 'error'}
+                            label={execution.status === 'success' ? 'Bem-sucedida' : 'Falha'}
+                          />
+                        </TableCell>
+                        <TableCell>{execution.reason}</TableCell>
+                        <TableCell>{execution.createdBy}</TableCell>
+                        <TableCell>{execution.editedBy}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
                 <HistoryRoundedIcon color="action" />
                 <Typography variant="h6">Registro de intervenções manuais</Typography>
@@ -631,8 +652,8 @@ export default function StatusPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent>
+          <Card sx={dashboardCardSx}>
+            <CardContent sx={dashboardCardContentSx}>
               <Typography variant="h6" sx={{ mb: 2 }}>
                 Ack de alertas
               </Typography>
