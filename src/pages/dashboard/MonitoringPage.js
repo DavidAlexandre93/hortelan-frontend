@@ -57,6 +57,26 @@ const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
   timeStyle: 'short',
 });
 
+const monitoringContentSx = {
+  '& .MuiCard-root': {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  '& .MuiCardContent-root': {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 1.5,
+    '&:last-child': {
+      pb: 3,
+    },
+  },
+  '& .MuiPaper-root': {
+    height: '100%',
+  },
+};
+
 const cropCatalog = {
   'Alface Crespa': { family: 'Folhosas', cycle: '45-60 dias' },
   'Alface Americana': { family: 'Folhosas', cycle: '55-70 dias' },
@@ -1064,7 +1084,8 @@ export default function DashboardApp() {
           Welcome {user?.name || 'User'} to the Hortelan AgTech Ltda System
         </Typography>
 
-        <Grid container spacing={3}>
+        <Box sx={monitoringContentSx}>
+          <Grid container spacing={3}>
           <Grid item xs={12}>
             <Card>
               <CardContent>
@@ -2793,7 +2814,8 @@ export default function DashboardApp() {
               ]}
             />
           </Grid>
-        </Grid>
+          </Grid>
+        </Box>
       </Container>
     </Page>
   );
