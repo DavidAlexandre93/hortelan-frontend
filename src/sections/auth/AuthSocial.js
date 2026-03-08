@@ -41,21 +41,11 @@ export default function AuthSocial() {
 
       <Stack direction="row" spacing={2}>
         <Button fullWidth size="large" color="inherit" variant="outlined" onClick={() => handleSocialLogin('google')}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Iconify icon="eva:google-fill" color="#DF3E30" width={22} height={22} />
-            <Typography variant="body2" fontWeight={600}>
-              Google
-            </Typography>
-          </Stack>
+          <Iconify icon="eva:google-fill" color="#DF3E30" width={22} height={22} />
         </Button>
 
         <Button fullWidth size="large" color="inherit" variant="outlined" onClick={() => handleSocialLogin('apple')}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Iconify icon="mdi:apple" color="#000000" width={22} height={22} />
-            <Typography variant="body2" fontWeight={600}>
-              Apple
-            </Typography>
-          </Stack>
+          <Iconify icon="mdi:apple" color="#000000" width={22} height={22} />
         </Button>
       </Stack>
 
