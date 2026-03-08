@@ -19,6 +19,7 @@ import {
   ListItemAvatar,
   ListItemButton,
 } from '@mui/material';
+import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 // utils
 import { fToNow } from '../../utils/formatTime';
 // components
@@ -109,7 +110,7 @@ export default function NotificationsPopover() {
         sx={{ width: 40, height: 40 }}
       >
         <Badge badgeContent={totalUnRead} color="error">
-          <Iconify icon="eva:bell-fill" width={20} height={20} />
+          <NotificationsRoundedIcon sx={{ width: 20, height: 20 }} />
         </Badge>
       </IconButton>
 
