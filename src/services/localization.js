@@ -1,5 +1,12 @@
 const STORAGE_KEY = 'preferredLanguage';
 const GOOGLE_COOKIE_KEY = 'googtrans';
+const SOURCE_LANGUAGE = 'pt';
+
+let pendingLanguage = null;
+let languageSyncAttempts = 0;
+let languageSyncTimer = null;
+const MAX_LANGUAGE_SYNC_ATTEMPTS = 20;
+const LANGUAGE_SYNC_INTERVAL_MS = 300;
 
 const LANGS = [
   { value: 'en', label: 'English', icon: '/static/icons/eua.svg', countries: ['US'] },
@@ -87,7 +94,13 @@ const mapCountryToLanguage = (countryCode) => {
 const applyGoogleLanguage = (language) => {
   if (!language || typeof document === 'undefined') return;
 
-  const cookieValue = `/pt/${language}`;
+  if (pendingLanguage !== language) {
+    languageSyncAttempts = 0;
+  }
+
+  pendingLanguage = language;
+
+  const cookieValue = `/${SOURCE_LANGUAGE}/${language}`;
   document.cookie = `${GOOGLE_COOKIE_KEY}=${cookieValue};path=/`;
 
   if (typeof window !== 'undefined' && window.location?.hostname) {
@@ -98,9 +111,39 @@ const applyGoogleLanguage = (language) => {
   if (select && select.value !== language) {
     select.value = language;
     select.dispatchEvent(new Event('change'));
+    pendingLanguage = null;
+    languageSyncAttempts = 0;
+
+    if (languageSyncTimer) {
+      window.clearTimeout(languageSyncTimer);
+      languageSyncTimer = null;
+    }
+  } else if (select && select.value === language) {
+    pendingLanguage = null;
+    languageSyncAttempts = 0;
   }
 
   document.documentElement.setAttribute('lang', language);
+};
+
+const scheduleLanguageSync = () => {
+  if (typeof window === 'undefined' || !pendingLanguage) return;
+  if (languageSyncTimer) return;
+
+  const runSync = () => {
+    languageSyncTimer = null;
+    if (!pendingLanguage) return;
+    if (languageSyncAttempts >= MAX_LANGUAGE_SYNC_ATTEMPTS) return;
+
+    languageSyncAttempts += 1;
+    applyGoogleLanguage(pendingLanguage);
+
+    if (pendingLanguage) {
+      languageSyncTimer = window.setTimeout(runSync, LANGUAGE_SYNC_INTERVAL_MS);
+    }
+  };
+
+  languageSyncTimer = window.setTimeout(runSync, LANGUAGE_SYNC_INTERVAL_MS);
 };
 
 const ensureGoogleTranslate = () => {
@@ -123,14 +166,18 @@ const ensureGoogleTranslate = () => {
       // eslint-disable-next-line no-new
       new window.google.translate.TranslateElement(
         {
-          pageLanguage: 'pt',
+          pageLanguage: SOURCE_LANGUAGE,
           autoDisplay: false,
           includedLanguages: GOOGLE_TRANSLATE_LANGUAGES,
         },
         'google_translate_element'
       );
+
+      scheduleLanguageSync();
     };
   }
+
+  scheduleLanguageSync();
 };
 
 const ensureTranslateDomSetup = () => {
