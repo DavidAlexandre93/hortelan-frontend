@@ -7,6 +7,8 @@ import { alpha } from '@mui/material/styles';
 import { Box, Link, Button, Drawer, Typography, Avatar, Stack, Paper, TextField } from '@mui/material';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import OpenInFullRoundedIcon from '@mui/icons-material/OpenInFullRounded';
+import CloseFullscreenRoundedIcon from '@mui/icons-material/CloseFullscreenRounded';
 // hooks
 import useResponsive from '../../hooks/useResponsive';
 // components
@@ -53,6 +55,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
   const mobileDrawerWidth = { xs: '86vw', sm: 320 };
   const [prompt, setPrompt] = useState('');
   const [messages, setMessages] = useState([{ role: 'bot', content: BOT_GREETING }]);
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
 
   const hortelanReply = useMemo(
     () => (question) => {
@@ -170,18 +173,36 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
                     </Typography>
                   </Box>
                 </Stack>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'success.main', boxShadow: '0 0 0 4px rgba(34,197,94,0.18)' }} />
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Box
+                    sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'success.main', boxShadow: '0 0 0 4px rgba(34,197,94,0.18)' }}
+                  />
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => setIsChatExpanded((prev) => !prev)}
+                    startIcon={isChatExpanded ? <CloseFullscreenRoundedIcon fontSize="inherit" /> : <OpenInFullRoundedIcon fontSize="inherit" />}
+                    sx={{ minWidth: 0, px: 1, borderRadius: 2, color: 'text.secondary', fontSize: '0.7rem', fontWeight: 700 }}
+                  >
+                    {isChatExpanded ? 'Reduzir' : 'Expandir'}
+                  </Button>
+                </Stack>
               </Stack>
 
               <Stack
                 spacing={0.9}
                 sx={(theme) => ({
-                  maxHeight: 200,
+                  maxHeight: isChatExpanded ? 320 : 200,
+                  minHeight: isChatExpanded ? 320 : 140,
                   overflowY: 'auto',
                   px: 0.5,
                   py: 0.25,
                   borderRadius: 2,
                   bgcolor: alpha(theme.palette.background.neutral || theme.palette.grey[500], 0.18),
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.22)}`,
+                  transition: theme.transitions.create(['max-height', 'min-height'], {
+                    duration: theme.transitions.duration.shortest,
+                  }),
                 })}
               >
                 {messages.map((message, index) => (
