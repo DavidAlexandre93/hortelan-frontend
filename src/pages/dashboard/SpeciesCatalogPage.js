@@ -28,11 +28,8 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PaidIcon from '@mui/icons-material/Paid';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import Page from '../../components/Page';
-import HortelanPromoBanner from '../../components/HortelanPromoBanner';
 import useGSAP from '../../hooks/useGSAP';
 import productCatalog, { categories } from '../../data/productCatalog';
-import { motion, useScroll, useTransform } from '../../lib/motionReact';
-import GSAPTypingText from '../../components/GSAPTypingText';
 
 const sortMap = {
   preco: (a, b) => a.preco - b.preco,
@@ -42,8 +39,6 @@ const sortMap = {
 
 export default function ProductsMarketplace() {
   const rootRef = useRef(null);
-  const { scrollYProgress } = useScroll();
-  const bannerY = useTransform(scrollYProgress, [0, 1], [0, -26]);
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [maxPrice, setMaxPrice] = useState(500);
@@ -281,36 +276,12 @@ export default function ProductsMarketplace() {
         <Box className="gsap-float-orb" sx={{ position: 'absolute', top: 340, left: -34, width: 140, height: 140, borderRadius: '50%', bgcolor: 'primary.light', filter: 'blur(22px)', opacity: 0.24, pointerEvents: 'none' }} />
         <Stack spacing={1} sx={{ mb: 3 }}>
           <Typography className="gsap-hero-title" variant="h4">
-            <GSAPTypingText
-              texts={[
-                'Catálogo de produtos Hortelan AgTech Ltda',
-                'Marketplace inteligente para sua operação agrícola',
-                'Compre insumos e automação com curadoria Hortelan AgTech Ltda',
-              ]}
-            />
+            Catálogo de produtos Hortelan AgTech Ltda
           </Typography>
           <Typography className="gsap-hero-subtitle" color="text.secondary">
-            <GSAPTypingText
-              texts={[
-                'Explore sementes, substratos, fertilizantes e sensores com filtros avançados.',
-                'Descubra kits de irrigação e ferramentas validadas para estufa, indoor e hidroponia.',
-              ]}
-              speed={30}
-              eraseSpeed={18}
-              holdDuration={1200}
-              startDelay={200}
-            />
+            Explore sementes, substratos, fertilizantes e sensores com filtros avançados.
           </Typography>
         </Stack>
-
-        <Box
-          component={motion.div}
-          className="gsap-hero-banner-wrapper"
-          sx={{ mb: 3, overflow: 'hidden' }}
-          style={{ y: bannerY }}
-        >
-          <HortelanPromoBanner className="gsap-hero-banner" />
-        </Box>
 
         <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
           {categories.map((category) => (
