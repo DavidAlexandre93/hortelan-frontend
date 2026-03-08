@@ -437,7 +437,7 @@ export default function StatusPage() {
           </Grid>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} lg={4}>
+            <Grid item xs={12}>
               <Card sx={dashboardCardSx}>
                 <CardContent sx={dashboardCardContentSx}>
                   <Typography variant="h6" sx={{ mb: 1 }}>
