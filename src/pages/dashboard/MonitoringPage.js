@@ -1115,8 +1115,13 @@ export default function DashboardApp() {
               <Box
                 sx={{
                   display: 'grid',
+                  width: '100%',
                   gap: 3,
-                  gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' },
+                  gridTemplateColumns: {
+                    xs: '1fr',
+                    sm: 'repeat(2, minmax(0, 1fr))',
+                    lg: 'repeat(3, minmax(0, 1fr))',
+                  },
                 }}
               >
                 <AppWidgetSummary
