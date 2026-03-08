@@ -1111,29 +1111,31 @@ export default function DashboardApp() {
           </Grid>
 
           {enabledWidgets.indicadores && (
-            <>
-              <Grid item xs={12} md={4}>
+            <Grid item xs={12}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gap: 3,
+                  gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' },
+                }}
+              >
                 <AppWidgetSummary
                   title="Umidade média"
                   total={indicadorMedioUmidade}
                   icon1="carbon:soil-moisture-field"
                   color="primary"
                 />
-              </Grid>
 
-              <Grid item xs={12} md={4}>
                 <AppWidgetSummary
                   title="Temperatura média"
                   total={indicadorMediaTemperatura}
                   icon1="mdi:temperature-celsius"
                   color="warning"
                 />
-              </Grid>
 
-              <Grid item xs={12} md={4}>
                 <AppWidgetSummary title="Alertas ativos" total={indicadorAlertasAtivos} icon1="icon-park:alarm" color="error" />
-              </Grid>
-            </>
+              </Box>
+            </Grid>
           )}
 
           {enabledWidgets.resumoHortas && (
