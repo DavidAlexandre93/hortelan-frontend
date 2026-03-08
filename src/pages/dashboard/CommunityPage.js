@@ -16,6 +16,7 @@ import {
   ListItemAvatar,
   ListItemText,
   MenuItem,
+  Pagination,
   Paper,
   Stack,
   Tab,
@@ -79,11 +80,17 @@ const moderationItems = [
   { id: 'm3', reason: 'Spam', status: 'Conta suspensa (7 dias)' },
 ];
 
-const cardSx = { borderRadius: 2, height: '100%' };
+const POSTS_PER_PAGE = 3;
+const INITIAL_BADGES_VISIBLE = 2;
+
+const cardSx = { borderRadius: 2 };
 const cardContentSx = { p: { xs: 2, md: 2.5 }, '&:last-child': { pb: { xs: 2, md: 2.5 } } };
 
 function PostCard({ post, onLike, onSave, onAddComment }) {
   const [commentText, setCommentText] = useState('');
+  const [showAllComments, setShowAllComments] = useState(false);
+  const visibleComments = showAllComments ? post.comments : post.comments.slice(0, 2);
+  const hiddenComments = post.comments.length - visibleComments.length;
 
   return (
     <Card sx={cardSx}>
@@ -133,7 +140,7 @@ function PostCard({ post, onLike, onSave, onAddComment }) {
           Comentários e respostas
         </Typography>
 
-        {post.comments.map((comment) => (
+        {visibleComments.map((comment) => (
           <Paper key={comment.id} variant="outlined" sx={{ p: 1.5, mb: 1 }}>
             <Typography variant="body2">
               <strong>{comment.user}:</strong> {comment.text}
@@ -145,6 +152,18 @@ function PostCard({ post, onLike, onSave, onAddComment }) {
             ))}
           </Paper>
         ))}
+
+        {hiddenComments > 0 && (
+          <Button size="small" sx={{ mb: 1 }} onClick={() => setShowAllComments(true)}>
+            Ver mais {hiddenComments} comentário(s)
+          </Button>
+        )}
+
+        {showAllComments && post.comments.length > 2 && (
+          <Button size="small" sx={{ mb: 1 }} onClick={() => setShowAllComments(false)}>
+            Ver menos comentários
+          </Button>
+        )}
 
         <Stack direction="row" spacing={1} mt={1}>
           <TextField
@@ -175,8 +194,16 @@ export default function Blog() {
   const [feedType, setFeedType] = useState(0);
   const [newPost, setNewPost] = useState({ text: '', species: '', tags: [] });
   const [question, setQuestion] = useState({ title: '', topic: qaTopics[0] });
+  const [postsPage, setPostsPage] = useState(1);
+  const [showAllBadges, setShowAllBadges] = useState(false);
 
   const reputationProgress = useMemo(() => Math.min(100, Math.round((profileData.reputation / 1500) * 100)), []);
+  const totalPostPages = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
+  const paginatedPosts = useMemo(() => {
+    const startIndex = (postsPage - 1) * POSTS_PER_PAGE;
+    return posts.slice(startIndex, startIndex + POSTS_PER_PAGE);
+  }, [posts, postsPage]);
+  const visibleBadges = showAllBadges ? profileData.achievements : profileData.achievements.slice(0, INITIAL_BADGES_VISIBLE);
 
   const toggleTag = (tag) => {
     setNewPost((previous) => ({
@@ -201,6 +228,7 @@ export default function Blog() {
       },
       ...previous,
     ]);
+    setPostsPage(1);
     setNewPost({ text: '', species: '', tags: [] });
   };
 
@@ -249,10 +277,19 @@ export default function Blog() {
                   Badges e conquistas
                 </Typography>
                 <Stack spacing={1}>
-                  {profileData.achievements.map((badge) => (
+                  {visibleBadges.map((badge) => (
                     <Chip key={badge} icon={<Iconify icon="eva:award-fill" />} label={badge} variant="outlined" />
                   ))}
                 </Stack>
+                {profileData.achievements.length > INITIAL_BADGES_VISIBLE && (
+                  <Button
+                    size="small"
+                    sx={{ mt: 1 }}
+                    onClick={() => setShowAllBadges((previous) => !previous)}
+                  >
+                    {showAllBadges ? 'Ver menos' : 'Ver mais'}
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
@@ -338,7 +375,7 @@ export default function Blog() {
             </Card>
 
             <Stack spacing={2} mb={3}>
-              {posts.map((post) => (
+              {paginatedPosts.map((post) => (
                 <PostCard
                   key={post.id}
                   post={post}
@@ -367,6 +404,17 @@ export default function Blog() {
                 />
               ))}
             </Stack>
+
+            {totalPostPages > 1 && (
+              <Stack alignItems="center" mb={3}>
+                <Pagination
+                  page={postsPage}
+                  count={totalPostPages}
+                  color="primary"
+                  onChange={(_, value) => setPostsPage(value)}
+                />
+              </Stack>
+            )}
 
             <Card sx={{ ...cardSx, mb: 3 }}>
               <CardContent sx={cardContentSx}>
