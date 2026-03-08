@@ -136,9 +136,6 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
             <Typography gutterBottom variant="h6">
               Precisa de ajuda com a sua operação?
             </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Converse direto com o nosso chat bot de IA especializado na plataforma Hortelan.
-            </Typography>
           </Box>
 
           <Paper
