@@ -70,7 +70,7 @@ const USERS = [
     id: 'admin-1',
     email: 'davidfernandes@hortelanagtech.com',
     password: 'admin',
-    name: 'Administrador Hortelan AgTech Ltda',
+    name: 'Administrador Hortelan',
     role: 'administrator',
     photoURL: '',
     bio: 'Cultivando alimentos e tecnologia para uma horta mais inteligente.',

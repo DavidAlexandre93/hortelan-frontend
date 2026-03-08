@@ -270,13 +270,13 @@ export default function ProductsMarketplace() {
   );
 
   return (
-    <Page title="Marketplace Hortelan AgTech Ltda">
+    <Page title="Marketplace Hortelan">
       <Container ref={rootRef} sx={{ position: 'relative', overflow: 'hidden' }}>
         <Box className="gsap-float-orb" sx={{ position: 'absolute', top: 120, right: -24, width: 120, height: 120, borderRadius: '50%', bgcolor: 'success.light', filter: 'blur(18px)', opacity: 0.28, pointerEvents: 'none' }} />
         <Box className="gsap-float-orb" sx={{ position: 'absolute', top: 340, left: -34, width: 140, height: 140, borderRadius: '50%', bgcolor: 'primary.light', filter: 'blur(22px)', opacity: 0.24, pointerEvents: 'none' }} />
         <Stack spacing={1} sx={{ mb: 3 }}>
           <Typography className="gsap-hero-title" variant="h4">
-            Catálogo de produtos Hortelan AgTech Ltda
+            Catálogo de produtos Hortelan
           </Typography>
           <Typography className="gsap-hero-subtitle" color="text.secondary">
             Explore sementes, substratos, fertilizantes e sensores com filtros avançados.
@@ -428,7 +428,7 @@ export default function ProductsMarketplace() {
                     {selectedProduct.descricaoTecnica}
                   </Typography>
                   <Typography variant="body2" color="primary" sx={{ mb: 2 }}>
-                    Compatibilidade Hortelan AgTech Ltda: {selectedProduct.compatibilidadeHortelan}
+                    Compatibilidade Hortelan: {selectedProduct.compatibilidadeHortelan}
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
                     <Chip icon={<Inventory2Icon />} label={`Estoque: ${selectedProduct.estoque}`} />

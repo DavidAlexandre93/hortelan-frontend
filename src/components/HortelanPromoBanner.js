@@ -105,7 +105,7 @@ export default function HortelanPromoBanner({ sx, className }) {
         component="img"
         className="promo-banner-media"
         src="/static/logos.png"
-        alt="Banner Hortelan AgTech Ltda - Tecnologia Sustentável para Hortas Inteligentes"
+        alt="Banner Hortelan - Tecnologia Sustentável para Hortas Inteligentes"
         sx={{
           width: '100%',
           height: '100%',

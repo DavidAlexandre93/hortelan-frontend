@@ -216,9 +216,9 @@ export default function Reports() {
   const exportPdfSummary = () => {
     const summaryHtml = `
       <html>
-        <head><title>Resumo de Relatórios Hortelan AgTech Ltda</title></head>
+        <head><title>Resumo de Relatórios Hortelan</title></head>
         <body style="font-family: Arial, sans-serif; padding: 24px;">
-          <h1>Resumo de Relatórios Hortelan AgTech Ltda</h1>
+          <h1>Resumo de Relatórios Hortelan</h1>
           <p>Gerado em ${new Date().toLocaleString('pt-BR')}.</p>
           <h2>Operacional</h2>
           <ul>

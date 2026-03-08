@@ -328,7 +328,7 @@ export default function LoginForm() {
               <Cable />
             </DecorativeScene>
             <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
-              {isRegisterMode ? 'Crie sua conta na Hortelan AgTech Ltda' : 'Olá, bem-vindo de volta à Hortelan AgTech Ltda'}
+              {isRegisterMode ? 'Crie sua conta na Hortelan' : 'Olá, bem-vindo de volta à Hortelan'}
             </Typography>
             <img
               src={isRegisterMode ? '/static/illustrations/illustration_register.png' : '/static/illustrations/illustration_login.png'}
@@ -341,7 +341,7 @@ export default function LoginForm() {
         <Container maxWidth="sm">
           <ContentStyle>
             <Typography variant="h4" gutterBottom>
-              {isRegisterMode ? 'Cadastre-se para começar' : 'Entrar na Hortelan AgTech Ltda'}
+              {isRegisterMode ? 'Cadastre-se para começar' : 'Entrar na Hortelan'}
             </Typography>
 
             <Typography sx={{ color: 'text.secondary', mb: isRegisterMode ? 5 : 1 }}>
