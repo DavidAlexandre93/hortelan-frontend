@@ -18,6 +18,7 @@ import {
   ListItemText,
   MenuItem,
   Select,
+  Paper,
   Stack,
   Switch,
   Tab,
@@ -172,61 +173,72 @@ export default function HelpCenter() {
           {tab === 'central-ajuda' && (
             <Grid container spacing={3}>
               <Grid item xs={12} lg={6}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      FAQ
-                    </Typography>
-                    <List disablePadding>
-                      {faqItems.map((item) => (
-                        <ListItem key={item.question} disableGutters>
-                          <ListItemText primary={item.question} secondary={item.answer} />
-                        </ListItem>
-                      ))}
-                    </List>
+                <Card sx={{ height: '100%' }}>
+                  <CardContent sx={{ height: '100%' }}>
+                    <Stack spacing={2} sx={{ height: '100%' }}>
+                      <Typography variant="h6">FAQ</Typography>
+                      <Paper variant="outlined" sx={{ p: 1.5 }}>
+                        <List disablePadding>
+                          {faqItems.map((item, index) => (
+                            <ListItem key={item.question} disableGutters divider={index < faqItems.length - 1} sx={{ py: 1.25 }}>
+                              <ListItemText
+                                primary={item.question}
+                                secondary={item.answer}
+                                primaryTypographyProps={{ fontWeight: 600 }}
+                                secondaryTypographyProps={{ sx: { mt: 0.5 } }}
+                              />
+                            </ListItem>
+                          ))}
+                        </List>
+                      </Paper>
+                    </Stack>
                   </CardContent>
                 </Card>
               </Grid>
               <Grid item xs={12} md={6} lg={3}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      Guias rápidos
-                    </Typography>
-                    <List dense disablePadding>
-                      {quickGuides.map((guide) => (
-                        <ListItem key={guide} disableGutters>
-                          <ListItemText primary={guide} />
-                        </ListItem>
-                      ))}
-                    </List>
+                <Card sx={{ height: '100%' }}>
+                  <CardContent sx={{ height: '100%' }}>
+                    <Stack spacing={2} sx={{ height: '100%' }}>
+                      <Typography variant="h6">Guias rápidos</Typography>
+                      <Paper variant="outlined" sx={{ p: 1.5, flexGrow: 1 }}>
+                        <List dense disablePadding>
+                          {quickGuides.map((guide, index) => (
+                            <ListItem key={guide} disableGutters divider={index < quickGuides.length - 1} sx={{ py: 1 }}>
+                              <ListItemText primary={guide} />
+                            </ListItem>
+                          ))}
+                        </List>
+                      </Paper>
+                    </Stack>
                   </CardContent>
                 </Card>
               </Grid>
               <Grid item xs={12} md={6} lg={3}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      Tutoriais de uso
-                    </Typography>
-                    <List dense disablePadding>
-                      {tutorials.map((tutorial) => (
-                        <ListItem key={tutorial} disableGutters>
-                          <ListItemText primary={tutorial} />
-                        </ListItem>
-                      ))}
-                    </List>
-                    <Divider sx={{ my: 2 }} />
-                    <Typography variant="subtitle2" gutterBottom>
-                      Base de conhecimento
-                    </Typography>
-                    <List dense disablePadding>
-                      {knowledgeBase.map((article) => (
-                        <ListItem key={article} disableGutters>
-                          <ListItemText primary={article} />
-                        </ListItem>
-                      ))}
-                    </List>
+                <Card sx={{ height: '100%' }}>
+                  <CardContent sx={{ height: '100%' }}>
+                    <Stack spacing={2} sx={{ height: '100%' }}>
+                      <Typography variant="h6">Tutoriais de uso</Typography>
+                      <Paper variant="outlined" sx={{ p: 1.5 }}>
+                        <List dense disablePadding>
+                          {tutorials.map((tutorial, index) => (
+                            <ListItem key={tutorial} disableGutters divider={index < tutorials.length - 1} sx={{ py: 1 }}>
+                              <ListItemText primary={tutorial} />
+                            </ListItem>
+                          ))}
+                        </List>
+                      </Paper>
+                      <Divider />
+                      <Typography variant="subtitle2">Base de conhecimento</Typography>
+                      <Paper variant="outlined" sx={{ p: 1.5, flexGrow: 1 }}>
+                        <List dense disablePadding>
+                          {knowledgeBase.map((article, index) => (
+                            <ListItem key={article} disableGutters divider={index < knowledgeBase.length - 1} sx={{ py: 1 }}>
+                              <ListItemText primary={article} />
+                            </ListItem>
+                          ))}
+                        </List>
+                      </Paper>
+                    </Stack>
                   </CardContent>
                 </Card>
               </Grid>
