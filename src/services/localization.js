@@ -214,10 +214,56 @@ const detectLanguageFromBrowser = () => {
   return LANGS.some((lang) => lang.value === browserLanguage) ? browserLanguage : 'pt';
 };
 
+const detectCountryFromBrowserLocale = () => {
+  if (typeof navigator === 'undefined') return null;
+
+  const localeSources = [navigator.language, ...(navigator.languages || [])].filter(Boolean);
+
+  for (const locale of localeSources) {
+    const localeMatch = locale.match(/[-_]([A-Za-z]{2})$/);
+    if (localeMatch) {
+      return localeMatch[1].toUpperCase();
+    }
+  }
+
+  return null;
+};
+
+const fetchCountryCode = async (url, resolver) => {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 4000);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return resolver(data);
+  } catch (error) {
+    return null;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+};
+
 const detectLanguageByGeolocation = async () => {
-  const response = await fetch('https://ipapi.co/json/');
-  const data = await response.json();
-  return mapCountryToLanguage(data?.country_code) || 'pt';
+  const countryFromLocale = detectCountryFromBrowserLocale();
+  if (countryFromLocale) {
+    return mapCountryToLanguage(countryFromLocale);
+  }
+
+  if (typeof window === 'undefined') {
+    return detectLanguageFromBrowser();
+  }
+
+  const countryCode =
+    (await fetchCountryCode('https://ipapi.co/json/', (data) => data?.country_code)) ||
+    (await fetchCountryCode('https://ipwho.is/', (data) => (data?.success ? data.country_code : null)));
+
+  if (countryCode) {
+    return mapCountryToLanguage(countryCode);
+  }
+
+  return detectLanguageFromBrowser();
 };
 
 export {
