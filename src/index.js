@@ -23,6 +23,22 @@ const rootElement = document.getElementById('root');
 const ERROR_ROUTE_PATH = '/404';
 let hasRedirectedToErrorPage = false;
 
+const NON_FATAL_ERROR_PATTERNS = [
+  'aborterror',
+  'the operation was aborted',
+  'resizeobserver loop limit exceeded',
+  'non-error promise rejection captured',
+];
+
+function shouldRedirectToErrorRoute(errorLike) {
+  if (!errorLike) return false;
+
+  const normalizedMessage = `${errorLike?.name || ''} ${errorLike?.message || errorLike}`.toLowerCase().trim();
+  if (!normalizedMessage) return false;
+
+  return !NON_FATAL_ERROR_PATTERNS.some((pattern) => normalizedMessage.includes(pattern));
+}
+
 function redirectToErrorPage() {
   if (window.location.pathname === ERROR_ROUTE_PATH || hasRedirectedToErrorPage) {
     return;
@@ -33,12 +49,16 @@ function redirectToErrorPage() {
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
-window.addEventListener('error', () => {
-  redirectToErrorPage();
+window.addEventListener('error', (event) => {
+  if (shouldRedirectToErrorRoute(event.error || event.message)) {
+    redirectToErrorPage();
+  }
 });
 
-window.addEventListener('unhandledrejection', () => {
-  redirectToErrorPage();
+window.addEventListener('unhandledrejection', (event) => {
+  if (shouldRedirectToErrorRoute(event.reason)) {
+    redirectToErrorPage();
+  }
 });
 
 async function startApp() {
