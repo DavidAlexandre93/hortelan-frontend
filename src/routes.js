@@ -50,7 +50,7 @@ export default function Router() {
         { path: 'user', element: <Navigate to="/dashboard/admin" replace /> },
         { path: 'products', element: renderLazy(SpeciesCatalogPage) },
         { path: 'blog', element: renderLazy(CommunityPage) },
-        { path: 'hortelan 360', element: renderLazy(Hortelan360Page) },
+        { path: 'hortelan-360', element: renderLazy(Hortelan360Page) },
         { path: 'onboarding', element: renderLazy(OnboardingPage) },
         { path: 'status', element: renderLazy(PlatformStatusPage) },
         { path: 'security', element: renderLazy(SecurityCenterPage) },
@@ -104,7 +104,7 @@ export default function Router() {
     },
     {
       path: '/onboarding/:legacyPath',
-      element: <LegacyOnboardingRedirect />,
+      element: renderLazy(OnboardingPage),
     },
     {
       path: '/hortelan-360',
