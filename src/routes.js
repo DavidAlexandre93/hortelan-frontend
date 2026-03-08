@@ -132,6 +132,18 @@ export default function Router() {
       ],
     },
     {
+      path: '/onboarding/:legacyPath',
+      element: <LegacyOnboardingRedirect />,
+    },
+    {
+      path: '/hortelan-360',
+      element: <Navigate to="/dashboard/hortelan-360" replace />,
+    },
+    {
+      path: '/hortelan360',
+      element: <Navigate to="/dashboard/hortelan-360" replace />,
+    },
+    {
       path: '*',
       element: <Navigate to="/404" replace />,
     },
