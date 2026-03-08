@@ -13,6 +13,7 @@ import {
   FormControlLabel,
   FormGroup,
   FormHelperText,
+  Grid,
   IconButton,
   InputLabel,
   LinearProgress,
@@ -25,6 +26,7 @@ import {
   Step,
   StepLabel,
   Stepper,
+  Paper,
   TextField,
   Tooltip,
   Typography,
@@ -221,66 +223,72 @@ export default function Onboarding() {
   return (
     <Page title="Onboarding">
       <Container maxWidth="md">
-        <Stack spacing={3}>
-          <Box>
+        <Stack spacing={3} sx={{ pb: 3 }}>
+          <Box sx={{ px: { xs: 0.5, md: 1 } }}>
             <Typography variant="h4">Onboarding guiado Hortelan AgTech Ltda</Typography>
             <Typography variant="body2" color="text.secondary">
               Passo a passo para criar sua primeira horta, cadastrar plantas, parear dispositivo e ativar automações.
             </Typography>
           </Box>
 
+          <Grid container spacing={2.5} alignItems="stretch">
+            <Grid item xs={12} md={6}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent sx={{ p: { xs: 2, md: 3 }, height: '100%' }}>
+                  <Stack spacing={2}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                      <Typography variant="subtitle1">Progresso inicial</Typography>
+                      <Chip label={`${completion}% concluído`} color={completion === 100 ? 'success' : 'primary'} />
+                    </Stack>
+                    <LinearProgress value={completion} variant="determinate" />
+
+                    <Divider>Checklist inicial</Divider>
+                    <FormGroup>
+                      <FormControlLabel control={<Checkbox checked={checklist.accountCreated} onChange={() => handleChecklistToggle('accountCreated')} />} label="Conta criada" />
+                      <FormControlLabel control={<Checkbox checked={checklist.gardenCreated} onChange={() => handleChecklistToggle('gardenCreated')} />} label="Horta criada" />
+                      <FormControlLabel control={<Checkbox checked={checklist.plantRegistered} onChange={() => handleChecklistToggle('plantRegistered')} />} label="Planta cadastrada" />
+                      <FormControlLabel control={<Checkbox checked={checklist.sensorConnected} onChange={() => handleChecklistToggle('sensorConnected')} />} label="Sensor conectado" />
+                      <FormControlLabel control={<Checkbox checked={checklist.notificationsEnabled} onChange={() => handleChecklistToggle('notificationsEnabled')} />} label="Notificações ativadas" />
+                      <FormControlLabel control={<Checkbox checked={checklist.firstTaskCompleted} onChange={() => handleChecklistToggle('firstTaskCompleted')} />} label="Primeira tarefa concluída" />
+                    </FormGroup>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent sx={{ p: { xs: 2, md: 3 }, height: '100%' }}>
+                  <Stack spacing={2}>
+                    <Typography variant="subtitle1">Passo a passo guiado</Typography>
+                    <List dense>
+                      {guidedFlow.map((item, index) => (
+                        <ListItem key={item.id} disablePadding sx={{ mb: 1 }}>
+                          <ListItemText
+                            primary={`${index + 1}. ${item.title}`}
+                            secondary={item.description}
+                          />
+                          <Chip size="small" color={guideStatus[item.id] ? 'success' : 'default'} label={guideStatus[item.id] ? item.doneLabel : 'Pendente'} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+
           <Card>
-            <CardContent>
+            <CardContent sx={{ p: { xs: 2, md: 3 } }}>
               <Stack spacing={2}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="subtitle1">Progresso inicial</Typography>
-                  <Chip label={`${completion}% concluído`} color={completion === 100 ? 'success' : 'primary'} />
-                </Stack>
-                <LinearProgress value={completion} variant="determinate" />
-
-                <Divider>Checklist inicial</Divider>
-                <FormGroup>
-                  <FormControlLabel control={<Checkbox checked={checklist.accountCreated} onChange={() => handleChecklistToggle('accountCreated')} />} label="Conta criada" />
-                  <FormControlLabel control={<Checkbox checked={checklist.gardenCreated} onChange={() => handleChecklistToggle('gardenCreated')} />} label="Horta criada" />
-                  <FormControlLabel control={<Checkbox checked={checklist.plantRegistered} onChange={() => handleChecklistToggle('plantRegistered')} />} label="Planta cadastrada" />
-                  <FormControlLabel control={<Checkbox checked={checklist.sensorConnected} onChange={() => handleChecklistToggle('sensorConnected')} />} label="Sensor conectado" />
-                  <FormControlLabel control={<Checkbox checked={checklist.notificationsEnabled} onChange={() => handleChecklistToggle('notificationsEnabled')} />} label="Notificações ativadas" />
-                  <FormControlLabel control={<Checkbox checked={checklist.firstTaskCompleted} onChange={() => handleChecklistToggle('firstTaskCompleted')} />} label="Primeira tarefa concluída" />
-                </FormGroup>
-              </Stack>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent>
-              <Stack spacing={2}>
-                <Typography variant="subtitle1">Passo a passo guiado</Typography>
-                <List dense>
-                  {guidedFlow.map((item, index) => (
-                    <ListItem key={item.id} disablePadding sx={{ mb: 1 }}>
-                      <ListItemText
-                        primary={`${index + 1}. ${item.title}`}
-                        secondary={item.description}
-                      />
-                      <Chip size="small" color={guideStatus[item.id] ? 'success' : 'default'} label={guideStatus[item.id] ? item.doneLabel : 'Pendente'} />
-                    </ListItem>
-                  ))}
-                </List>
-              </Stack>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent>
-              <Stack spacing={3}>
-                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={2}>
+                <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={2} alignItems={{ xs: 'flex-start', md: 'center' }}>
                   <Box>
                     <Typography variant="h6">Demo / modo simulado</Typography>
                     <Typography variant="body2" color="text.secondary">
                       Ambiente de demonstração com dados simulados para usuários sem dispositivo.
                     </Typography>
                   </Box>
-                  <FormControlLabel control={<Checkbox checked={demoMode} onChange={() => setDemoMode((prev) => !prev)} />} label="Ativar demo" />
+                  <FormControlLabel control={<Checkbox checked={demoMode} onChange={() => setDemoMode((prev) => !prev)} />} label="Ativar demo" sx={{ mr: 0 }} />
                 </Stack>
                 {demoMode ? (
                   <Alert severity="info" variant="outlined">
@@ -296,7 +304,7 @@ export default function Onboarding() {
           </Card>
 
           <Card>
-            <CardContent>
+            <CardContent sx={{ p: { xs: 2, md: 3 } }}>
               <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 3 }}>
                 {steps.map((label) => (
                   <Step key={label}>
@@ -306,7 +314,8 @@ export default function Onboarding() {
               </Stepper>
 
               {activeStep === 1 && (
-                <Stack spacing={2}>
+                <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }}>
+                  <Stack spacing={2}>
                   <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
                     <FormControl fullWidth>
                       <InputLabel>Tipo de cultivo</InputLabel>
@@ -334,8 +343,7 @@ export default function Onboarding() {
                   <TextField label="Localização" value={location} onChange={(event) => setLocation(event.target.value)} fullWidth />
 
                   {structures.map((structure, index) => (
-                    <Card key={`structure-${index}`} variant="outlined">
-                      <CardContent>
+                    <Paper key={`structure-${index}`} variant="outlined" sx={{ p: 2 }}>
                         <Stack spacing={1.5}>
                           <Stack direction="row" justifyContent="space-between">
                             <Typography variant="subtitle2">Estrutura {index + 1}</Typography>
@@ -358,16 +366,17 @@ export default function Onboarding() {
                             </Select>
                           </FormControl>
                         </Stack>
-                      </CardContent>
-                    </Card>
+                    </Paper>
                   ))}
 
                   <Button startIcon={<AddIcon />} onClick={() => setStructures((prev) => [...prev, createStructure()])} variant="outlined">Adicionar estrutura</Button>
-                </Stack>
+                  </Stack>
+                </Paper>
               )}
 
               {activeStep === 2 && (
-                <Stack spacing={2}>
+                <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }}>
+                  <Stack spacing={2}>
                   <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
                     <FormControl fullWidth>
                       <InputLabel>Template de ambiente</InputLabel>
@@ -405,11 +414,13 @@ export default function Onboarding() {
                   <Alert severity="warning" variant="outlined">
                     Alerta pedagógico: evite excesso de rega em ambientes internos; prefira validar umidade antes de cada ciclo.
                   </Alert>
-                </Stack>
+                  </Stack>
+                </Paper>
               )}
 
               {activeStep === 3 && (
-                <Stack spacing={2}>
+                <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }}>
+                  <Stack spacing={2}>
                   <FormControl fullWidth>
                     <InputLabel>Método de pareamento</InputLabel>
                     <Select label="Método de pareamento" value={pairingMethod} onChange={(event) => setPairingMethod(event.target.value)}>
@@ -452,15 +463,18 @@ export default function Onboarding() {
                       Automação &quot;{item}&quot; criada com sucesso.
                     </Alert>
                   ))}
-                </Stack>
+                  </Stack>
+                </Paper>
               )}
 
               {activeStep === 0 && (
-                <Stack spacing={2}>
+                <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }}>
+                  <Stack spacing={2}>
                   <Typography variant="subtitle1">Educação contextual</Typography>
                   <Alert severity="info" variant="outlined">Dicas inline aparecem em campos críticos para acelerar sua configuração inicial.</Alert>
                   <Alert severity="info" variant="outlined">Recomendação por etapa: complete um bloco por vez (horta &gt; planta &gt; sensor &gt; automação).</Alert>
-                </Stack>
+                  </Stack>
+                </Paper>
               )}
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
