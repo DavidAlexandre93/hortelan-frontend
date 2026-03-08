@@ -27,6 +27,24 @@ import GSAPTypingText from '../../components/GSAPTypingText';
 const MotionCard = motion(Card);
 const MotionAccordion = motion(Accordion);
 
+const sectionCardSx = {
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  backdropFilter: 'blur(8px)',
+};
+
+const sectionCardContentSx = {
+  p: { xs: 2, md: 3 },
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 1.25,
+  '&:last-child': {
+    pb: { xs: 2, md: 3 },
+  },
+};
+
 export default function Hortelan360() {
   const [query, setQuery] = useState('');
   const sceneRef = useRef(null);
@@ -158,16 +176,16 @@ export default function Hortelan360() {
                 className="release-card"
                 whileHover={{ y: -10, rotateX: 2.5, rotateY: -1.5 }}
                 transition={{ type: 'spring', stiffness: 180, damping: 18 }}
-                sx={{ height: '100%', backdropFilter: 'blur(8px)' }}
+                sx={sectionCardSx}
               >
-                <CardContent>
+                <CardContent sx={sectionCardContentSx}>
                   <Typography variant="h6" gutterBottom>
                     {release.name}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
                     {release.focus}
                   </Typography>
-                  <List dense>
+                  <List dense sx={{ mt: 'auto', pt: 0.5 }}>
                     {release.items.map((item) => (
                       <ListItem key={item} sx={{ py: 0.2, px: 0 }}>
                         <ListItemText primary={`• ${item}`} />
@@ -181,13 +199,13 @@ export default function Hortelan360() {
         </Grid>
 
         <MotionCard
-          sx={{ mb: 3, position: 'relative', zIndex: 2 }}
+          sx={{ ...sectionCardSx, mb: 3, position: 'relative', zIndex: 2 }}
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.7 }}
         >
-          <CardContent>
+          <CardContent sx={sectionCardContentSx}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               Funcionalidades WOW para diferenciação
             </Typography>
@@ -200,13 +218,13 @@ export default function Hortelan360() {
         </MotionCard>
 
         <MotionCard
-          sx={{ mb: 3, position: 'relative', zIndex: 2 }}
+          sx={{ ...sectionCardSx, mb: 3, position: 'relative', zIndex: 2 }}
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.7 }}
         >
-          <CardContent>
+          <CardContent sx={sectionCardContentSx}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               Programa de gamificação (detalhado)
             </Typography>
@@ -215,13 +233,13 @@ export default function Hortelan360() {
                 <Grid item xs={12} md={6} key={pillar.id}>
                   <MotionCard
                     variant="outlined"
-                    sx={{ height: '100%' }}
+                    sx={sectionCardSx}
                     initial={{ opacity: 0, x: index % 2 === 0 ? -16 : 16 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true, amount: 0.3 }}
                     transition={{ duration: 0.55, delay: index * 0.06 }}
                   >
-                    <CardContent>
+                    <CardContent sx={sectionCardContentSx}>
                       <Typography variant="subtitle1" sx={{ mb: 1 }}>
                         {pillar.id} {pillar.title}
                       </Typography>
