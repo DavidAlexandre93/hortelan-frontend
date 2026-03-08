@@ -7,7 +7,6 @@ import Iconify from '../../components/Iconify';
 //
 import Searchbar from './Searchbar';
 import AccountPopover from './AccountPopover';
-import LanguagePopover from './LanguagePopover';
 import NotificationsPopover from './NotificationsPopover';
 import Mode from './ModeTheme';
 
@@ -54,9 +53,6 @@ export default function DashboardNavbar({ onOpenSidebar }) {
 
         <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
           <Mode />
-          <Box sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
-            <LanguagePopover />
-          </Box>
           <Box sx={{ display: { xs: 'none', md: 'inline-flex' } }}>
             <NotificationsPopover />
           </Box>
