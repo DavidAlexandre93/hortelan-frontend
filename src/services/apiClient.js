@@ -1,15 +1,30 @@
 import { registerApiMetric } from './platformReliability';
 
-const DEFAULT_API_BASE_URL = 'http://localhost:3001';
+const LOCAL_API_BASE_URL = 'http://localhost:3001';
 const DEFAULT_TIMEOUT_MS = 12000;
 const DEFAULT_RETRY_ATTEMPTS = 2;
 const RETRYABLE_STATUS_CODES = new Set([408, 425, 429, 500, 502, 503, 504]);
 const MAX_RETRY_DELAY_MS = 1500;
 
+function resolveDefaultApiBaseUrl() {
+  if (typeof window === 'undefined') {
+    return LOCAL_API_BASE_URL;
+  }
+
+  const hostname = window.location?.hostname || '';
+  const isLocalEnvironment = ['localhost', '127.0.0.1', '0.0.0.0'].includes(hostname);
+
+  if (isLocalEnvironment) {
+    return LOCAL_API_BASE_URL;
+  }
+
+  return window.location.origin;
+}
+
 const configuredBaseUrl =
   import.meta.env.VITE_API_BASE_URL ||
   import.meta.env.VITE_BACKEND_URL ||
-  DEFAULT_API_BASE_URL;
+  resolveDefaultApiBaseUrl();
 
 export const API_BASE_URL = configuredBaseUrl.replace(/\/$/, '');
 
