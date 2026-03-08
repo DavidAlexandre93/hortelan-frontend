@@ -242,7 +242,7 @@ export default function Blog() {
     <Page title="Dashboard: Comunidade">
       <Container maxWidth="xl">
         <Typography variant="h4" gutterBottom>
-          Comunidade Hortelan AgTech Ltda
+          Comunidade Hortelan
         </Typography>
         <Typography variant="body2" color="text.secondary" mb={3}>
           Perfil público, publicações, perguntas e respostas, reputação e moderação comunitária.

@@ -50,7 +50,7 @@ export default function IntegrationsOps() {
   };
 
   return (
-    <Page title="Logs, Observabilidade e Flags | Hortelan AgTech Ltda">
+    <Page title="Logs, Observabilidade e Flags | Hortelan">
       <Stack spacing={3}>
         <Typography variant="h4">25. Integrações externas, confiabilidade e governança</Typography>
 

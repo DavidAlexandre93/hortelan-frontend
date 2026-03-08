@@ -1081,7 +1081,7 @@ export default function DashboardApp() {
     <Page title="Dashboard">
       <Container maxWidth={false} sx={{ px: { xs: 2, md: 3 } }}>
         <Typography variant="h4" sx={{ mb: 5 }}>
-          Welcome {user?.name || 'User'} to the Hortelan AgTech Ltda System
+          Welcome {user?.name || 'User'} to the Hortelan System
         </Typography>
 
         <Box sx={monitoringContentSx}>
