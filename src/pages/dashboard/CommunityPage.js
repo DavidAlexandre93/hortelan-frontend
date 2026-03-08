@@ -16,6 +16,7 @@ import {
   ListItemAvatar,
   ListItemText,
   MenuItem,
+  Paper,
   Stack,
   Tab,
   Tabs,
@@ -78,12 +79,15 @@ const moderationItems = [
   { id: 'm3', reason: 'Spam', status: 'Conta suspensa (7 dias)' },
 ];
 
+const cardSx = { borderRadius: 2, height: '100%' };
+const cardContentSx = { p: { xs: 2, md: 2.5 }, '&:last-child': { pb: { xs: 2, md: 2.5 } } };
+
 function PostCard({ post, onLike, onSave, onAddComment }) {
   const [commentText, setCommentText] = useState('');
 
   return (
-    <Card>
-      <CardContent>
+    <Card sx={cardSx}>
+      <CardContent sx={cardContentSx}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Avatar>{post.author.charAt(0)}</Avatar>
@@ -130,7 +134,7 @@ function PostCard({ post, onLike, onSave, onAddComment }) {
         </Typography>
 
         {post.comments.map((comment) => (
-          <Box key={comment.id} mb={1}>
+          <Paper key={comment.id} variant="outlined" sx={{ p: 1.5, mb: 1 }}>
             <Typography variant="body2">
               <strong>{comment.user}:</strong> {comment.text}
             </Typography>
@@ -139,7 +143,7 @@ function PostCard({ post, onLike, onSave, onAddComment }) {
                 ↳ {reply}
               </Typography>
             ))}
-          </Box>
+          </Paper>
         ))}
 
         <Stack direction="row" spacing={1} mt={1}>
@@ -218,8 +222,8 @@ export default function Blog() {
 
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
+            <Card sx={{ ...cardSx, mb: 3 }}>
+              <CardContent sx={cardContentSx}>
                 <Stack spacing={2} alignItems="center" textAlign="center">
                   <Avatar sx={{ width: 88, height: 88 }}>A</Avatar>
                   <Box>
@@ -239,8 +243,8 @@ export default function Blog() {
               </CardContent>
             </Card>
 
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
+            <Card sx={{ ...cardSx, mb: 3 }}>
+              <CardContent sx={cardContentSx}>
                 <Typography variant="subtitle1" mb={1}>
                   Badges e conquistas
                 </Typography>
@@ -252,8 +256,8 @@ export default function Blog() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent>
+            <Card sx={cardSx}>
+              <CardContent sx={cardContentSx}>
                 <Typography variant="subtitle1" mb={1}>
                   Ranking comunidade
                 </Typography>
@@ -272,8 +276,8 @@ export default function Blog() {
           </Grid>
 
           <Grid item xs={12} md={8}>
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
+            <Card sx={{ ...cardSx, mb: 3 }}>
+              <CardContent sx={cardContentSx}>
                 <Typography variant="subtitle1" mb={1}>
                   12.2 Publicações
                 </Typography>
@@ -315,8 +319,8 @@ export default function Blog() {
               </CardContent>
             </Card>
 
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
+            <Card sx={{ ...cardSx, mb: 3 }}>
+              <CardContent sx={cardContentSx}>
                 <Typography variant="subtitle1" mb={1}>
                   12.5 Feed da comunidade
                 </Typography>
@@ -364,8 +368,8 @@ export default function Blog() {
               ))}
             </Stack>
 
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
+            <Card sx={{ ...cardSx, mb: 3 }}>
+              <CardContent sx={cardContentSx}>
                 <Typography variant="subtitle1" mb={1}>
                   12.4 Perguntas e respostas
                 </Typography>
@@ -399,24 +403,26 @@ export default function Blog() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent>
+            <Card sx={cardSx}>
+              <CardContent sx={cardContentSx}>
                 <Typography variant="subtitle1" mb={1.5}>
                   12.7 Moderação
                 </Typography>
-                <List dense>
+                <List dense sx={{ px: 0 }}>
                   {moderationItems.map((item) => (
-                    <ListItem key={item.id}>
-                      <ListItemAvatar>
-                        <Avatar sx={{ bgcolor: 'warning.light' }}>
-                          <Iconify icon="eva:alert-triangle-fill" />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText primary={item.reason} secondary={item.status} />
-                      <Button size="small" variant="outlined" color="warning">
-                        Denunciar conteúdo
-                      </Button>
-                    </ListItem>
+                    <Paper key={item.id} variant="outlined" sx={{ p: 1.5, mb: 1.25 }}>
+                      <ListItem disableGutters sx={{ p: 0, alignItems: 'flex-start' }}>
+                        <ListItemAvatar sx={{ minWidth: 44 }}>
+                          <Avatar sx={{ bgcolor: 'warning.light' }}>
+                            <Iconify icon="eva:alert-triangle-fill" />
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText primary={item.reason} secondary={item.status} />
+                        <Button size="small" variant="outlined" color="warning" sx={{ ml: 1 }}>
+                          Denunciar conteúdo
+                        </Button>
+                      </ListItem>
+                    </Paper>
                   ))}
                 </List>
                 <Typography variant="caption" color="text.secondary">
