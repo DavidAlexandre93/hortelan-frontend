@@ -9,6 +9,7 @@ import {
   Container,
   Divider,
   Grid,
+  Paper,
   Stack,
   Switch,
   Typography,
@@ -142,12 +143,12 @@ export default function Integrations() {
             Este painel centraliza o roadmap 23.x. Integrações em fase futura podem ser pré-configuradas para facilitar ativação quando disponíveis.
           </Alert>
 
-          <Grid container spacing={2}>
+          <Grid container spacing={2} alignItems="stretch">
             {INTEGRATION_SECTIONS.map((section) => (
               <Grid item xs={12} md={6} key={section.id}>
                 <Card sx={{ height: '100%' }}>
-                  <CardContent>
-                    <Stack spacing={2}>
+                  <CardContent sx={{ p: 3, height: '100%' }}>
+                    <Stack spacing={2.5} sx={{ height: '100%' }}>
                       <Stack direction="row" spacing={1.5} alignItems="center">
                         {section.icon}
                         <Typography variant="h6">{section.title}</Typography>
@@ -155,31 +156,40 @@ export default function Integrations() {
 
                       <Divider />
 
-                      {section.items.map((item) => {
-                        const phaseProps = phaseChipProps[item.phase];
-                        const isFuture = item.phase === 'future';
+                      <Stack spacing={1.5}>
+                        {section.items.map((item) => {
+                          const phaseProps = phaseChipProps[item.phase];
+                          const isFuture = item.phase === 'future';
 
-                        return (
-                          <Stack
-                            key={item.id}
-                            direction={{ xs: 'column', sm: 'row' }}
-                            spacing={1}
-                            alignItems={{ xs: 'flex-start', sm: 'center' }}
-                            justifyContent="space-between"
-                          >
-                            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-                              <Typography variant="body2">{item.label}</Typography>
-                              <Chip size="small" label={phaseProps.label} color={phaseProps.color} variant="outlined" />
-                            </Stack>
-                            <Switch checked={Boolean(enabledById[item.id])} onChange={() => handleToggle(item.id)} color="primary" />
-                            {isFuture && (
-                              <Typography variant="caption" color="text.secondary">
-                                Pré-configuração
-                              </Typography>
-                            )}
-                          </Stack>
-                        );
-                      })}
+                          return (
+                            <Paper
+                              key={item.id}
+                              variant="outlined"
+                              sx={{ p: 1.5, borderRadius: 2, bgcolor: 'background.neutral' }}
+                            >
+                              <Stack
+                                direction={{ xs: 'column', sm: 'row' }}
+                                spacing={1.5}
+                                alignItems={{ xs: 'flex-start', sm: 'center' }}
+                                justifyContent="space-between"
+                              >
+                                <Stack spacing={0.75}>
+                                  <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                                    <Typography variant="body2">{item.label}</Typography>
+                                    <Chip size="small" label={phaseProps.label} color={phaseProps.color} variant="outlined" />
+                                  </Stack>
+                                  {isFuture && (
+                                    <Typography variant="caption" color="text.secondary">
+                                      Pré-configuração
+                                    </Typography>
+                                  )}
+                                </Stack>
+                                <Switch checked={Boolean(enabledById[item.id])} onChange={() => handleToggle(item.id)} color="primary" />
+                              </Stack>
+                            </Paper>
+                          );
+                        })}
+                      </Stack>
                     </Stack>
                   </CardContent>
                 </Card>
