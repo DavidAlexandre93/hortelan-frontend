@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
   Alert,
-  Box,
   Button,
   Card,
   CardContent,
@@ -14,6 +13,7 @@ import {
   ListItem,
   ListItemText,
   MenuItem,
+  Paper,
   Stack,
   Table,
   TableBody,
@@ -82,7 +82,7 @@ const observability = [
 function SectionCard({ title, subtitle, children }) {
   return (
     <Card sx={{ height: '100%' }}>
-      <CardContent>
+      <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
         <Stack spacing={1.5} mb={2}>
           <Typography variant="h6">{title}</Typography>
           <Typography variant="body2" color="text.secondary">
@@ -103,7 +103,7 @@ export default function User() {
 
   return (
     <Page title="Admin | Gestão operacional">
-      <Container>
+      <Container maxWidth="xl" sx={{ pb: 4 }}>
         <Stack spacing={1} mb={4}>
           <Typography variant="h4">Central de Gestão (Admin)</Typography>
           <Typography variant="body2" color="text.secondary">
@@ -119,7 +119,7 @@ export default function User() {
               subtitle="Listagem, status da conta e ações de suporte operacional."
             >
               <Stack spacing={2.5}>
-                <TableContainer>
+                <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
                   <Table size="small">
                     <TableHead>
                       <TableRow>
@@ -168,7 +168,7 @@ export default function User() {
                     label="Usuário para suporte"
                     value={selectedUser}
                     onChange={(event) => setSelectedUser(Number(event.target.value))}
-                    sx={{ minWidth: 280 }}
+                    sx={{ minWidth: 280, flex: 1 }}
                   >
                     {users.map((user) => (
                       <MenuItem key={user.id} value={user.id}>
@@ -181,13 +181,15 @@ export default function User() {
                     label="Ação"
                     value={selectedSupportAction}
                     onChange={(event) => setSelectedSupportAction(event.target.value)}
-                    sx={{ minWidth: 220 }}
+                    sx={{ minWidth: 220, flex: 1 }}
                   >
                     <MenuItem value="reset">Reset de conta</MenuItem>
                     <MenuItem value="bloqueio">Bloqueio preventivo</MenuItem>
                     <MenuItem value="analise">Abrir análise de segurança</MenuItem>
                   </TextField>
-                  <Button variant="contained">Executar suporte</Button>
+                  <Button variant="contained" sx={{ alignSelf: { xs: 'stretch', md: 'center' } }}>
+                    Executar suporte
+                  </Button>
                 </Stack>
                 <Alert severity="info">
                   Conta selecionada: <strong>{selectedUserData?.nome}</strong> ({selectedUserData?.status}).
@@ -222,12 +224,12 @@ export default function User() {
             >
               <Stack spacing={1.2}>
                 {cmsContent.map((content) => (
-                  <Card key={content.titulo} variant="outlined" sx={{ p: 1.2 }}>
+                  <Paper key={content.titulo} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
                     <Typography variant="subtitle2">{content.titulo}</Typography>
                     <Typography variant="caption" color="text.secondary">
                       {content.tipo} • {content.status}
                     </Typography>
-                  </Card>
+                  </Paper>
                 ))}
               </Stack>
             </SectionCard>
@@ -240,15 +242,16 @@ export default function User() {
             >
               <Stack spacing={1.2}>
                 {communityQueue.map((entry) => (
-                  <Box
+                  <Paper
                     key={entry.item}
-                    sx={{ border: 1, borderColor: 'divider', borderRadius: 1, p: 1.5 }}
+                    variant="outlined"
+                    sx={{ borderRadius: 2, p: 1.5 }}
                   >
                     <Typography variant="subtitle2">{entry.item}</Typography>
                     <Typography variant="body2" color="text.secondary">
                       {entry.acao} • Severidade {entry.severidade}
                     </Typography>
-                  </Box>
+                  </Paper>
                 ))}
               </Stack>
             </SectionCard>
@@ -300,7 +303,7 @@ export default function User() {
               <Grid container spacing={2}>
                 {observability.map((item) => (
                   <Grid key={item.metrica} item xs={12} md={3}>
-                    <Card variant="outlined" sx={{ p: 2 }}>
+                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, height: '100%' }}>
                       <Stack spacing={1}>
                         <Typography variant="subtitle2">{item.metrica}</Typography>
                         <Typography variant="h5">{item.valor}%</Typography>
@@ -309,7 +312,7 @@ export default function User() {
                           {item.detalhe}
                         </Typography>
                       </Stack>
-                    </Card>
+                    </Paper>
                   </Grid>
                 ))}
               </Grid>
