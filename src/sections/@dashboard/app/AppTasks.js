@@ -95,7 +95,7 @@ function TaskItem({ task, checked, onChange }) {
 
   return (
     <Stack
-      direction="row"
+      direction={{ xs: 'column', sm: 'row' }}
       sx={{
         px: 2,
         py: 0.75,
@@ -108,7 +108,7 @@ function TaskItem({ task, checked, onChange }) {
       <FormControlLabel
         control={<Checkbox checked={checked} onChange={onChange} />}
         label={task.label}
-        sx={{ flexGrow: 1, m: 0 }}
+        sx={{ flexGrow: 1, m: 0, mr: { sm: 1 } }}
       />
 
       <MoreMenuButton
