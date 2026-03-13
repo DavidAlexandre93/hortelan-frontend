@@ -55,7 +55,7 @@
     "@mui/styles": "^6.4.8",
     "@sentry/react": "^10.42.0",
     "@testing-library/jest-dom": "^6.9.1",
-    "@vercel/analytics": "^1.1.1",
+    "@vercel/analytics": "^2.0.0",
     "apexcharts": "^3.35.3",
     "change-case": "^4.1.2",
     "date-fns": "^4.1.0",
