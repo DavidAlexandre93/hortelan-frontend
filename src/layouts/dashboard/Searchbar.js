@@ -1,75 +1,51 @@
 import { useState } from 'react';
-// material
-import { styled, alpha } from '@mui/material/styles';
-import { Input, Slide, Button, IconButton, InputAdornment, ClickAwayListener } from '@mui/material';
-// component
+import { alpha, styled } from '@mui/material/styles';
+import { Button, ClickAwayListener, IconButton, Input, InputAdornment, Slide, Tooltip } from '@mui/material';
 import Iconify from '../../components/Iconify';
 
-// ----------------------------------------------------------------------
-
-const APPBAR_MOBILE = 64;
-const APPBAR_DESKTOP = 92;
-
-const SearchbarStyle = styled('div')(({ theme }) => ({
-  top: 0,
-  left: 0,
-  zIndex: 99,
-  width: '100%',
-  display: 'flex',
+const SearchLayer = styled('div')(({ theme }) => ({
   position: 'absolute',
+  inset: 0,
+  zIndex: 99,
+  height: 68,
+  display: 'flex',
   alignItems: 'center',
-  height: APPBAR_MOBILE,
-  backdropFilter: 'blur(6px)',
-  WebkitBackdropFilter: 'blur(6px)', // Fix on Mobile
-  padding: theme.spacing(0, 3),
-  boxShadow: theme.customShadows.z8,
-  backgroundColor: `${alpha(theme.palette.background.default, 0.72)}`,
-  [theme.breakpoints.up('md')]: {
-    height: APPBAR_DESKTOP,
-    padding: theme.spacing(0, 5),
-  },
+  gap: theme.spacing(1),
+  padding: theme.spacing(0, 2),
+  backgroundColor: alpha(theme.palette.background.paper, 0.98),
+  [theme.breakpoints.up('md')]: { padding: theme.spacing(0, 4) },
 }));
 
-// ----------------------------------------------------------------------
-
 export default function Searchbar() {
-  const [isOpen, setOpen] = useState(false);
-
-  const handleOpen = () => {
-    setOpen((prev) => !prev);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
+  const [open, setOpen] = useState(false);
 
   return (
-    <ClickAwayListener onClickAway={handleClose}>
+    <ClickAwayListener onClickAway={() => setOpen(false)}>
       <div>
-        {!isOpen && (
-          <IconButton onClick={handleOpen}>
-            <Iconify icon="eva:search-fill" width={20} height={20} />
-          </IconButton>
+        {!open && (
+          <Tooltip title="Pesquisar">
+            <IconButton onClick={() => setOpen(true)} aria-label="Pesquisar na plataforma">
+              <Iconify icon="eva:search-fill" width={20} height={20} />
+            </IconButton>
+          </Tooltip>
         )}
-
-        <Slide direction="down" in={isOpen} mountOnEnter unmountOnExit>
-          <SearchbarStyle>
+        <Slide direction="down" in={open} mountOnEnter unmountOnExit>
+          <SearchLayer>
             <Input
-              autoFocus
               fullWidth
               disableUnderline
-              placeholder="Search…"
+              placeholder="Pesquisar na plataforma"
+              inputProps={{ 'aria-label': 'Pesquisar na plataforma' }}
               startAdornment={
                 <InputAdornment position="start">
-                  <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled', width: 20, height: 20 }} />
+                  <Iconify icon="eva:search-fill" width={20} />
                 </InputAdornment>
               }
-              sx={{ mr: 1, fontWeight: 'fontWeightBold' }}
             />
-            <Button variant="contained" onClick={handleClose}>
-              Search
+            <Button variant="contained" onClick={() => setOpen(false)}>
+              Pesquisar
             </Button>
-          </SearchbarStyle>
+          </SearchLayer>
         </Slide>
       </div>
     </ClickAwayListener>

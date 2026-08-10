@@ -1,166 +1,228 @@
 import * as Yup from 'yup';
-import { useState } from 'react';
-import { Link as RouterLink, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-// form
+import PropTypes from 'prop-types';
+import { useMemo, useState } from 'react';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-// @mui
-import { alpha, keyframes, styled } from '@mui/material/styles';
-import { Alert, Card, Container, Divider, IconButton, InputAdornment, Link, Stack, Typography } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
-// hooks
-import useResponsive from '../../../hooks/useResponsive';
-// components
+import { styled } from '@mui/material/styles';
+import { Alert, Box, Button, Container, IconButton, InputAdornment, Link, Stack, Typography } from '@mui/material';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import SensorsRoundedIcon from '@mui/icons-material/SensorsRounded';
+import WaterDropRoundedIcon from '@mui/icons-material/WaterDropRounded';
 import Page from '../../../components/Page';
 import Logo from '../../../components/Logo';
 import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFCheckbox, RHFTextField } from '../../../components/hook-form';
 import useAuth from '../../../auth/useAuth';
-import { DEFAULT_AUTH_REDIRECT } from '../../../utils/authRedirect';
-// sections
-import AuthSocial from '../AuthSocial';
 import { RegisterForm } from '../register';
+import AuthSocial from '../AuthSocial';
+import { resolvePostAuthDestination } from '../../../utils/authRedirect';
 
-
-const RootStyle = styled('div')(({ theme }) => ({
+const Root = styled('main')(({ theme }) => ({
   minHeight: '100dvh',
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr)',
+  backgroundColor: theme.palette.background.paper,
+  [theme.breakpoints.up('md')]: {
+    gridTemplateColumns: 'minmax(420px, 47%) minmax(480px, 1fr)',
+  },
+}));
+
+const VisualPanel = styled('section')(({ theme }) => ({
+  display: 'none',
+  position: 'relative',
+  minHeight: '100dvh',
+  overflow: 'hidden',
+  color: theme.palette.common.white,
+  backgroundColor: '#173f2f',
+  backgroundImage:
+    'linear-gradient(180deg, rgba(7, 30, 21, 0.2) 0%, rgba(7, 30, 21, 0.86) 100%), url(/static/media/auth-greenhouse.webp)',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
   [theme.breakpoints.up('md')]: {
     display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    padding: theme.spacing(5),
+  },
+  [theme.breakpoints.up('xl')]: {
+    padding: theme.spacing(7),
   },
 }));
 
-const HeaderStyle = styled('header')(({ theme }) => ({
-  zIndex: 9,
-  lineHeight: 0,
-  width: '100%',
-  display: 'flex',
-  alignItems: 'center',
-  position: 'relative',
-  padding: theme.spacing(2.5, 2),
-  justifyContent: 'space-between',
-  gap: theme.spacing(1.5),
-  [theme.breakpoints.up('md')]: {
-    top: 0,
-    position: 'absolute',
-    alignItems: 'flex-start',
-    padding: theme.spacing(7, 5, 0, 7),
-  },
-}));
-
-const SectionStyle = styled(Card)(({ theme }) => ({
-  position: 'relative',
-  overflow: 'hidden',
-  width: '100%',
-  maxWidth: 464,
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  margin: theme.spacing(2, 0, 2, 2),
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
-  background: `linear-gradient(160deg, ${alpha(theme.palette.primary.lighter, 0.42)} 0%, ${alpha(theme.palette.info.lighter, 0.28)} 45%, ${theme.palette.background.paper} 100%)`,
-  boxShadow: `0 20px 40px ${alpha(theme.palette.primary.dark, 0.12)}`,
-  [theme.breakpoints.down('lg')]: {
-    maxWidth: 420,
-  },
-}));
-
-const leafFloat = keyframes`
-  0% { transform: translateY(0px) rotate(-3deg); }
-  50% { transform: translateY(-12px) rotate(3deg); }
-  100% { transform: translateY(0px) rotate(-3deg); }
-`;
-
-const cableConnect = keyframes`
-  0% {
-    transform: scaleX(0);
-    opacity: 0;
-  }
-  100% {
-    transform: scaleX(1);
-    opacity: 1;
-  }
-`;
-
-const DecorativeScene = styled('div')(({ theme }) => ({
-  position: 'absolute',
-  inset: 0,
-  pointerEvents: 'none',
-  zIndex: 1,
-  background: `linear-gradient(170deg, ${alpha(theme.palette.success.light, 0.09)} 0%, ${alpha(
-    theme.palette.info.light,
-    0.08
-  )} 60%, transparent 100%)`,
-}));
-
-const Leaf = styled('div')(({ theme }) => ({
-  position: 'absolute',
-  width: 70,
-  height: 98,
-  borderRadius: '80% 0 80% 0',
-  background: `linear-gradient(145deg, ${theme.palette.success.light}, ${theme.palette.success.dark})`,
-  boxShadow: `0 10px 24px ${alpha(theme.palette.success.dark, 0.35)}`,
-  animation: `${leafFloat} 4.2s ease-in-out infinite`,
-  transformOrigin: 'bottom center',
-}));
-
-const Cable = styled('div')(({ theme }) => ({
-  position: 'absolute',
-  left: '12%',
-  right: '14%',
-  top: '37%',
-  height: 5,
-  borderRadius: 999,
-  background: `linear-gradient(90deg, ${theme.palette.info.main}, ${theme.palette.primary.main})`,
-  boxShadow: `0 0 10px ${alpha(theme.palette.info.main, 0.45)}`,
-  transformOrigin: 'left center',
-  animation: `${cableConnect} 1.1s ease-out forwards`,
-}));
-
-const ContentStyle = styled('div')(({ theme }) => ({
-  maxWidth: 480,
-  margin: 'auto',
+const FormPanel = styled('section')(({ theme }) => ({
+  minWidth: 0,
   minHeight: '100dvh',
   display: 'flex',
-  justifyContent: 'center',
-  flexDirection: 'column',
-  padding: theme.spacing(5, 0, 6),
-  [theme.breakpoints.up('md')]: {
-    padding: theme.spacing(12, 0),
+  alignItems: 'center',
+  padding: theme.spacing(3, 0, 5),
+  background: theme.palette.background.paper,
+  [theme.breakpoints.up('sm')]: {
+    padding: theme.spacing(5, 0),
   },
 }));
+
+function FeatureLine({ icon, title, detail }) {
+  return (
+    <Stack direction="row" spacing={1.5} alignItems="center">
+      <Box
+        sx={{
+          width: 44,
+          height: 44,
+          flex: '0 0 44px',
+          display: 'grid',
+          placeItems: 'center',
+          borderRadius: 1.5,
+          bgcolor: 'rgba(255,255,255,.14)',
+          border: '1px solid rgba(255,255,255,.2)',
+        }}
+      >
+        {icon}
+      </Box>
+      <Box>
+        <Typography variant="subtitle2" color="inherit">
+          {title}
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,.72)' }}>
+          {detail}
+        </Typography>
+      </Box>
+    </Stack>
+  );
+}
+
+FeatureLine.propTypes = {
+  icon: PropTypes.node.isRequired,
+  title: PropTypes.string.isRequired,
+  detail: PropTypes.string.isRequired,
+};
+
+function AuthLayout({ mode, children }) {
+  const isRegister = mode === 'register';
+
+  return (
+    <Page
+      title={isRegister ? 'Criar conta' : 'Entrar'}
+      description={
+        isRegister ? 'Crie sua conta e comece a organizar seu cultivo.' : 'Acesse sua central de operacao Hortelan.'
+      }
+    >
+      <Root id="main-content">
+        <VisualPanel aria-label="Cultivo protegido monitorado pela Hortelan">
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Logo disabledLink sx={{ width: 58, height: 58, filter: 'drop-shadow(0 8px 18px rgba(0,0,0,.25))' }} />
+            <Box>
+              <Typography variant="h5" color="inherit">
+                Hortelan
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,.76)' }}>
+                Inteligencia para cultivar melhor
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Box sx={{ maxWidth: 560 }}>
+            <Typography variant="h2" sx={{ fontSize: { md: '2.25rem', xl: '3rem' }, lineHeight: 1.08, mb: 2 }}>
+              Decisoes precisas, do sensor ao campo.
+            </Typography>
+            <Typography
+              sx={{ maxWidth: 500, color: 'rgba(255,255,255,.78)', fontSize: '1.05rem', lineHeight: 1.7, mb: 4 }}
+            >
+              Conecte dados, equipe e automacoes em uma central desenhada para a rotina real da operacao.
+            </Typography>
+            <Stack spacing={2.25}>
+              <FeatureLine
+                icon={<SensorsRoundedIcon />}
+                title="Leitura em tempo real"
+                detail="Sinais importantes sem ruido visual."
+              />
+              <FeatureLine
+                icon={<WaterDropRoundedIcon />}
+                title="Uso consciente de recursos"
+                detail="Irrigacao orientada por contexto."
+              />
+              <FeatureLine
+                icon={<CheckCircleRoundedIcon />}
+                title="Rotina sob controle"
+                detail="Alertas e tarefas com prioridade clara."
+              />
+            </Stack>
+          </Box>
+
+          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,.64)' }}>
+            Operacao confiavel, acessivel e centrada em pessoas.
+          </Typography>
+        </VisualPanel>
+
+        <FormPanel>
+          <Container maxWidth="sm" sx={{ px: { xs: 2.5, sm: 5, lg: 7 }, py: 2 }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: { xs: 5, md: 7 } }}>
+              <Stack direction="row" spacing={1.25} alignItems="center" sx={{ display: { md: 'none' } }}>
+                <Logo sx={{ width: 46, height: 46 }} />
+                <Typography variant="h6">Hortelan</Typography>
+              </Stack>
+              <Typography variant="body2" sx={{ ml: 'auto', color: 'text.secondary' }}>
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                  {isRegister ? 'Já possui uma conta? ' : 'Novo por aqui? '}
+                </Box>
+                <Link component={RouterLink} to={isRegister ? '/login' : '/register'} fontWeight={700}>
+                  {isRegister ? 'Entrar' : 'Criar conta'}
+                </Link>
+              </Typography>
+            </Stack>
+
+            <Box sx={{ maxWidth: 480, mx: 'auto' }}>
+              <Typography variant="overline" color="primary.dark" sx={{ fontWeight: 800 }}>
+                {isRegister ? 'Comece agora' : 'Bem-vindo de volta'}
+              </Typography>
+              <Typography variant="h3" sx={{ mt: 0.75, mb: 1.25, fontSize: { xs: '1.8rem', sm: '2.15rem' } }}>
+                {isRegister ? 'Crie sua conta Hortelan' : 'Acesse sua operacao'}
+              </Typography>
+              <Typography color="text.secondary" sx={{ mb: 4, lineHeight: 1.7 }}>
+                {isRegister
+                  ? 'Informe seus dados para preparar um ambiente seguro para o seu cultivo.'
+                  : 'Entre com suas credenciais para continuar de onde parou.'}
+              </Typography>
+              {children}
+            </Box>
+          </Container>
+        </FormPanel>
+      </Root>
+    </Page>
+  );
+}
+
+AuthLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+  mode: PropTypes.oneOf(['login', 'register']).isRequired,
+};
 
 function LoginFields() {
   const navigate = useNavigate();
-  const { login } = useAuth();
-
+  const location = useLocation();
+  const { login, demoMode } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [twoFactorChallenge, setTwoFactorChallenge] = useState(null);
   const [twoFactorHint, setTwoFactorHint] = useState('');
-  const [demoCode, setDemoCode] = useState('');
 
-  const LoginSchema = Yup.object().shape({
-    email: Yup.string().email('Informe um e-mail válido').required('E-mail é obrigatório'),
-    password: Yup.string().required('Senha é obrigatória'),
-    twoFactorCode: Yup.string().when([], {
-      is: () => Boolean(twoFactorChallenge),
-      then: (schema) => schema.required('Código 2FA obrigatório').length(6, 'O código deve ter 6 dígitos'),
-      otherwise: (schema) => schema,
-    }),
-  });
-
-  const defaultValues = {
-    email: '',
-    password: '',
-    remember: true,
-    trustDevice: true,
-    deviceName: '',
-    twoFactorCode: '',
-  };
+  const schema = useMemo(
+    () =>
+      Yup.object().shape({
+        email: Yup.string().email('Informe um e-mail valido').required('E-mail e obrigatorio'),
+        password: Yup.string().required('Senha e obrigatoria'),
+        twoFactorCode: Yup.string().when([], {
+          is: () => Boolean(twoFactorChallenge),
+          then: (field) => field.required('Codigo obrigatorio').matches(/^\d{6}$/, 'Informe os 6 digitos'),
+          otherwise: (field) => field,
+        }),
+      }),
+    [twoFactorChallenge]
+  );
 
   const methods = useForm({
-    resolver: yupResolver(LoginSchema),
-    defaultValues,
+    resolver: yupResolver(schema),
+    defaultValues: { email: '', password: '', remember: true, trustDevice: false, twoFactorCode: '' },
   });
 
   const {
@@ -169,15 +231,13 @@ function LoginFields() {
     formState: { isSubmitting },
   } = methods;
 
-  const onSubmit = async ({ email, password, remember, trustDevice, deviceName, twoFactorCode }) => {
+  const onSubmit = async ({ email, password, remember, trustDevice, twoFactorCode }) => {
     setSubmitError('');
-
     const result = await login({
       email,
       password,
       remember,
       trustDevice,
-      deviceName,
       challengeId: twoFactorChallenge?.challengeId,
       twoFactorCode,
     });
@@ -190,225 +250,117 @@ function LoginFields() {
     if (result.requiresTwoFactor) {
       setTwoFactorChallenge(result);
       setTwoFactorHint(
-        result.method === 'email'
-          ? `Código enviado para ${result.deliveryHint}.`
-          : 'Abra seu app autenticador e informe o código de 6 dígitos.'
+        result.method === 'email' ? `Codigo enviado para ${result.deliveryHint}.` : 'Abra seu aplicativo autenticador.'
       );
-      setDemoCode(result.demoCode);
       return;
     }
 
-    navigate(DEFAULT_AUTH_REDIRECT, { replace: true });
+    navigate(resolvePostAuthDestination({ search: location.search, stateFrom: location.state?.from }), {
+      replace: true,
+    });
   };
 
   return (
-    <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={3}>
-        {submitError && <Alert severity="error">{submitError}</Alert>}
-
-        {twoFactorChallenge && (
-          <Alert severity="info">
-            <Typography variant="subtitle2">2FA obrigatório</Typography>
-            <Typography variant="body2">{twoFactorHint}</Typography>
-            <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
-              Ambiente de demo: código gerado <strong>{demoCode}</strong> (expira em 5 minutos).
-            </Typography>
-          </Alert>
-        )}
-
-        <RHFTextField name="email" label="E-mail" disabled={Boolean(twoFactorChallenge)} />
-
-        <RHFTextField
-          name="password"
-          label="Senha"
-          type={showPassword ? 'text' : 'password'}
-          disabled={Boolean(twoFactorChallenge)}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                  <Iconify icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-
-        {twoFactorChallenge && (
+    <>
+      {demoMode && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Modo de demonstracao ativo. Use as credenciais configuradas somente no ambiente local.
+        </Alert>
+      )}
+      <AuthSocial />
+      <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+        <Stack spacing={2.5}>
+          {submitError && <Alert severity="error">{submitError}</Alert>}
+          {twoFactorChallenge && (
+            <Alert severity="info">
+              <strong>Verificacao em duas etapas.</strong> {twoFactorHint}
+            </Alert>
+          )}
+          <RHFTextField name="email" label="E-mail" autoComplete="email" disabled={Boolean(twoFactorChallenge)} />
           <RHFTextField
-            name="twoFactorCode"
-            label="Código de autenticação"
-            placeholder="000000"
-            inputProps={{ maxLength: 6 }}
+            name="password"
+            label="Senha"
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
+            disabled={Boolean(twoFactorChallenge)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    edge="end"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    <Iconify icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
-        )}
-      </Stack>
+          {twoFactorChallenge && (
+            <RHFTextField
+              name="twoFactorCode"
+              label="Codigo de autenticacao"
+              inputProps={{ inputMode: 'numeric', maxLength: 6 }}
+            />
+          )}
+        </Stack>
 
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
-        <RHFCheckbox name="remember" label="Lembrar-me" disabled={Boolean(twoFactorChallenge)} />
-        <Link variant="subtitle2" underline="hover" component={RouterLink} to="/forgot-password">
-          Esqueceu sua senha?
-        </Link>
-      </Stack>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ my: 2 }}>
+          <RHFCheckbox name="remember" label="Manter conectado" disabled={Boolean(twoFactorChallenge)} />
+          <Link component={RouterLink} to="/forgot-password" variant="subtitle2">
+            Esqueci a senha
+          </Link>
+        </Stack>
+        <RHFCheckbox name="trustDevice" label="Confiar neste dispositivo" disabled={Boolean(twoFactorChallenge)} />
 
-      <Stack sx={{ mb: 2 }}>
-        <RHFCheckbox
-          name="trustDevice"
-          label="Confiar neste dispositivo por 30 dias"
-          disabled={Boolean(twoFactorChallenge)}
-        />
-        <RHFTextField
-          name="deviceName"
-          label="Nome do dispositivo (opcional)"
-          placeholder="Ex.: Notebook escritório"
-          disabled={Boolean(twoFactorChallenge)}
-        />
-      </Stack>
-
-      <LoadingButton fullWidth size="large" type="submit" variant="contained" loading={isSubmitting}>
-        {twoFactorChallenge ? 'Validar 2FA e entrar' : 'Entrar'}
-      </LoadingButton>
-
-      {twoFactorChallenge && (
-        <LoadingButton
-          sx={{ mt: 2 }}
+        <Button
           fullWidth
           size="large"
-          type="button"
-          color="inherit"
-          variant="outlined"
-          onClick={() => {
-            setTwoFactorChallenge(null);
-            setTwoFactorHint('');
-            setDemoCode('');
-            setValue('twoFactorCode', '');
-          }}
+          type="submit"
+          variant="contained"
+          loading={isSubmitting}
+          sx={{ mt: 2, minHeight: 48 }}
         >
-          Voltar e alterar credenciais
-        </LoadingButton>
-      )}
-    </FormProvider>
-  );
-}
+          {twoFactorChallenge ? 'Validar e entrar' : 'Entrar'}
+        </Button>
 
-export default function LoginForm() {
-  const smUp = useResponsive('up', 'sm');
-  const mdUp = useResponsive('up', 'md');
-  const [searchParams, setSearchParams] = useSearchParams();
-  const location = useLocation();
-
-  const isRegisterMode = location.pathname === '/register' || searchParams.get('mode') === 'register';
-
-  if (location.pathname !== '/login' && location.pathname !== '/register') {
-    return <Navigate to="/login" replace />;
-  }
-
-  const goToMode = (mode) => {
-    if (mode === 'register') {
-      setSearchParams({ mode: 'register' }, { replace: location.pathname === '/register' });
-      return;
-    }
-
-    setSearchParams({}, { replace: location.pathname === '/register' });
-  };
-
-  return (
-    <Page title={isRegisterMode ? 'Cadastro' : 'Login'}>
-      <RootStyle>
-        <HeaderStyle>
-          <Logo sx={{ width: { xs: 76, sm: 94, md: 120 }, height: { xs: 76, sm: 94, md: 120 } }} />
-          {smUp && (
-            <Typography variant="body2" sx={{ mt: { md: -2 } }}>
-              {isRegisterMode ? 'Já tem uma conta? ' : 'Não tem uma conta? '}
-              <Link
-                variant="subtitle2"
-                component={RouterLink}
-                to={isRegisterMode ? '/login' : '/register'}
-                onClick={() => goToMode(isRegisterMode ? 'login' : 'register')}
-              >
-                {isRegisterMode ? 'Entrar' : 'Cadastre-se'}
-              </Link>
-            </Typography>
-          )}
-        </HeaderStyle>
-
-        {mdUp && (
-          <SectionStyle>
-            <DecorativeScene>
-              <Leaf sx={{ top: '16%', left: '8%' }} />
-              <Leaf sx={{ bottom: '12%', right: '12%', width: 62, height: 92, animationDuration: '4.8s' }} />
-              <Cable />
-            </DecorativeScene>
-            <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 1 }}>
-              {isRegisterMode ? 'Crie sua conta na Hortelan' : 'Olá, bem-vindo de volta à Hortelan'}
-            </Typography>
-            <Typography sx={{ px: 5, mb: 4, color: 'text.secondary' }}>
-              Plataforma AgroTech com monitoramento inteligente, automações e decisões orientadas por dados em tempo real.
-            </Typography>
-            <img
-              src={isRegisterMode ? '/static/illustrations/illustration_register.png' : '/static/illustrations/illustration_login.png'}
-              alt={isRegisterMode ? 'register' : 'login'}
-              style={{ position: 'relative', zIndex: 2 }}
-            />
-          </SectionStyle>
+        {twoFactorChallenge && (
+          <Button
+            fullWidth
+            size="large"
+            type="button"
+            color="inherit"
+            variant="outlined"
+            sx={{ mt: 1.5, minHeight: 48 }}
+            onClick={() => {
+              setTwoFactorChallenge(null);
+              setTwoFactorHint('');
+              setValue('twoFactorCode', '');
+            }}
+          >
+            Alterar credenciais
+          </Button>
         )}
-
-        <Container maxWidth="sm" sx={{ px: { xs: 2.25, sm: 3 } }}>
-          <ContentStyle>
-            <Typography variant="h4" gutterBottom>
-              {isRegisterMode ? 'Cadastre-se para começar' : 'Entrar na Hortelan'}
-            </Typography>
-
-            <Typography
-              variant="overline"
-              sx={(theme) => ({
-                color: 'primary.main',
-                fontWeight: 800,
-                letterSpacing: 1.2,
-                display: 'inline-flex',
-                alignSelf: 'flex-start',
-                px: 1.4,
-                py: 0.4,
-                borderRadius: 999,
-                mb: 1.5,
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.24)}`,
-                background: `linear-gradient(120deg, ${alpha(theme.palette.primary.light, 0.2)}, ${alpha(theme.palette.info.light, 0.15)})`,
-              })}
-            >
-              AgroTech Experience
-            </Typography>
-
-            <Typography sx={{ color: 'text.secondary', mb: isRegisterMode ? 5 : 1 }}>
-              {isRegisterMode
-                ? 'Preencha seus dados e confirme seu e-mail para acessar a plataforma.'
-                : 'Use seu e-mail e senha para continuar.'}
-            </Typography>
-            {!isRegisterMode && (
-              <Typography sx={{ color: 'text.secondary', mb: 5 }}>
-                Acesso de demonstração: <strong>davidfernandes@hortelanagtech.com</strong> / <strong>admin</strong>.
-              </Typography>
-            )}
-
-            <AuthSocial />
-
-            {isRegisterMode ? <RegisterForm /> : <LoginFields />}
-
-            <Divider sx={{ my: 3 }} />
-
-            <Typography variant="body2" align="center">
-              {isRegisterMode ? 'Já possui uma conta?' : 'Precisa criar uma conta?'}{' '}
-              <Link
-                variant="subtitle2"
-                component={RouterLink}
-                to={isRegisterMode ? '/login' : '/register'}
-                onClick={() => goToMode(isRegisterMode ? 'login' : 'register')}
-              >
-                {isRegisterMode ? 'Entrar' : 'Abrir cadastro'}
-              </Link>
-            </Typography>
-          </ContentStyle>
-        </Container>
-      </RootStyle>
-    </Page>
+      </FormProvider>
+    </>
   );
 }
+
+export function LoginPage() {
+  return (
+    <AuthLayout mode="login">
+      <LoginFields />
+    </AuthLayout>
+  );
+}
+
+export function RegisterPage() {
+  return (
+    <AuthLayout mode="register">
+      <RegisterForm />
+    </AuthLayout>
+  );
+}
+
+export default LoginPage;

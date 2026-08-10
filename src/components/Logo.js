@@ -6,12 +6,13 @@ import { Box } from '@mui/material';
 // ----------------------------------------------------------------------
 
 Logo.propTypes = {
+  alt: PropTypes.string,
   disabledLink: PropTypes.bool,
   sx: PropTypes.object,
 };
 
-export default function Logo({ disabledLink = false, sx }) {
-  const logo = <Box component="img" src="/favicon/hortelan-logo.svg" sx={{ width: 40, height: 40, ...sx }} />;
+export default function Logo({ alt = 'Hortelan', disabledLink = false, sx }) {
+  const logo = <Box component="img" src="/favicon/hortelan-logo.svg" alt={alt} sx={{ width: 40, height: 40, ...sx }} />;
 
   // OR
   // const logo = (
@@ -54,5 +55,9 @@ export default function Logo({ disabledLink = false, sx }) {
     return <>{logo}</>;
   }
 
-  return <RouterLink to="/">{logo}</RouterLink>;
+  return (
+    <RouterLink to="/" aria-label="Ir para o início">
+      {logo}
+    </RouterLink>
+  );
 }

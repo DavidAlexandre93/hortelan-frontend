@@ -1,4 +1,6 @@
 const reactHooksPlugin = require('eslint-plugin-react-hooks');
+const jsxA11yPlugin = require('eslint-plugin-jsx-a11y');
+const importPlugin = require('eslint-plugin-import');
 
 module.exports = [
   {
@@ -31,9 +33,26 @@ module.exports = [
     },
     plugins: {
       'react-hooks': reactHooksPlugin,
+      'jsx-a11y': jsxA11yPlugin,
+      import: importPlugin,
+    },
+    settings: {
+      'import/resolver': {
+        node: { extensions: ['.js', '.jsx'] },
+      },
     },
     rules: {
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^error$', varsIgnorePattern: '^(React|_)' }],
+      ...reactHooksPlugin.configs.flat.recommended.rules,
+      ...jsxA11yPlugin.flatConfigs.recommended.rules,
+      ...importPlugin.flatConfigs.errors.rules,
+      ...importPlugin.flatConfigs.warnings.rules,
+      'import/no-unresolved': 'off',
+      'import/no-named-as-default': 'off',
+      'import/no-named-as-default-member': 'off',
+      'no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^error$', varsIgnorePattern: '^(React|_)' },
+      ],
     },
   },
 ];

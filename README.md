@@ -1,119 +1,116 @@
-# HORTELAN-V2 ⭐️
+# Hortelan Frontend
 
-<p>
-  <img alt="Version" src="https://img.shields.io/badge/version-2.0.0-blue.svg?cacheSeconds=2592000" />
-  <a href="#" target="_blank">
-    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
-  </a>
-</p>
+Central operacional para monitoramento de cultivos, sensores, alertas, automações, tarefas e planejamento agronômico.
+O frontend usa React, Material UI e Vite, com renderização SSR seletiva nas rotas públicas e SPA protegida no dashboard.
 
-> Automated and monitored smart garden
+## Requisitos
 
-### ✨ [Live Demo](https://hortelan-frontend.vercel.app/dashboard/app)
+- Node.js `20.x`
+- npm compatível com o lockfile
+- Backend de identidade acessível por `VITE_API_BASE_URL`
 
-## Support is contiguous
-
-Leave a ⭐️ If this project got you going!
-
-<p>
-  <a href="https://www.buymeacoffee.com/davidfernandes"> <img align="left" src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" height="50" width="210" alt="buymeacoffee.com/davidfernandes" /></a>
-</p>
-<br /><br />
-
-## Getting Started
-
-First, run the development server:
+## Início rápido
 
 ```bash
-npm install
+npm ci
+copy .env.example .env
 npm run dev
-# or
-yarn
-yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+A aplicação fica disponível em [http://127.0.0.1:5173](http://127.0.0.1:5173).
 
-## Backend API
+## Ambiente
 
-O frontend agora tenta autenticar usando os endpoints do backend via `VITE_API_BASE_URL`.
+As opções suportadas estão documentadas em `.env.example`.
 
-Crie um arquivo `.env` com base em `.env.example`:
+| Variável                                 | Finalidade                         | Padrão seguro           |
+| ---------------------------------------- | ---------------------------------- | ----------------------- |
+| `VITE_API_BASE_URL`                      | Origem da API                      | Backend local explícito |
+| `VITE_API_TIMEOUT_MS`                    | Timeout das requisições            | `12000`                 |
+| `VITE_ENABLE_DEMO_AUTH`                  | Habilita adaptador local           | `false`                 |
+| `VITE_DEMO_EMAIL` / `VITE_DEMO_PASSWORD` | Identidade demo local              | vazio                   |
+| `VITE_SENTRY_DSN`                        | Telemetria Sentry                  | vazio                   |
+| `VITE_ENABLE_ANALYTICS`                  | Métricas Vercel com consentimento  | `false`                 |
+| `VITE_ENABLE_METICULOUS`                 | Gravação apenas em desenvolvimento | `false`                 |
+
+O modo demo só é carregado quando `VITE_ENABLE_DEMO_AUTH=true`. Falhas ou configuração ausente do backend não ativam
+fallback local. Senhas, tokens de recuperação, histórico de senhas e segredos MFA não são persistidos na jornada de
+produção.
+
+## Comandos
 
 ```bash
-VITE_API_BASE_URL=http://localhost:3001
-VITE_ENABLE_DEMO_AUTH=false
-VITE_SENTRY_DSN=
-VITE_SENTRY_TRACES_SAMPLE_RATE=0.2
-VITE_SENTRY_REPLAY_SESSION_SAMPLE_RATE=0.05
-VITE_SENTRY_REPLAY_ERROR_SAMPLE_RATE=1
+npm run dev                 # Vite em desenvolvimento
+npm run build               # bundle cliente de produção
+npm run build:ssr           # bundle cliente + entrada SSR
+npm run serve:ssr           # servidor SSR seletivo
+npm run test:coverage       # Vitest + testes Node com cobertura
+npm run test:e2e            # Chromium desktop e mobile 320 px
+npm run lint                # hooks, a11y, imports e regras JS
+npm run format:check        # Prettier em código, testes, scripts e docs
+npm run audit:frontend      # grafo de alcançabilidade cliente/SSR
+npm run bundle:check        # orçamento por entry, rota e vendor
+npm run security:assets     # credenciais e módulos proibidos no build
+npm run openspec:validate   # valida specs e mudanças OpenSpec
+npm run quality:gate        # gate completo usado pela CI
 ```
 
-> `VITE_ENABLE_DEMO_AUTH=true` habilita fallback local de autenticação apenas para demonstração.
+## Arquitetura
 
-Endpoints utilizados no frontend:
+- `src/routing/routeManifest.js`: caminhos, acesso, metadata, aliases e lazy loading.
+- `src/app/AppProviders.js`: árvore compartilhada de providers cliente/SSR.
+- `src/auth/identity/`: adaptadores de identidade backend e demo explícito.
+- `src/services/apiClient.js`: timeout, cancelamento, retry idempotente, erros canônicos e contratos Zod.
+- `src/components/states/`: estados operacionais, recuperação lazy e confirmações.
+- `src/features/`: regras de domínio isoladas e testáveis.
+- `server/`: SSR seletivo, composição do HTML e cabeçalhos de segurança.
+- `openspec/`: especificações fonte da verdade, propostas e tarefas de implementação.
 
-- `POST /auth/login`
-- `POST /auth/social-login`
-- `POST /auth/register`
-- `POST /auth/forgot-password`
-- `GET /auth/validate-reset-token?token=...`
-- `POST /auth/reset-password`
+Rotas públicas (`/login`, `/register`, `/forgot-password`, `/reset-password` e `/404`) podem ser renderizadas no
+servidor. Rotas `/dashboard/*` recebem o shell cliente e continuam protegidas pelos guards de autenticação.
 
-## Blockchain + SSR
+## SDD com OpenSpec
 
-### Blockchain (EVM)
+Mudanças relevantes seguem este fluxo:
 
-Foi adicionada uma integração inicial de blockchain no dashboard com:
+1. Explorar o problema e os requisitos observáveis.
+2. Criar uma change em `openspec/changes/<change>/` com proposta, design, deltas e tarefas.
+3. Validar com `npm run openspec:validate`.
+4. Implementar e atualizar os checkboxes conforme evidência real.
+5. Sincronizar as specs e arquivar somente após todos os gates passarem.
 
-- Conexão de carteira EVM (ex.: MetaMask);
-- Assinatura de mensagem para checkpoint de cultivo;
-- Envio de transação nativa (ETH) para endereço informado.
+O guia completo está em `docs/sdd-openspec-architecture.md`.
 
-### SSR seletivo
+## Segurança e privacidade
 
-Também foi incluído SSR seletivo com Vite para rotas específicas:
+- CSP de scripts restrita a `'self'`, sem `unsafe-inline` ou `unsafe-eval`.
+- HSTS, `nosniff`, proteção contra framing, política de referrer, permissões e COOP.
+- Sentry, Analytics e gravação condicionados a ambiente/configuração/consentimento.
+- Scanner de assets impede credenciais demo, loaders de desenvolvimento e tokens privados no bundle.
+- `npm audit` bloqueia advisories altos ou críticos de produção.
 
-- `/login`
-- `/register`
-- `/forgot-password`
+## Testes e acessibilidade
 
-Comandos:
+O projeto combina testes Node, Vitest/Testing Library/MSW e Playwright. As jornadas E2E cobrem login, cadastro,
+retorno protegido, falha do backend, persistência sem senha, shell operacional, teclado, movimento reduzido, alvos de
+toque, axe e overflow em desktop e 320 px.
+
+## Deploy
+
+A CI usa Node 20, `npm ci`, OpenSpec, lint/format, cobertura, build, scanners, orçamento de bundle, auditoria do grafo e
+Playwright. A configuração da Vercel replica os cabeçalhos do servidor SSR; um teste de contrato impede divergência.
+
+Para produção SSR:
 
 ```bash
-npm run serve:ssr     # desenvolvimento com SSR via Vite middleware
-npm run build:ssr     # build do cliente + bundle SSR
-NODE_ENV=production npm run serve:ssr
+npm run build:ssr
+set NODE_ENV=production
+npm run serve:ssr
 ```
 
-## Performance baseline e hardening
+Documentos complementares:
 
-- Rodar baseline automatizado: `npm run perf:baseline`
-- Relatório de baseline: `docs/performance-baseline.json`
-- Plano de execução: `docs/performance-hardening-plan.md`
-
-## CI/CD (qualidade, segurança e promoção)
-
-O frontend possui pipeline completo em GitHub Actions com:
-
-- Instalação reprodutível de dependências (`npm ci`);
-- Lint (`npm run lint`) e validação de formatação (`npm run format:check`);
-- Testes unitários (`npm run test:unit`) e cobertura (`npm run test:coverage`);
-- Validação de build (`npm run build`);
-- Auditoria arquitetural do frontend (`npm run audit:frontend`);
-- Análise de vulnerabilidades (`npm audit --audit-level=high` + CodeQL + dependency review);
-- Geração de artefatos (`build`) para promoção entre ambientes.
-
-### Estratégia de deploy por ambiente
-
-- `develop` -> deploy automático em `development`.
-- `main` -> deploy automático em `staging`.
-- `production` -> promoção manual por `workflow_dispatch` com `promote_to_production=true`, passando pelas regras de promoção e aprovação de ambiente.
-
-Os jobs de deploy utilizam webhooks por ambiente:
-
-- `DEPLOY_WEBHOOK_URL_DEV`
-- `DEPLOY_WEBHOOK_URL_STAGING`
-- `DEPLOY_WEBHOOK_URL_PROD`
-
-Opcionalmente, um token Bearer correspondente por ambiente (`DEPLOY_WEBHOOK_TOKEN_*`).
+- `docs/frontend-compliance-report.md`
+- `docs/performance-baseline.json`
+- `docs/performance-hardening-plan.md`
+- `docs/sdd-openspec-architecture.md`

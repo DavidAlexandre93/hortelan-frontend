@@ -145,9 +145,10 @@ export default function Subscriptions() {
 
   const handlePlanChange = () => {
     const now = new Date();
-    const renewalDate = billingCycle === 'yearly'
-      ? new Date(now.setFullYear(now.getFullYear() + 1)).toISOString()
-      : new Date(now.setMonth(now.getMonth() + 1)).toISOString();
+    const renewalDate =
+      billingCycle === 'yearly'
+        ? new Date(now.setFullYear(now.getFullYear() + 1)).toISOString()
+        : new Date(now.setMonth(now.getMonth() + 1)).toISOString();
 
     const nextSubscription = {
       ...subscription,
@@ -206,10 +207,11 @@ export default function Subscriptions() {
           <Card>
             <CardContent>
               <Stack spacing={2.5}>
-              <Typography variant="h6">16.1 Planos de uso</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Escolha o melhor plano para sua operação: gratuito, premium, família/equipe ou educacional/empresa (B2B).
-              </Typography>
+                <Typography variant="h6">16.1 Planos de uso</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Escolha o melhor plano para sua operação: gratuito, premium, família/equipe ou educacional/empresa
+                  (B2B).
+                </Typography>
 
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
@@ -222,7 +224,9 @@ export default function Subscriptions() {
                         onChange={(event) => setSelectedPlan(event.target.value)}
                       >
                         {Object.entries(PLAN_CATALOG).map(([value, plan]) => (
-                          <MenuItem key={value} value={value}>{plan.label}</MenuItem>
+                          <MenuItem key={value} value={value}>
+                            {plan.label}
+                          </MenuItem>
                         ))}
                       </Select>
                     </FormControl>
@@ -245,12 +249,22 @@ export default function Subscriptions() {
                 </Grid>
 
                 <Paper variant="outlined" sx={{ p: 2 }}>
-                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }} justifyContent="space-between">
+                  <Stack
+                    direction={{ xs: 'column', md: 'row' }}
+                    spacing={2}
+                    alignItems={{ md: 'center' }}
+                    justifyContent="space-between"
+                  >
                     <Typography variant="h5">
                       {formatCurrency(billingCycle === 'yearly' ? activePlan.yearlyPrice : activePlan.monthlyPrice)}
-                      <Typography component="span" variant="body2" color="text.secondary"> / {billingCycle === 'yearly' ? 'ano' : 'mês'}</Typography>
+                      <Typography component="span" variant="body2" color="text.secondary">
+                        {' '}
+                        / {billingCycle === 'yearly' ? 'ano' : 'mês'}
+                      </Typography>
                     </Typography>
-                    <Button variant="contained" onClick={handlePlanChange}>Confirmar upgrade/downgrade</Button>
+                    <Button variant="contained" onClick={handlePlanChange}>
+                      Confirmar upgrade/downgrade
+                    </Button>
                   </Stack>
                 </Paper>
 
@@ -266,13 +280,15 @@ export default function Subscriptions() {
           <Card>
             <CardContent>
               <Stack spacing={2.5}>
-              <Typography variant="h6">16.2 Gestão da assinatura</Typography>
+                <Typography variant="h6">16.2 Gestão da assinatura</Typography>
 
                 <Paper variant="outlined" sx={{ p: 2 }}>
                   <Grid container spacing={2} alignItems="center">
                     <Grid item xs={12} md={4}>
                       <Stack spacing={0.5}>
-                        <Typography variant="body2" color="text.secondary">Status atual</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Status atual
+                        </Typography>
                         <Chip
                           color={subscription.status === 'active' ? 'success' : 'warning'}
                           label={subscription.status === 'active' ? 'Ativa' : 'Cancelada'}
@@ -283,23 +299,31 @@ export default function Subscriptions() {
 
                     <Grid item xs={12} md={4}>
                       <Stack spacing={0.5}>
-                        <Typography variant="body2" color="text.secondary">Próxima renovação</Typography>
-                        <Typography variant="subtitle2">{subscription.renewalDate ? formatDate(subscription.renewalDate) : 'Não definido'}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Próxima renovação
+                        </Typography>
+                        <Typography variant="subtitle2">
+                          {subscription.renewalDate ? formatDate(subscription.renewalDate) : 'Não definido'}
+                        </Typography>
                       </Stack>
                     </Grid>
 
                     <Grid item xs={12} md={4}>
                       <Stack direction="row" spacing={1} justifyContent={{ xs: 'flex-start', md: 'flex-end' }}>
-                        <Button variant="outlined" color="error" onClick={handleCancel}>Cancelar</Button>
-                        <Button variant="outlined" onClick={handleRenew}>Renovar</Button>
+                        <Button variant="outlined" color="error" onClick={handleCancel}>
+                          Cancelar
+                        </Button>
+                        <Button variant="outlined" onClick={handleRenew}>
+                          Renovar
+                        </Button>
                       </Stack>
                     </Grid>
                   </Grid>
                 </Paper>
 
-              <Divider />
+                <Divider />
 
-              <Typography variant="subtitle2">Histórico de cobrança</Typography>
+                <Typography variant="subtitle2">Histórico de cobrança</Typography>
                 <Paper variant="outlined" sx={{ overflowX: 'auto' }}>
                   <Table size="small">
                     <TableHead>
@@ -329,15 +353,23 @@ export default function Subscriptions() {
           <Card>
             <CardContent>
               <Stack spacing={2.5}>
-              <Typography variant="h6">16.3 Controle de limites por plano</Typography>
+                <Typography variant="h6">16.3 Controle de limites por plano</Typography>
 
                 <Paper variant="outlined" sx={{ p: 2 }}>
                   <Stack spacing={2}>
                     {[
                       ['Número de hortas', currentUsage.gardens, subscription.limits?.gardens || 1],
                       ['Número de dispositivos', currentUsage.devices, subscription.limits?.devices || 1],
-                      ['IA/diagnóstico por foto', currentUsage.aiPhotoDiagnostics, subscription.limits?.aiPhotoDiagnostics || 1],
-                      ['Exportações avançadas', currentUsage.advancedExports, subscription.limits?.advancedExports || 1],
+                      [
+                        'IA/diagnóstico por foto',
+                        currentUsage.aiPhotoDiagnostics,
+                        subscription.limits?.aiPhotoDiagnostics || 1,
+                      ],
+                      [
+                        'Exportações avançadas',
+                        currentUsage.advancedExports,
+                        subscription.limits?.advancedExports || 1,
+                      ],
                     ].map(([label, used, limit]) => {
                       const ratio = Math.min((Number(used) / Number(limit)) * 100, 100);
 
@@ -345,18 +377,25 @@ export default function Subscriptions() {
                         <Box key={label}>
                           <Stack direction="row" justifyContent="space-between" spacing={1}>
                             <Typography variant="body2">{label}</Typography>
-                            <Typography variant="body2" color="text.secondary">{used}/{limit}</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {used}/{limit}
+                            </Typography>
                           </Stack>
-                          <LinearProgress variant="determinate" value={Number.isNaN(ratio) ? 0 : ratio} sx={{ mt: 1 }} />
+                          <LinearProgress
+                            variant="determinate"
+                            value={Number.isNaN(ratio) ? 0 : ratio}
+                            sx={{ mt: 1 }}
+                          />
                         </Box>
                       );
                     })}
                   </Stack>
                 </Paper>
 
-              <Alert severity="info">
-                Histórico de dados disponível por {subscription.limits?.dataHistoryDays || 30} dias para o plano atual.
-              </Alert>
+                <Alert severity="info">
+                  Histórico de dados disponível por {subscription.limits?.dataHistoryDays || 30} dias para o plano
+                  atual.
+                </Alert>
               </Stack>
             </CardContent>
           </Card>

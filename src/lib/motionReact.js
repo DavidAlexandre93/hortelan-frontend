@@ -1,4 +1,6 @@
-import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+
+const subscribeToClient = () => () => {};
 
 function toMs(duration) {
   if (typeof duration !== 'number') return '0.45s';
@@ -7,14 +9,19 @@ function toMs(duration) {
 
 function composeTransform(baseTransform, values = {}) {
   const transforms = [baseTransform].filter(Boolean);
-  if (values.x !== undefined) transforms.push(`translateX(${typeof values.x === 'number' ? `${values.x}px` : values.x})`);
-  if (values.y !== undefined) transforms.push(`translateY(${typeof values.y === 'number' ? `${values.y}px` : values.y})`);
+  if (values.x !== undefined)
+    transforms.push(`translateX(${typeof values.x === 'number' ? `${values.x}px` : values.x})`);
+  if (values.y !== undefined)
+    transforms.push(`translateY(${typeof values.y === 'number' ? `${values.y}px` : values.y})`);
   if (values.scale !== undefined) transforms.push(`scale(${values.scale})`);
   if (values.scaleX !== undefined) transforms.push(`scaleX(${values.scaleX})`);
   if (values.scaleY !== undefined) transforms.push(`scaleY(${values.scaleY})`);
-  if (values.rotate !== undefined) transforms.push(`rotate(${typeof values.rotate === 'number' ? `${values.rotate}deg` : values.rotate})`);
-  if (values.rotateX !== undefined) transforms.push(`rotateX(${typeof values.rotateX === 'number' ? `${values.rotateX}deg` : values.rotateX})`);
-  if (values.rotateY !== undefined) transforms.push(`rotateY(${typeof values.rotateY === 'number' ? `${values.rotateY}deg` : values.rotateY})`);
+  if (values.rotate !== undefined)
+    transforms.push(`rotate(${typeof values.rotate === 'number' ? `${values.rotate}deg` : values.rotate})`);
+  if (values.rotateX !== undefined)
+    transforms.push(`rotateX(${typeof values.rotateX === 'number' ? `${values.rotateX}deg` : values.rotateX})`);
+  if (values.rotateY !== undefined)
+    transforms.push(`rotateY(${typeof values.rotateY === 'number' ? `${values.rotateY}deg` : values.rotateY})`);
   return transforms.join(' ').trim() || undefined;
 }
 
@@ -35,15 +42,18 @@ function mapMotionStyle(target = {}, baseStyle = {}) {
 
 function createMotionComponent(Component) {
   const MotionComponent = forwardRef(
-    ({ initial, animate, transition, whileHover, whileInView, viewport, style, onMouseEnter, onMouseLeave, ...props }, ref) => {
-      const [mounted, setMounted] = useState(false);
+    (
+      { initial, animate, transition, whileHover, whileInView, viewport, style, onMouseEnter, onMouseLeave, ...props },
+      ref
+    ) => {
+      const mounted = useSyncExternalStore(
+        subscribeToClient,
+        () => true,
+        () => false
+      );
       const [hovered, setHovered] = useState(false);
       const [isInView, setIsInView] = useState(false);
       const localRef = useRef(null);
-
-      useEffect(() => {
-        setMounted(true);
-      }, []);
 
       useEffect(() => {
         if (!whileInView || !localRef.current) return undefined;

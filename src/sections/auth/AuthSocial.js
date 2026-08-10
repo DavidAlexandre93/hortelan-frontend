@@ -41,12 +41,26 @@ export default function AuthSocial() {
       )}
 
       <Stack direction="row" spacing={2}>
-        <Button fullWidth size="large" color="inherit" variant="outlined" onClick={() => handleSocialLogin('google')}>
-          <GoogleIcon sx={{ color: '#DF3E30' }} />
+        <Button
+          fullWidth
+          size="large"
+          color="inherit"
+          variant="outlined"
+          onClick={() => handleSocialLogin('google')}
+          startIcon={<GoogleIcon sx={{ color: '#C53929' }} />}
+        >
+          Google
         </Button>
 
-        <Button fullWidth size="large" color="inherit" variant="outlined" onClick={() => handleSocialLogin('apple')}>
-          <AppleIcon sx={{ color: '#000000' }} />
+        <Button
+          fullWidth
+          size="large"
+          color="inherit"
+          variant="outlined"
+          onClick={() => handleSocialLogin('apple')}
+          startIcon={<AppleIcon />}
+        >
+          Apple
         </Button>
       </Stack>
 

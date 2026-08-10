@@ -82,16 +82,38 @@ const defaultState = {
   },
   backupRecovery: {
     backups: [
-      { id: 'bkp-981', scope: 'Banco transacional', status: 'success', startedAt: '2026-02-24T03:00:00.000Z', recoveryPoint: '15 min' },
-      { id: 'bkp-982', scope: 'Eventos e logs', status: 'success', startedAt: '2026-02-24T03:30:00.000Z', recoveryPoint: '5 min' },
+      {
+        id: 'bkp-981',
+        scope: 'Banco transacional',
+        status: 'success',
+        startedAt: '2026-02-24T03:00:00.000Z',
+        recoveryPoint: '15 min',
+      },
+      {
+        id: 'bkp-982',
+        scope: 'Eventos e logs',
+        status: 'success',
+        startedAt: '2026-02-24T03:30:00.000Z',
+        recoveryPoint: '5 min',
+      },
     ],
     incidents: [
       { id: 'inc-22', title: 'Queda no webhook de fornecedores', status: 'resolved', recoveryTimeMinutes: 32 },
       { id: 'inc-23', title: 'Latência alta no motor de regra', status: 'monitoring', recoveryTimeMinutes: 18 },
     ],
     criticalConfigVersions: [
-      { name: 'automation-engine.yml', version: 'v1.23.4', changedBy: 'ops@hortelan.io', changedAt: '2026-02-23T16:11:00.000Z' },
-      { name: 'integrations-secrets.json', version: 'v5.3.1', changedBy: 'security@hortelan.io', changedAt: '2026-02-23T12:40:00.000Z' },
+      {
+        name: 'automation-engine.yml',
+        version: 'v1.23.4',
+        changedBy: 'ops@hortelan.io',
+        changedAt: '2026-02-23T16:11:00.000Z',
+      },
+      {
+        name: 'integrations-secrets.json',
+        version: 'v5.3.1',
+        changedBy: 'security@hortelan.io',
+        changedAt: '2026-02-23T12:40:00.000Z',
+      },
     ],
   },
 };
@@ -152,14 +174,26 @@ export function logUserAction(action, actor = 'usuário atual') {
 
 export function logAutomationRun(automation, status, detail) {
   const state = readState();
-  state.logs.automations.unshift({ id: `auto-${Date.now()}`, automation, status, detail, timestamp: new Date().toISOString() });
+  state.logs.automations.unshift({
+    id: `auto-${Date.now()}`,
+    automation,
+    status,
+    detail,
+    timestamp: new Date().toISOString(),
+  });
   persist(state);
   return state;
 }
 
 export function logIntegrationFailure(integration, severity, detail) {
   const state = readState();
-  state.logs.integrationFailures.unshift({ id: `if-${Date.now()}`, integration, severity, detail, timestamp: new Date().toISOString() });
+  state.logs.integrationFailures.unshift({
+    id: `if-${Date.now()}`,
+    integration,
+    severity,
+    detail,
+    timestamp: new Date().toISOString(),
+  });
   persist(state);
   return state;
 }
@@ -174,7 +208,12 @@ export function updateFeatureFlag(key, patch) {
 export function registerJsTelemetry(message, page) {
   const state = readState();
   const resolvedPage = page || (typeof window !== 'undefined' ? window.location.pathname : 'unknown');
-  state.observability.jsErrors.unshift({ id: `js-${Date.now()}`, message, page: resolvedPage, timestamp: new Date().toISOString() });
+  state.observability.jsErrors.unshift({
+    id: `js-${Date.now()}`,
+    message,
+    page: resolvedPage,
+    timestamp: new Date().toISOString(),
+  });
   state.observability.jsErrors = state.observability.jsErrors.slice(0, 30);
   persist(state);
 }
@@ -185,7 +224,7 @@ export function registerFrontendUsage(actionCount = 1) {
   persist(state);
 }
 
-export function registerApiMetric(path, durationMs, status, ok) {
+export function registerApiMetric(path, durationMs, status, ok, outcome = {}) {
   if (typeof window === 'undefined') {
     return;
   }
@@ -211,6 +250,8 @@ export function registerApiMetric(path, durationMs, status, ok) {
   endpoint.latencyMs.p99 = Math.max(endpoint.latencyMs.p99, durationMs);
   endpoint.lastStatus = status;
   endpoint.lastSeenAt = new Date().toISOString();
+  endpoint.lastOutcomeKind = outcome.kind || (ok ? 'success' : 'unknown');
+  endpoint.lastRetryCount = Number(outcome.retryCount) || 0;
 
   state.observability.apiMetrics.totalRequests += 1;
   state.observability.apiMetrics.byEndpoint[key] = endpoint;
@@ -225,7 +266,10 @@ export function registerApiMetric(path, durationMs, status, ok) {
 
     state.observability.apiMetrics.byEndpoint = sortedByLastSeen
       .slice(0, 40)
-      .reduce((acc, currentKey) => ({ ...acc, [currentKey]: state.observability.apiMetrics.byEndpoint[currentKey] }), {});
+      .reduce(
+        (acc, currentKey) => ({ ...acc, [currentKey]: state.observability.apiMetrics.byEndpoint[currentKey] }),
+        {}
+      );
   }
 
   persist(state);
@@ -256,7 +300,12 @@ export function initReliabilityTelemetry() {
       current.p95Ms = Math.round((current.p95Ms + elapsed) / 2);
       current.ttfbMs = Math.round((current.ttfbMs + perf.responseStart) / 2);
     } else {
-      state.observability.pagePerformance.push({ page, p95Ms: elapsed, cls: 0.03, ttfbMs: Math.round(perf.responseStart) });
+      state.observability.pagePerformance.push({
+        page,
+        p95Ms: elapsed,
+        cls: 0.03,
+        ttfbMs: Math.round(perf.responseStart),
+      });
     }
     persist(state);
   }

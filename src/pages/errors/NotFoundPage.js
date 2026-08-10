@@ -95,8 +95,8 @@ export default function NotFoundPage() {
                 </Typography>
 
                 <Typography sx={{ color: 'text.secondary', mb: 1.2 }}>
-                  Esta rota não foi encontrada no painel da sua rede IoT. Vamos te reconectar para continuar
-                  monitorando sensores, irrigação e saúde da horta.
+                  Esta rota não foi encontrada no painel da sua rede IoT. Vamos te reconectar para continuar monitorando
+                  sensores, irrigação e saúde da horta.
                 </Typography>
 
                 <Typography sx={{ color: 'text.secondary', mb: 3 }}>

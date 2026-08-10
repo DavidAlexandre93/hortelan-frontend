@@ -13,9 +13,11 @@ function buildKeyframes(fromVars = {}, toVars = {}) {
     Object.entries(vars).forEach(([key, value]) => {
       if (['duration', 'repeat', 'yoyo', 'ease', 'stagger', 'delay'].includes(key)) return;
       if (key === 'x') {
-        target.transform = `${target.transform || ''} translateX(${typeof value === 'number' ? `${value}px` : value})`.trim();
+        target.transform =
+          `${target.transform || ''} translateX(${typeof value === 'number' ? `${value}px` : value})`.trim();
       } else if (key === 'y') {
-        target.transform = `${target.transform || ''} translateY(${typeof value === 'number' ? `${value}px` : value})`.trim();
+        target.transform =
+          `${target.transform || ''} translateY(${typeof value === 'number' ? `${value}px` : value})`.trim();
       } else if (key === 'scale') {
         target.transform = `${target.transform || ''} scale(${value})`.trim();
       } else {
@@ -60,7 +62,12 @@ export default function useGSAP(callback, options = {}) {
       fromTo(targets, fromVars, toVars) {
         const list = Array.isArray(targets) ? targets : [targets];
         list.forEach((item, index) => {
-          animateElement(item, fromVars, { ...toVars, delay: (toVars.stagger || 0) * index + (toVars.delay || 0) }, true);
+          animateElement(
+            item,
+            fromVars,
+            { ...toVars, delay: (toVars.stagger || 0) * index + (toVars.delay || 0) },
+            true
+          );
         });
       },
     };

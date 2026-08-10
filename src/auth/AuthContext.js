@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useMemo, useState } from 'react';
 import {
   getAuthenticatedUser,
   getAccountDeletionRequest,
@@ -11,9 +11,6 @@ import {
   getDataRetentionPolicy,
   rotateTrustedDeviceCredential,
   revokeCompromisedDevice,
-  isAuthenticated,
-  loginWithEmailAndPassword,
-  loginWithSocialProvider,
   logoutAllSessions,
   logoutCurrentSession,
   logoutOtherSessions,
@@ -24,47 +21,14 @@ import {
   updateUserConsents,
   updateAuthenticatedUserProfile,
   updateTwoFactorSettings,
+  cleanupLegacyIdentityStorage,
+  persistBackendIdentity,
 } from './session';
-import { loginWithBackend, socialLoginWithBackend } from '../services/authApi';
+import { demoModeEnabled, identityFacade } from './identity/identityFacade';
 
-const ENABLE_DEMO_AUTH = import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true';
+const ENABLE_DEMO_AUTH = demoModeEnabled;
 
 export const AuthContext = createContext(null);
-
-function isApiBaseUrlLikelyMisconfigured(error) {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-
-  const currentHost = window.location?.hostname || '';
-  const isLocalEnvironment = ['localhost', '127.0.0.1', '0.0.0.0'].includes(currentHost);
-
-  if (isLocalEnvironment) {
-    return false;
-  }
-
-  return error?.status === 404 || error?.status === 405;
-}
-
-function isRunningLocallyWithVite() {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-
-  const currentHost = window.location?.hostname || '';
-  const isLocalEnvironment = ['localhost', '127.0.0.1', '0.0.0.0'].includes(currentHost);
-
-  return Boolean(import.meta.env.DEV) && isLocalEnvironment;
-}
-
-function canUseDemoAuthFallback(error) {
-  if (ENABLE_DEMO_AUTH || isRunningLocallyWithVite()) {
-    return true;
-  }
-
-  return isApiBaseUrlLikelyMisconfigured(error);
-}
-
 
 function getAuthPayload(result) {
   if (!result || typeof result !== 'object') {
@@ -121,14 +85,21 @@ function getAuthResultFromBackendError(error) {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => getAuthenticatedUser());
-  const [sessions, setSessions] = useState(() => getUserSessions());
-  const [twoFactor, setTwoFactor] = useState(() => getTwoFactorSettings());
-  const [trustedDevices, setTrustedDevices] = useState(() => getTrustedDevices());
-  const [consents, setConsents] = useState(() => getUserConsents());
-  const [deletionRequest, setDeletionRequest] = useState(() => getAccountDeletionRequest());
-  const [consentLogs, setConsentLogs] = useState(() => getConsentAuditLogs());
-  const [retentionPolicy, setRetentionPolicy] = useState(() => getDataRetentionPolicy());
+  const isBrowser = typeof window !== 'undefined';
+
+  useState(() => {
+    if (isBrowser) cleanupLegacyIdentityStorage({ preserveDemoData: ENABLE_DEMO_AUTH });
+    return true;
+  });
+
+  const [user, setUser] = useState(() => (isBrowser ? getAuthenticatedUser() : null));
+  const [sessions, setSessions] = useState(() => (isBrowser ? getUserSessions() : []));
+  const [twoFactor, setTwoFactor] = useState(() => (isBrowser ? getTwoFactorSettings() : { enabled: false }));
+  const [trustedDevices, setTrustedDevices] = useState(() => (isBrowser ? getTrustedDevices() : []));
+  const [consents, setConsents] = useState(() => (isBrowser ? getUserConsents() : {}));
+  const [deletionRequest, setDeletionRequest] = useState(() => (isBrowser ? getAccountDeletionRequest() : null));
+  const [consentLogs, setConsentLogs] = useState(() => (isBrowser ? getConsentAuditLogs() : []));
+  const [retentionPolicy, setRetentionPolicy] = useState(() => (isBrowser ? getDataRetentionPolicy() : {}));
 
   const refreshAuthState = useCallback(() => {
     setUser(getAuthenticatedUser());
@@ -141,32 +112,12 @@ export function AuthProvider({ children }) {
     setRetentionPolicy(getDataRetentionPolicy());
   }, []);
 
-  useEffect(() => {
-    refreshAuthState();
-  }, [refreshAuthState]);
+  const login = useCallback(
+    async ({ email, password, remember, trustDevice, deviceName, challengeId, twoFactorCode }) => {
+      let result;
 
-  const login = useCallback(async ({ email, password, remember, trustDevice, deviceName, challengeId, twoFactorCode }) => {
-    let result;
-
-    try {
-      result = await loginWithBackend({
-        email,
-        password,
-        remember,
-        trustDevice,
-        deviceName,
-        challengeId,
-        twoFactorCode,
-      });
-    } catch (error) {
-      const backendResult = getAuthResultFromBackendError(error);
-
-      if (backendResult) {
-        result = backendResult;
-      } else if (!canUseDemoAuthFallback(error)) {
-        return { error: 'Serviço de autenticação indisponível. Tente novamente em instantes.' };
-      } else {
-        result = loginWithEmailAndPassword({
+      try {
+        result = await identityFacade.login({
           email,
           password,
           remember,
@@ -175,41 +126,56 @@ export function AuthProvider({ children }) {
           challengeId,
           twoFactorCode,
         });
+      } catch (error) {
+        const backendResult = getAuthResultFromBackendError(error);
+
+        if (backendResult) {
+          result = backendResult;
+        } else {
+          return { error: 'Serviço de autenticação indisponível. Tente novamente em instantes.' };
+        }
       }
-    }
 
-    result = ensureAuthResultShape(result);
+      result = ensureAuthResultShape(result);
 
-    if (result.error || result.requiresTwoFactor) {
+      if (result.error || result.requiresTwoFactor) {
+        return result;
+      }
+
+      let { user: authenticatedUser, session } = getAuthPayload(result);
+
+      if (result.identitySource === 'backend' && authenticatedUser) {
+        const persisted = persistBackendIdentity({ user: authenticatedUser, session, remember });
+        authenticatedUser = persisted.user;
+        session = persisted.session;
+      }
+
+      if (authenticatedUser) {
+        setUser(authenticatedUser);
+      } else {
+        setUser(getAuthenticatedUser());
+      }
+
+      if (session) {
+        setSessions((previousSessions) => {
+          const nextSessions = previousSessions.filter((item) => item.id !== session.id);
+          return [...nextSessions, session];
+        });
+      } else {
+        setSessions(getUserSessions());
+      }
+
+      setTwoFactor(getTwoFactorSettings());
+      setTrustedDevices(getTrustedDevices());
+      setConsents(getUserConsents());
+      setDeletionRequest(getAccountDeletionRequest());
+      setConsentLogs(getConsentAuditLogs());
+      setRetentionPolicy(getDataRetentionPolicy());
+
       return result;
-    }
-
-    const { user: authenticatedUser, session } = getAuthPayload(result);
-
-    if (authenticatedUser) {
-      setUser(authenticatedUser);
-    } else {
-      setUser(getAuthenticatedUser());
-    }
-
-    if (session) {
-      setSessions((previousSessions) => {
-        const nextSessions = previousSessions.filter((item) => item.id !== session.id);
-        return [...nextSessions, session];
-      });
-    } else {
-      setSessions(getUserSessions());
-    }
-
-    setTwoFactor(getTwoFactorSettings());
-    setTrustedDevices(getTrustedDevices());
-    setConsents(getUserConsents());
-    setDeletionRequest(getAccountDeletionRequest());
-    setConsentLogs(getConsentAuditLogs());
-    setRetentionPolicy(getDataRetentionPolicy());
-
-    return result;
-  }, []);
+    },
+    []
+  );
 
   const logout = useCallback(() => {
     logoutCurrentSession();
@@ -230,16 +196,14 @@ export function AuthProvider({ children }) {
     let result;
 
     try {
-      result = await socialLoginWithBackend({ provider, remember, trustDevice, deviceName });
+      result = await identityFacade.socialLogin({ provider, remember, trustDevice, deviceName });
     } catch (error) {
       const backendResult = getAuthResultFromBackendError(error);
 
       if (backendResult) {
         result = backendResult;
-      } else if (!canUseDemoAuthFallback(error)) {
-        return { error: 'Serviço de autenticação social indisponível. Tente novamente em instantes.' };
       } else {
-        result = loginWithSocialProvider({ provider, remember, trustDevice, deviceName });
+        return { error: 'Serviço de autenticação social indisponível. Tente novamente em instantes.' };
       }
     }
 
@@ -249,7 +213,13 @@ export function AuthProvider({ children }) {
       return result;
     }
 
-    const { user: authenticatedUser, session } = getAuthPayload(result);
+    let { user: authenticatedUser, session } = getAuthPayload(result);
+
+    if (result.identitySource === 'backend' && authenticatedUser) {
+      const persisted = persistBackendIdentity({ user: authenticatedUser, session, remember });
+      authenticatedUser = persisted.user;
+      session = persisted.session;
+    }
 
     if (authenticatedUser) {
       setUser(authenticatedUser);
@@ -276,80 +246,103 @@ export function AuthProvider({ children }) {
     return result;
   }, []);
 
-  const update2FASettings = useCallback(({ enabled, method }) => {
-    const result = updateTwoFactorSettings({ enabled, method });
+  const update2FASettings = useCallback(
+    ({ enabled, method }) => {
+      const result = updateTwoFactorSettings({ enabled, method });
 
-    if (!result.error) {
+      if (!result.error) {
+        refreshAuthState();
+      }
+
+      return result;
+    },
+    [refreshAuthState]
+  );
+
+  const removeTrustedDevice = useCallback(
+    (trustedDeviceId) => {
+      revokeTrustedDevice(trustedDeviceId);
       refreshAuthState();
-    }
+    },
+    [refreshAuthState]
+  );
 
-    return result;
-  }, [refreshAuthState]);
+  const updateConsents = useCallback(
+    (nextConsents) => {
+      const result = updateUserConsents(nextConsents);
 
-  const removeTrustedDevice = useCallback((trustedDeviceId) => {
-    revokeTrustedDevice(trustedDeviceId);
-    refreshAuthState();
-  }, [refreshAuthState]);
+      if (!result.error) {
+        refreshAuthState();
+      }
 
-  const updateConsents = useCallback((nextConsents) => {
-    const result = updateUserConsents(nextConsents);
+      return result;
+    },
+    [refreshAuthState]
+  );
 
-    if (!result.error) {
+  const updateProfile = useCallback(
+    (payload) => {
+      const result = updateAuthenticatedUserProfile(payload);
+
+      if (!result.error) {
+        refreshAuthState();
+      }
+
+      return result;
+    },
+    [refreshAuthState]
+  );
+
+  const requestDeletion = useCallback(
+    (payload) => {
+      const result = requestAccountDeletion(payload);
+
+      if (!result.error) {
+        refreshAuthState();
+      }
+
+      return result;
+    },
+    [refreshAuthState]
+  );
+
+  const deactivateAccount = useCallback(
+    (payload) => {
+      const result = deactivateCurrentAccount(payload);
+
       refreshAuthState();
-    }
-
-    return result;
-  }, [refreshAuthState]);
-
-  const updateProfile = useCallback((payload) => {
-    const result = updateAuthenticatedUserProfile(payload);
-
-    if (!result.error) {
-      refreshAuthState();
-    }
-
-    return result;
-  }, [refreshAuthState]);
-
-  const requestDeletion = useCallback((payload) => {
-    const result = requestAccountDeletion(payload);
-
-    if (!result.error) {
-      refreshAuthState();
-    }
-
-    return result;
-  }, [refreshAuthState]);
-
-  const deactivateAccount = useCallback((payload) => {
-    const result = deactivateCurrentAccount(payload);
-
-    refreshAuthState();
-    return result;
-  }, [refreshAuthState]);
+      return result;
+    },
+    [refreshAuthState]
+  );
 
   const exportPersonalData = useCallback(() => exportCurrentUserData(), []);
 
+  const rotateDeviceCredential = useCallback(
+    (trustedDeviceId) => {
+      const result = rotateTrustedDeviceCredential(trustedDeviceId);
 
-  const rotateDeviceCredential = useCallback((trustedDeviceId) => {
-    const result = rotateTrustedDeviceCredential(trustedDeviceId);
+      if (!result.error) {
+        refreshAuthState();
+      }
 
-    if (!result.error) {
-      refreshAuthState();
-    }
+      return result;
+    },
+    [refreshAuthState]
+  );
 
-    return result;
-  }, [refreshAuthState]);
+  const revokeCompromised = useCallback(
+    (trustedDeviceId, reason) => {
+      const result = revokeCompromisedDevice(trustedDeviceId, reason);
 
-  const revokeCompromised = useCallback((trustedDeviceId, reason) => {
-    const result = revokeCompromisedDevice(trustedDeviceId, reason);
+      if (!result.error) {
+        refreshAuthState();
+      }
 
-    if (!result.error) {
-      refreshAuthState();
-    }
-
-    return result;
-  }, [refreshAuthState]);
+      return result;
+    },
+    [refreshAuthState]
+  );
 
   const value = useMemo(
     () => ({
@@ -361,7 +354,9 @@ export function AuthProvider({ children }) {
       deletionRequest,
       consentLogs,
       retentionPolicy,
-      authenticated: Boolean(user) || isAuthenticated(),
+      initialized: true,
+      demoMode: ENABLE_DEMO_AUTH,
+      authenticated: Boolean(user),
       login,
       loginWithSocial,
       logout,

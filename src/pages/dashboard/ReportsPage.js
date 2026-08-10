@@ -199,7 +199,9 @@ export default function Reports() {
     const csvLines = [
       'categoria,periodo,referencia,metrica,valor',
       ...operationalRows.map((row) => `operacional,${row.period},-,consumo_agua_litros,${row.waterConsumptionLiters}`),
-      ...operationalRows.map((row) => `operacional,${row.period},-,tempo_uso_atuadores_horas,${row.actuatorUsageHours}`),
+      ...operationalRows.map(
+        (row) => `operacional,${row.period},-,tempo_uso_atuadores_horas,${row.actuatorUsageHours}`
+      ),
       ...operationalRows.map((row) => `operacional,${row.period},-,execucoes_automacao,${row.automationRuns}`),
       ...maintenanceRows.map((row) => `manutencao,${row.period},-,troca_insumos,${row.supplyReplacements}`),
       ...maintenanceRows.map((row) => `manutencao,${row.period},-,falhas_dispositivo,${row.deviceFailures}`),
@@ -210,7 +212,11 @@ export default function Reports() {
       ...cultivationRows.map((row) => `cultivo,-,${row.plant},produtividade_kg,${row.productivityKg}`),
     ];
 
-    downloadFile(csvLines.join('\n'), `relatorio-hortelan-agtech-ltda-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
+    downloadFile(
+      csvLines.join('\n'),
+      `relatorio-hortelan-agtech-ltda-${new Date().toISOString().slice(0, 10)}.csv`,
+      'text/csv;charset=utf-8;'
+    );
   };
 
   const exportPdfSummary = () => {
@@ -269,13 +275,19 @@ export default function Reports() {
               Relatórios e histórico unificado
             </Typography>
             <Typography color="text.secondary">
-              Consolide indicadores operacionais, de cultivo e manutenção; exporte dados e acompanhe uma linha do tempo única da horta.
+              Consolide indicadores operacionais, de cultivo e manutenção; exporte dados e acompanhe uma linha do tempo
+              única da horta.
             </Typography>
           </Box>
 
           <Card>
             <CardContent sx={{ p: { xs: 2, md: 3 }, '&:last-child': { pb: { xs: 2, md: 3 } } }}>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'stretch', md: 'center' }}>
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                spacing={2}
+                justifyContent="space-between"
+                alignItems={{ xs: 'stretch', md: 'center' }}
+              >
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                   <Button variant="contained" startIcon={<DownloadRoundedIcon />} onClick={exportCsv}>
                     Exportar CSV
@@ -290,7 +302,11 @@ export default function Reports() {
                     Compartilhar link (fase futura)
                   </Button>
                 </Stack>
-                <Chip label="Exportação XLSX e compartilhamento serão liberados em roadmap futuro." color="warning" variant="outlined" />
+                <Chip
+                  label="Exportação XLSX e compartilhamento serão liberados em roadmap futuro."
+                  color="warning"
+                  variant="outlined"
+                />
               </Stack>
             </CardContent>
           </Card>
@@ -304,12 +320,23 @@ export default function Reports() {
                 '& .MuiCardContent-root:last-child': { pb: 2.5 },
               }}
             >
-              <Tabs value={tab} onChange={(_, value) => setTab(value)} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile>
+              <Tabs
+                value={tab}
+                onChange={(_, value) => setTab(value)}
+                variant="scrollable"
+                scrollButtons="auto"
+                allowScrollButtonsMobile
+              >
                 <Tab value="operacional" label="Relatórios operacionais" />
                 <Tab value="cultivo" label="Relatórios de cultivo" />
                 <Tab value="manutencao" label="Relatórios de manutenção" />
                 <Tab value="institucional" label="Relatórios institucionais" />
-                <Tab value="historico" icon={<TimelineRoundedIcon />} iconPosition="start" label="Histórico unificado" />
+                <Tab
+                  value="historico"
+                  icon={<TimelineRoundedIcon />}
+                  iconPosition="start"
+                  label="Histórico unificado"
+                />
               </Tabs>
 
               <Divider sx={{ my: 2 }} />
@@ -386,7 +413,8 @@ export default function Reports() {
               {tab === 'institucional' && (
                 <Stack spacing={2}>
                   <Alert severity="success">
-                    Visão institucional com múltiplas unidades (escolas, condomínios, empresas e projetos sociais) em um painel consolidado.
+                    Visão institucional com múltiplas unidades (escolas, condomínios, empresas e projetos sociais) em um
+                    painel consolidado.
                   </Alert>
 
                   <Paper variant="outlined" sx={{ borderRadius: 2 }}>
@@ -409,7 +437,11 @@ export default function Reports() {
                           <CardContent>
                             <Stack spacing={1}>
                               <Typography variant="h6">{row.unit}</Typography>
-                              <Chip label={`Perfil responsável: ${row.profile}`} size="small" sx={{ alignSelf: 'flex-start' }} />
+                              <Chip
+                                label={`Perfil responsável: ${row.profile}`}
+                                size="small"
+                                sx={{ alignSelf: 'flex-start' }}
+                              />
                               <Typography>Hortas monitoradas: {row.gardens}</Typography>
                               <Typography>Engajamento: {row.activeParticipants} participantes ativos</Typography>
                               <Typography>Uso de recursos: {row.resourcesUsage}</Typography>
@@ -441,7 +473,9 @@ export default function Reports() {
 
               {tab === 'historico' && (
                 <Stack spacing={2}>
-                  <Alert severity="info">Linha do tempo da horta com sensores + tarefas + alertas + ações + fotos em um único feed.</Alert>
+                  <Alert severity="info">
+                    Linha do tempo da horta com sensores + tarefas + alertas + ações + fotos em um único feed.
+                  </Alert>
 
                   <TextField
                     size="small"
@@ -461,19 +495,23 @@ export default function Reports() {
 
                   <Paper variant="outlined" sx={{ borderRadius: 2 }}>
                     <List sx={{ py: 0 }}>
-                    {historyRows.map((row) => (
-                      <ListItem key={`${row.timestamp}-${row.title}`} divider>
-                        <ListItemText
-                          primary={
-                            <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} alignItems={{ xs: 'flex-start', md: 'center' }}>
-                              <Chip size="small" label={historyTypeLabel[row.type]} />
-                              <Typography variant="subtitle2">{row.title}</Typography>
-                            </Stack>
-                          }
-                          secondary={`${row.timestamp} • ${row.detail}`}
-                        />
-                      </ListItem>
-                    ))}
+                      {historyRows.map((row) => (
+                        <ListItem key={`${row.timestamp}-${row.title}`} divider>
+                          <ListItemText
+                            primary={
+                              <Stack
+                                direction={{ xs: 'column', md: 'row' }}
+                                spacing={1}
+                                alignItems={{ xs: 'flex-start', md: 'center' }}
+                              >
+                                <Chip size="small" label={historyTypeLabel[row.type]} />
+                                <Typography variant="subtitle2">{row.title}</Typography>
+                              </Stack>
+                            }
+                            secondary={`${row.timestamp} • ${row.detail}`}
+                          />
+                        </ListItem>
+                      ))}
                     </List>
                   </Paper>
                 </Stack>

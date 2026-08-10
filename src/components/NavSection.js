@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { NavLink as RouterLink, matchPath, useLocation } from 'react-router-dom';
 // material
 import { alpha, useTheme, styled } from '@mui/material/styles';
-import { Box, List, Collapse, ListItemText, ListItemIcon, ListItemButton, Typography } from '@mui/material';
+import { Box, List, Collapse, ListItem, ListItemText, ListItemIcon, ListItemButton, Typography } from '@mui/material';
 //
 import Iconify from './Iconify';
 
@@ -50,7 +50,7 @@ function NavItem({ item, active }) {
   };
 
   const activeRootStyle = {
-    color: 'primary.main',
+    color: 'primary.dark',
     fontWeight: 'fontWeightMedium',
     bgcolor: alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity),
   };
@@ -62,7 +62,7 @@ function NavItem({ item, active }) {
 
   if (children) {
     return (
-      <>
+      <ListItem disablePadding sx={{ display: 'block' }}>
         <ListItemStyle
           onClick={handleOpen}
           sx={{
@@ -70,10 +70,7 @@ function NavItem({ item, active }) {
           }}
         >
           <ListItemIconStyle>{icon && icon}</ListItemIconStyle>
-          <ListItemText
-            primary={<Typography variant="body2">{title}</Typography>}
-            sx={{ my: 0, ml: 1.5 }}
-          />
+          <ListItemText primary={<Typography variant="body2">{title}</Typography>} sx={{ my: 0, ml: 1.5 }} />
           {info && info}
           <Iconify
             icon={open ? 'eva:arrow-ios-downward-fill' : 'eva:arrow-ios-forward-fill'}
@@ -88,61 +85,58 @@ function NavItem({ item, active }) {
               const isActiveSub = active(path);
 
               return (
-                <ListItemStyle
-                  key={title}
-                  component={RouterLink}
-                  to={path}
-                  sx={{
-                    ...(isActiveSub && activeSubStyle),
-                  }}
-                >
-                  <ListItemIconStyle>
-                    <Box
-                      component="span"
-                      sx={{
-                        width: 4,
-                        height: 4,
-                        display: 'flex',
-                        borderRadius: '50%',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        bgcolor: 'text.disabled',
-                        transition: (theme) => theme.transitions.create('transform'),
-                        ...(isActiveSub && {
-                          transform: 'scale(2)',
-                          bgcolor: 'primary.main',
-                        }),
-                      }}
-                    />
-                  </ListItemIconStyle>
-                  <ListItemText
-                    primary={<Typography variant="body2">{title}</Typography>}
-                    sx={{ my: 0, ml: 1.5 }}
-                  />
-                </ListItemStyle>
+                <ListItem key={title} disablePadding>
+                  <ListItemStyle
+                    component={RouterLink}
+                    to={path}
+                    sx={{
+                      ...(isActiveSub && activeSubStyle),
+                    }}
+                  >
+                    <ListItemIconStyle>
+                      <Box
+                        component="span"
+                        sx={{
+                          width: 4,
+                          height: 4,
+                          display: 'flex',
+                          borderRadius: '50%',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'text.disabled',
+                          transition: (theme) => theme.transitions.create('transform'),
+                          ...(isActiveSub && {
+                            transform: 'scale(2)',
+                            bgcolor: 'primary.main',
+                          }),
+                        }}
+                      />
+                    </ListItemIconStyle>
+                    <ListItemText primary={<Typography variant="body2">{title}</Typography>} sx={{ my: 0, ml: 1.5 }} />
+                  </ListItemStyle>
+                </ListItem>
               );
             })}
           </List>
         </Collapse>
-      </>
+      </ListItem>
     );
   }
 
   return (
-    <ListItemStyle
-      component={RouterLink}
-      to={path}
-      sx={{
-        ...(isActiveRoot && activeRootStyle),
-      }}
-    >
-      <ListItemIconStyle>{icon && icon}</ListItemIconStyle>
-      <ListItemText
-        primary={<Typography variant="body2">{title}</Typography>}
-        sx={{ my: 0, ml: 1.5 }}
-      />
-      {info && info}
-    </ListItemStyle>
+    <ListItem disablePadding>
+      <ListItemStyle
+        component={RouterLink}
+        to={path}
+        sx={{
+          ...(isActiveRoot && activeRootStyle),
+        }}
+      >
+        <ListItemIconStyle>{icon && icon}</ListItemIconStyle>
+        <ListItemText primary={<Typography variant="body2">{title}</Typography>} sx={{ my: 0, ml: 1.5 }} />
+        {info && info}
+      </ListItemStyle>
+    </ListItem>
   );
 }
 

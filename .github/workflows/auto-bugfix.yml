@@ -2,7 +2,7 @@ name: Auto Remediation - Bugs de Qualidade
 
 on:
   schedule:
-    - cron: "40 */6 * * *"
+    - cron: '40 */6 * * *'
 
 permissions:
   contents: read
@@ -90,8 +90,8 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "fix(ci): auto-correção de bug detectado no pipeline"
-          title: "fix(ci): auto-correção para falha detectada no CI"
+          commit-message: 'fix(ci): auto-correção de bug detectado no pipeline'
+          title: 'fix(ci): auto-correção para falha detectada no CI'
           body: |
             ## 🤖 Correção automática de bug detectado no CI
 

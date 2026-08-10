@@ -1,12 +1,9 @@
 import PropTypes from 'prop-types';
-import merge from 'lodash/merge';
-import ReactApexChart from 'react-apexcharts';
-// @mui
+import { useTheme } from '@mui/material/styles';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Box, Card, CardHeader } from '@mui/material';
-// utils
 import { fNumber } from '../../../utils/formatNumber';
-// components
-import { BaseOptionChart } from '../../../components/chart';
+import { AccessibleChart, ChartTooltip } from '../../../components/chart';
 
 // ----------------------------------------------------------------------
 
@@ -17,34 +14,43 @@ AppConversionRates.propTypes = {
 };
 
 export default function AppConversionRates({ title, subheader, chartData, ...other }) {
-  const chartLabels = chartData.map((i) => i.label);
-
-  const chartSeries = chartData.map((i) => i.value);
-
-  const chartOptions = merge(BaseOptionChart(), {
-    tooltip: {
-      marker: { show: false },
-      y: {
-        formatter: (seriesName) => fNumber(seriesName),
-        title: {
-          formatter: () => '',
-        },
-      },
-    },
-    plotOptions: {
-      bar: { horizontal: true, barHeight: '28%', borderRadius: 2 },
-    },
-    xaxis: {
-      categories: chartLabels,
-    },
-  });
+  const theme = useTheme();
+  const summary = chartData.map((item) => `${item.label}: ${fNumber(item.value)}`).join('. ');
 
   return (
     <Card {...other}>
       <CardHeader title={title} subheader={subheader} />
 
-      <Box sx={{ mx: 3 }} dir="ltr">
-        <ReactApexChart type="bar" series={[{ data: chartSeries }]} options={chartOptions} height={364} />
+      <Box sx={{ mx: 2, mt: 1 }} dir="ltr">
+        <AccessibleChart label={`${title}: gráfico de barras`} summary={summary} height={380}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={chartData}
+              layout="vertical"
+              accessibilityLayer
+              margin={{ top: 8, right: 16, left: 16, bottom: 8 }}
+            >
+              <CartesianGrid stroke={theme.palette.divider} strokeDasharray="3 3" horizontal={false} />
+              <XAxis type="number" tickLine={false} axisLine={false} />
+              <YAxis
+                dataKey="label"
+                type="category"
+                width={104}
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontSize: 11 }}
+              />
+              <Tooltip content={<ChartTooltip valueFormatter={fNumber} />} />
+              <Bar
+                dataKey="value"
+                name="Custo"
+                fill={theme.palette.primary.main}
+                radius={[0, 4, 4, 0]}
+                maxBarSize={18}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </AccessibleChart>
       </Box>
     </Card>
   );

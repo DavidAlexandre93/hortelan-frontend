@@ -1,13 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   plugins: [react()],
-  resolve: {
-    alias: {
-      'apexcharts/client': 'apexcharts',
-    },
-  },
   esbuild: {
     loader: 'jsx',
     include: /src\/.*\.[jt]sx?$/,
@@ -27,16 +22,30 @@ export default defineConfig({
   },
   build: {
     outDir: 'build',
+    manifest: true,
+    minify: 'terser',
+    chunkSizeWarningLimit: 500,
+    terserOptions: {
+      compress: {
+        passes: 3,
+        drop_console: true,
+        pure_getters: true,
+        unsafe_arrows: true,
+      },
+      format: { comments: false, semicolons: false },
+    },
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ['react', 'react-dom', 'react-router-dom'],
-          mui: ['@mui/material', '@mui/lab', '@emotion/react', '@emotion/styled'],
-          charts: ['apexcharts', 'react-apexcharts'],
-          motion: ['framer-motion'],
-          sentry: ['@sentry/react'],
-        },
+        manualChunks: isSsrBuild
+          ? undefined
+          : {
+              react: ['react', 'react-dom', 'react-router-dom'],
+              mui: ['@mui/material', '@emotion/react', '@emotion/styled'],
+              charts: ['recharts'],
+              motion: ['framer-motion'],
+              sentry: ['@sentry/react'],
+            },
       },
     },
   },
-});
+}));

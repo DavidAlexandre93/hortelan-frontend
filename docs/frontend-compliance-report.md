@@ -1,37 +1,78 @@
-# Frontend Compliance Report
+# Relatório de Conformidade do Frontend
 
-## Scope
-- Static linting for React/JS quality rules.
-- Build validation for Vite production bundle.
-- Heuristic audit for potential orphan files and duplicate code by normalized content hash.
+Data de revisão: 10 de agosto de 2026
 
-## Commands used
-- `npm run lint`
-- `npm run build`
-- `npm run audit:frontend`
+## Escopo
 
-## Key findings
+- Arquitetura SDD/OpenSpec e rastreabilidade de requisitos.
+- Segurança de dependências, HTML, assets, storage, telemetria e headers.
+- Rotas, autenticação, contratos HTTP, SSR seletivo e recuperação de falhas.
+- Identidade visual, responsividade, teclado, movimento reduzido e acessibilidade axe.
+- Testes, cobertura, bundle, grafo de módulos, CI e documentação operacional.
 
-### 1) Lint and React quality baseline
-- Added a project-level ESLint configuration (`.eslintrc.cjs`) to enable reproducible frontend quality checks.
-- Fixed detected issues:
-  - Added explicit `displayName` for `forwardRef` component (`Page`).
-  - Removed unused imports in theme toggle component (`ModeTheme`).
-  - Escaped unescaped JSX quotes in onboarding success message.
+## Resultado
 
-### 2) Duplicated code
-- No duplicated JS/JSX files were found by normalized-content hash (`Duplicate-content groups: 0`).
+O frontend possui agora um gate reproduzível em Node 20 com OpenSpec, ESLint sem warnings, Prettier, testes Node,
+Vitest com cobertura, build cliente/SSR, scanner de assets, orçamento de bundle, auditoria de alcançabilidade,
+`npm audit` e Playwright desktop/mobile.
 
-### 3) Potentially unused/orphan files
-- The audit identified **35 potential orphan files** (reachable-graph heuristic from `src/index.js`).
-- These files should be reviewed and removed only after functional confirmation in product flows.
+### Arquitetura e confiabilidade
 
-### 4) Build and architecture notes
-- Build passes, but bundle remains large (single chunk ~4.5 MB pre-gzip warning from Vite).
-- Recommended next steps:
-  1. Split heavy dashboard routes with `React.lazy` + route-based code splitting.
-  2. Use manual chunks in `vite.config.js` for large vendor libs.
-  3. Track bundle budget in CI and fail when exceeding thresholds.
+- Manifesto central de rotas com acesso, metadata, aliases, lazy loading e seleção SSR.
+- Providers compartilhados entre cliente e servidor.
+- Adaptadores explícitos para identidade backend e demo; demo desabilitado por padrão.
+- Cliente HTTP com timeout, cancelamento, retry somente idempotente, erros canônicos e validação Zod.
+- Estados reutilizáveis de loading, vazio, erro, offline, permissão, status e confirmação.
+- Auditoria por AST cobrindo imports estáticos, dinâmicos, reexports, aliases e entradas cliente/SSR.
 
-## Conclusion
-The project now has a repeatable quality gate for linting and structural audits, and currently builds successfully in production mode. Remaining compliance work is mainly focused on removing truly unused modules and reducing bundle size.
+### Segurança e privacidade
+
+- `npm audit` sem vulnerabilidades conhecidas no lockfile revisado.
+- CSP de scripts limitada a `'self'`, sem script inline/eval; headers SSR e Vercel cobertos por contrato.
+- New Relic embutido, credenciais antigas, Faker de produção e fallbacks implícitos removidos.
+- Sentry, Analytics e Meticulous centralizados e condicionados a configuração/consentimento.
+- Limpeza unidirecional de senha, histórico, reset token, desafio MFA e rate-limit legados do navegador.
+- Scanner falha para credenciais demo, tokens privados, loaders de gravação indevidos ou módulos proibidos.
+
+### Experiência e acessibilidade
+
+- Autenticação redesenhada com imagem local de estufa, hierarquia responsiva e fluxos separados de cadastro/recuperação.
+- Shell operacional mais compacto, contexto por rota, navegação semântica e estados online/offline explícitos.
+- Gráficos Recharts acessíveis com resumo textual; ApexCharts e runtime Faker removidos.
+- Skip link, foco global, alvos mínimos de 44 px, labels, alt text e política de movimento reduzido.
+- Axe sem violações críticas/sérias nas telas representativas de login e dashboard em 1440 e 320 px.
+- Consentimento de cookies corrigido para não cortar texto nem provocar overflow no primeiro acesso mobile.
+
+## Métricas
+
+Baseline anterior: 6 de março de 2026. Baseline final: `docs/performance-baseline.json`, Node `v20.20.2`.
+
+| Métrica               |          Antes |                 Depois |       Variação |
+| --------------------- | -------------: | ---------------------: | -------------: |
+| JS/CSS bruto total    |    4.607,85 kB |            1.608,45 kB |         -65,1% |
+| Entrada principal     |    2.992,25 kB |              483,75 kB |         -83,8% |
+| Vendor de gráficos    |      528,70 kB |              414,48 kB |         -21,6% |
+| Rota de monitoramento |      159,36 kB |               84,59 kB |         -46,9% |
+| Tempo de build        |        26,71 s |                24,12 s |          -9,7% |
+| HTML                  | não registrado | 1,72 kB / 0,69 kB gzip | baseline atual |
+| JS/CSS gzip total     | não registrado |              482,60 kB | baseline atual |
+
+Todos os chunks JavaScript minificados permanecem abaixo do limite bruto de 500 kB. O grafo final contém 111 módulos
+de produção, todos alcançáveis a partir das entradas configuradas, sem imports quebrados ou órfãos detectados.
+
+## Testes
+
+- Vitest/Testing Library/MSW: autenticação, guards, rotas, contratos HTTP, cancelamento/stale requests e domínio.
+- Node test runner: regras de promoção, composição SSR e contrato dos headers.
+- Playwright: login, cadastro, retorno protegido, falha do backend, storage sem senha, rota protegida, axe, teclado,
+  movimento reduzido, alvos de toque, overflow e dashboard operacional.
+- SSR de produção: conteúdo público, um único `<title>`, fallback SPA privado, asset local e headers verificados.
+
+## Riscos residuais
+
+- `MonitoringPage`, `ProfileSettingsPage` e `session.js` continuam acima de 800 linhas e devem ser decompostos em
+  mudanças OpenSpec próprias, preservando os testes já criados.
+- Contratos Zod completos ainda devem ser estendidos aos domínios de monitoramento, relatórios, assinaturas e
+  integrações quando os respectivos endpoints backend forem estabilizados.
+- MFA, dispositivos confiáveis e operações de privacidade possuem implementação local histórica; a autoridade final
+  deve migrar para APIs backend antes de uso regulado em produção.

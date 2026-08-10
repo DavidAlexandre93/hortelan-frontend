@@ -9,6 +9,10 @@ export default function CssBaseline() {
           padding: 0,
           boxSizing: 'border-box',
         },
+        '*:focus-visible': {
+          outline: '3px solid rgba(21, 128, 82, 0.42)',
+          outlineOffset: 2,
+        },
         html: {
           width: '100%',
           height: '100%',
@@ -17,6 +21,7 @@ export default function CssBaseline() {
         body: {
           width: '100%',
           height: '100%',
+          textRendering: 'optimizeLegibility',
         },
         '#root': {
           width: '100%',
@@ -38,6 +43,14 @@ export default function CssBaseline() {
         img: {
           display: 'block',
           maxWidth: '100%',
+        },
+        '@media (prefers-reduced-motion: reduce)': {
+          '*, *::before, *::after': {
+            animationDuration: '0.01ms !important',
+            animationIterationCount: '1 !important',
+            scrollBehavior: 'auto !important',
+            transitionDuration: '0s !important',
+          },
         },
       },
     },

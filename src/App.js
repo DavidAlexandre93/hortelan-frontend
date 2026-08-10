@@ -1,94 +1,55 @@
-import React, { Component, useCallback, useEffect, useState } from "react";
-import { useLocation, useNavigate } from 'react-router-dom';
-import SplashHarvestPro from "./SplashHarvestPro";
-import Router from "./routes";
+import PropTypes from 'prop-types';
+import { useCallback, useState } from 'react';
+import { Box } from '@mui/material';
+import BrandSplash from './components/BrandSplash';
+import Router from './routes';
+import CookieConsentBanner from './components/privacy/CookieConsentBanner';
 
-class SplashErrorBoundary extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
+const SPLASH_STORAGE_KEY = 'hortelan:intro-seen';
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
+function shouldShowIntro(ssr) {
+  if (ssr || typeof window === 'undefined') return false;
 
-  componentDidCatch(error) {
-    // eslint-disable-next-line no-console
-    console.error('Falha ao renderizar SplashHarvestPro.', error);
-    this.props.onError?.();
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return null;
-    }
-
-    return this.props.children;
-  }
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  return !reducedMotion && window.sessionStorage.getItem(SPLASH_STORAGE_KEY) !== 'true';
 }
 
-function SplashFallback() {
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#0b1220',
-        color: '#fff',
-        display: 'grid',
-        placeItems: 'center',
-        fontWeight: 700,
-      }}
-    >
-      Carregando plataforma Hortelan...
-    </div>
-  );
-}
+export default function App({ ssr = false }) {
+  const [showSplash, setShowSplash] = useState(() => shouldShowIntro(ssr));
 
-export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
-  const [showFallbackSplash, setShowFallbackSplash] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    const fallbackTimer = window.setTimeout(() => {
-      setShowSplash(false);
-    }, 10000);
-
-    return () => window.clearTimeout(fallbackTimer);
-  }, []);
-
-  const handleSplashFinish = useCallback(() => {
+  const finishSplash = useCallback(() => {
+    window.sessionStorage.setItem(SPLASH_STORAGE_KEY, 'true');
     setShowSplash(false);
-
-    // Garante a splash como primeira tela em qualquer rota de entrada.
-    // Se a aplicação chegar na raiz, redireciona para login.
-    if (location.pathname === '/') {
-      navigate('/login', { replace: true, state: { forceLogin: true } });
-    }
-  }, [location.pathname, navigate]);
-
-  const handleSplashError = useCallback(() => {
-    setShowFallbackSplash(true);
-
-    // Mantém uma splash mínima visível antes de carregar o Router.
-    window.setTimeout(() => {
-      setShowSplash(false);
-    }, 1800);
   }, []);
 
-  if (!showSplash) {
-    return <Router />;
-  }
-
-  if (showFallbackSplash) {
-    return <SplashFallback />;
-  }
-
   return (
-    <SplashErrorBoundary onError={handleSplashError}>
-      <SplashHarvestPro onFinish={handleSplashFinish} />
-    </SplashErrorBoundary>
+    <>
+      <Box
+        component="a"
+        href="#main-content"
+        sx={{
+          position: 'fixed',
+          left: 16,
+          top: 12,
+          zIndex: 1800,
+          transform: 'translateY(-160%)',
+          bgcolor: 'primary.dark',
+          color: 'primary.contrastText',
+          px: 2,
+          py: 1.25,
+          borderRadius: 1,
+          textDecoration: 'none',
+          '&:focus': { transform: 'translateY(0)' },
+        }}
+      >
+        Ir para o conteudo
+      </Box>
+      {showSplash ? <BrandSplash onFinish={finishSplash} /> : <Router ssr={ssr} />}
+      {!ssr && <CookieConsentBanner />}
+    </>
   );
 }
+
+App.propTypes = {
+  ssr: PropTypes.bool,
+};

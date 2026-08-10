@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker';
+import { createId } from '../../utils/createId';
 import { useState } from 'react';
 // @mui
 import { useTheme } from '@mui/material/styles';
@@ -35,6 +35,12 @@ import Page from '../../components/Page';
 import Iconify from '../../components/Iconify';
 import BlockchainPanel from '../../components/BlockchainPanel';
 import useAuth from '../../auth/useAuth';
+import {
+  evaluateConditionRule,
+  getNextRotationFamily,
+  getSeasonWindow,
+  getSuggestedSpecies,
+} from '../../features/monitoring/domain';
 // sections
 import {
   AppTasks,
@@ -290,14 +296,6 @@ const conditionRuleTemplates = [
   },
 ];
 
-const evaluateConditionRule = (rule, currentValue) => {
-  if (rule.comparator === 'gt') {
-    return currentValue > rule.threshold;
-  }
-
-  return currentValue < rule.threshold;
-};
-
 const climaExternoAtual = {
   local: 'Campinas - SP',
   atualizadoEm: 'Hoje, 14:30',
@@ -338,6 +336,7 @@ const historicoClimaticoCorrelacionado = [
 ];
 
 export default function DashboardApp() {
+  const [dashboardReferenceTime] = useState(() => Date.now());
   const theme = useTheme();
   const { user } = useAuth();
   const formatDateInput = (date) => date.toISOString().slice(0, 10);
@@ -386,7 +385,7 @@ export default function DashboardApp() {
   );
   const [agendaTarefas, setAgendaTarefas] = useState([
     {
-      id: faker.string.uuid(),
+      id: createId('agenda'),
       tipo: 'Rega',
       titulo: 'Rega das mudas da Estufa A',
       descricao: 'Aplicar rega leve no início da manhã.',
@@ -394,8 +393,8 @@ export default function DashboardApp() {
       responsavel: 'Ana',
       vencimento: todayString,
       checklist: [
-        { id: faker.string.uuid(), texto: 'Conferir umidade antes de regar', concluido: false },
-        { id: faker.string.uuid(), texto: 'Registrar volume de água aplicado', concluido: false },
+        { id: createId('checklist'), texto: 'Conferir umidade antes de regar', concluido: false },
+        { id: createId('checklist'), texto: 'Registrar volume de água aplicado', concluido: false },
       ],
       concluida: false,
       observacoes: [],
@@ -403,28 +402,28 @@ export default function DashboardApp() {
       insumos: [],
     },
     {
-      id: faker.string.uuid(),
+      id: createId('agenda'),
       tipo: 'Verificação de pragas',
       titulo: 'Inspeção visual no canteiro B',
       descricao: 'Verificar sinais de pulgões e manchas foliares.',
       periodicidade: 'Semanal',
       responsavel: 'Bruno',
       vencimento: twoDaysAgoString,
-      checklist: [{ id: faker.string.uuid(), texto: 'Inspecionar verso das folhas', concluido: false }],
+      checklist: [{ id: createId('checklist'), texto: 'Inspecionar verso das folhas', concluido: false }],
       concluida: false,
       observacoes: [],
       fotos: [],
       insumos: [],
     },
     {
-      id: faker.string.uuid(),
+      id: createId('agenda'),
       tipo: 'Troca de água (hidroponia)',
       titulo: 'Troca parcial da solução nutritiva',
       descricao: 'Renovar 30% do reservatório.',
       periodicidade: 'Quinzenal',
       responsavel: 'Equipe Hidroponia',
       vencimento: tomorrowString,
-      checklist: [{ id: faker.string.uuid(), texto: 'Medição de pH após troca', concluido: false }],
+      checklist: [{ id: createId('checklist'), texto: 'Medição de pH após troca', concluido: false }],
       concluida: false,
       observacoes: [],
       fotos: [],
@@ -470,7 +469,7 @@ export default function DashboardApp() {
 
     setPlantas((prev) => [
       {
-        id: faker.string.uuid(),
+        id: createId('planta'),
         ...novaPlanta,
         familia: cropCatalog[novaPlanta.especie].family,
         ciclo: cropCatalog[novaPlanta.especie].cycle,
@@ -478,7 +477,7 @@ export default function DashboardApp() {
         fotos: [],
         observacoes: [],
         tarefas: (baseTasksByPhase[novaPlanta.faseCultivo] || []).map((titulo) => ({
-          id: faker.string.uuid(),
+          id: createId('tarefa'),
           titulo,
           concluida: false,
           prioridade: 'média',
@@ -545,7 +544,7 @@ export default function DashboardApp() {
               ...planta,
               eventos: [
                 {
-                  id: faker.string.uuid(),
+                  id: createId('alerta'),
                   tipo: draft.tipo,
                   data: draft.data,
                   detalhes: draft.detalhes,
@@ -577,7 +576,7 @@ export default function DashboardApp() {
               ...planta,
               fotos: [
                 {
-                  id: faker.string.uuid(),
+                  id: createId('colheita'),
                   data: draft.data,
                   url: draft.url,
                   legenda: draft.legenda || '',
@@ -609,7 +608,7 @@ export default function DashboardApp() {
               ...planta,
               observacoes: [
                 {
-                  id: faker.string.uuid(),
+                  id: createId('analise'),
                   data: draft.data,
                   texto: draft.texto,
                 },
@@ -686,7 +685,7 @@ export default function DashboardApp() {
 
     setAutomationRules((prev) => [
       {
-        id: faker.string.uuid(),
+        id: createId('automacao'),
         ...automationDraft,
       },
       ...prev,
@@ -704,7 +703,7 @@ export default function DashboardApp() {
               ...planta,
               tarefas: [
                 {
-                  id: faker.string.uuid(),
+                  id: createId('tarefa'),
                   titulo,
                   concluida: false,
                   prioridade: 'média',
@@ -748,34 +747,39 @@ export default function DashboardApp() {
   };
 
   const salvarProgramacao = () => {
-    if (!programacao.irrigacaoHora || !programacao.iluminacaoInicio || !programacao.iluminacaoFim || programacao.recorrencia.length === 0) {
+    if (
+      !programacao.irrigacaoHora ||
+      !programacao.iluminacaoInicio ||
+      !programacao.iluminacaoFim ||
+      programacao.recorrencia.length === 0
+    ) {
       return;
     }
 
     setAgendamentosAtivos((prev) => [
       {
-        id: faker.string.uuid(),
+        id: createId('irrigacao'),
         ...programacao,
       },
       ...prev,
     ]);
   };
 
-  const janelaAtual = regionalSeasonality[region][novaPlanta.especie] || [];
+  const janelaAtual = getSeasonWindow(regionalSeasonality, region, novaPlanta.especie);
   const mesEscolhido = novaPlanta.dataPlantio ? new Date(`${novaPlanta.dataPlantio}T00:00:00`).getMonth() + 1 : null;
 
   const statusJanela = !mesEscolhido
     ? 'Selecione uma data para validar a janela de plantio.'
     : janelaAtual.includes(mesEscolhido)
-    ? 'Janela ideal para plantio nesta região.'
-    : 'Fora da janela ideal. Considere ajustar a data ou utilizar ambiente protegido.';
+      ? 'Janela ideal para plantio nesta região.'
+      : 'Fora da janela ideal. Considere ajustar a data ou utilizar ambiente protegido.';
 
   const proximosMeses = [...Array(6)].map((_, index) => {
     const date = new Date();
     date.setMonth(date.getMonth() + index);
     const month = date.getMonth() + 1;
 
-    const recomendadas = opcoesEspecie.filter((species) => regionalSeasonality[region][species].includes(month));
+    const recomendadas = getSuggestedSpecies(regionalSeasonality, region, opcoesEspecie, month);
 
     return {
       month,
@@ -796,7 +800,7 @@ export default function DashboardApp() {
       };
     }
 
-    const proximaFamilia = rotationByFamily[recente.familia] || ['Folhosas'];
+    const proximaFamilia = getNextRotationFamily(rotationByFamily, recente.familia);
     const repeticao = historico[1] && historico[1].familia === recente.familia;
 
     return {
@@ -810,7 +814,12 @@ export default function DashboardApp() {
 
   const statusSetores = [
     { nome: 'Canteiro A', status: 'Saudável', color: 'success', detalhe: 'Irrigação e clima dentro da meta.' },
-    { nome: 'Canteiro B', status: 'Atenção', color: 'warning', detalhe: 'Queda de umidade prevista para as próximas 2h.' },
+    {
+      nome: 'Canteiro B',
+      status: 'Atenção',
+      color: 'warning',
+      detalhe: 'Queda de umidade prevista para as próximas 2h.',
+    },
     { nome: 'Canteiro C', status: 'Crítico', color: 'error', detalhe: 'Sensor de pH fora da faixa recomendada.' },
   ];
 
@@ -844,7 +853,9 @@ export default function DashboardApp() {
     gardenStatusList.reduce((acumulado, horta) => acumulado + horta.umidade, 0) / gardenStatusList.length
   );
   const indicadorMediaTemperatura = Number(
-    (gardenStatusList.reduce((acumulado, horta) => acumulado + horta.temperatura, 0) / gardenStatusList.length).toFixed(1)
+    (gardenStatusList.reduce((acumulado, horta) => acumulado + horta.temperatura, 0) / gardenStatusList.length).toFixed(
+      1
+    )
   );
   const indicadorAlertasAtivos = gardenStatusList.reduce((acumulado, horta) => acumulado + horta.alertas, 0);
 
@@ -919,12 +930,17 @@ export default function DashboardApp() {
   ];
 
   const alertasClimaticos = [
-    climaExternoAtual.temperatura >= 35 ? { tipo: 'error', mensagem: 'Alerta de calor extremo: proteger mudas sensíveis e reforçar sombreamento.' } : null,
+    climaExternoAtual.temperatura >= 35
+      ? { tipo: 'error', mensagem: 'Alerta de calor extremo: proteger mudas sensíveis e reforçar sombreamento.' }
+      : null,
     climaExternoAtual.temperatura <= 10
       ? { tipo: 'warning', mensagem: 'Alerta de frio intenso: avaliar manta térmica para hortas externas.' }
       : null,
     climaExternoAtual.chuvaChance >= 70
-      ? { tipo: 'info', mensagem: 'Alerta preventivo de chuva: pausando ciclos de rega externa para evitar encharcamento.' }
+      ? {
+          tipo: 'info',
+          mensagem: 'Alerta preventivo de chuva: pausando ciclos de rega externa para evitar encharcamento.',
+        }
       : null,
   ].filter(Boolean);
 
@@ -962,7 +978,7 @@ export default function DashboardApp() {
 
     setNovaTarefaAgenda((prev) => ({
       ...prev,
-      checklist: [...prev.checklist, { id: faker.string.uuid(), texto, concluido: false }],
+      checklist: [...prev.checklist, { id: createId('checklist'), texto, concluido: false }],
     }));
     setNovoChecklistItem('');
   };
@@ -972,7 +988,7 @@ export default function DashboardApp() {
 
     setAgendaTarefas((prev) => [
       {
-        id: faker.string.uuid(),
+        id: createId('agenda'),
         ...novaTarefaAgenda,
         titulo: novaTarefaAgenda.titulo.trim(),
         descricao: novaTarefaAgenda.descricao.trim(),
@@ -1011,7 +1027,9 @@ export default function DashboardApp() {
   };
 
   const marcarTarefaConcluida = (tarefaId) => {
-    setAgendaTarefas((prev) => prev.map((tarefa) => (tarefa.id === tarefaId ? { ...tarefa, concluida: true } : tarefa)));
+    setAgendaTarefas((prev) =>
+      prev.map((tarefa) => (tarefa.id === tarefaId ? { ...tarefa, concluida: true } : tarefa))
+    );
   };
 
   const atualizarEvidenciaDraft = (tarefaId, field, value) => {
@@ -1048,7 +1066,9 @@ export default function DashboardApp() {
 
   const reagendarTarefa = (tarefaId, novaData) => {
     if (!novaData) return;
-    setAgendaTarefas((prev) => prev.map((tarefa) => (tarefa.id === tarefaId ? { ...tarefa, vencimento: novaData } : tarefa)));
+    setAgendaTarefas((prev) =>
+      prev.map((tarefa) => (tarefa.id === tarefaId ? { ...tarefa, vencimento: novaData } : tarefa))
+    );
   };
 
   const tarefasDoDia = agendaTarefas.filter((tarefa) => !tarefa.concluida && tarefa.vencimento === todayString);
@@ -1064,14 +1084,14 @@ export default function DashboardApp() {
     filtroRotina.clima === 'Seco'
       ? 'Aumente a frequência de rega e priorize mulching para reduzir evaporação.'
       : filtroRotina.clima === 'Chuvoso'
-      ? 'Reduza regas manuais e reforce inspeções de fungos e drenagem.'
-      : 'Mantenha o plano padrão e monitore as leituras dos sensores diariamente.';
+        ? 'Reduza regas manuais e reforce inspeções de fungos e drenagem.'
+        : 'Mantenha o plano padrão e monitore as leituras dos sensores diariamente.';
   const ajusteEstacao =
     filtroRotina.estacao === 'Verão'
       ? 'Antecipe tarefas para o início da manhã e fim da tarde para evitar estresse térmico.'
       : filtroRotina.estacao === 'Inverno'
-      ? 'Amplie intervalo entre regas e intensifique monitoramento de luminosidade.'
-      : 'Ajuste gradual da rotina conforme variações de temperatura e umidade.';
+        ? 'Amplie intervalo entre regas e intensifique monitoramento de luminosidade.'
+        : 'Ajuste gradual da rotina conforme variações de temperatura e umidade.';
   const ajusteHistorico =
     taxaConclusao >= 75
       ? 'Histórico saudável: é possível aumentar automações e manter auditoria semanal.'
@@ -1080,1158 +1100,953 @@ export default function DashboardApp() {
   return (
     <Page title="Dashboard">
       <Container maxWidth={false} sx={{ px: { xs: 1.5, sm: 2, md: 3 } }}>
-        <Card
-          sx={(theme) => ({
+        <Box
+          component="section"
+          sx={{
             mb: 4,
-            border: `1px solid ${theme.palette.primary.lighter}`,
-            background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 42%, ${theme.palette.info.main} 100%)`,
+            p: { xs: 2.5, sm: 3 },
+            border: 1,
+            borderColor: 'primary.main',
+            borderLeft: 6,
+            borderLeftColor: 'info.light',
+            borderRadius: 1,
+            bgcolor: 'primary.dark',
             color: 'common.white',
-            overflow: 'hidden',
-            position: 'relative',
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              width: { xs: 220, sm: 280, md: 320 },
-              height: { xs: 220, sm: 280, md: 320 },
-              borderRadius: '50%',
-              right: { xs: -110, sm: -120, md: -140 },
-              top: { xs: -120, sm: -135, md: -150 },
-              backgroundColor: 'rgba(255,255,255,0.15)',
-            },
-          })}
+          }}
         >
-          <CardContent sx={{ position: 'relative', zIndex: 1 }}>
-            <Typography variant="overline" sx={{ opacity: 0.85, letterSpacing: 1.6 }}>
-              AgroTech Command Center
-            </Typography>
-            <Typography variant="h4" sx={{ mt: 1, mb: 1 }}>
-              Olá, {user?.name || 'Usuário'} 👋
-            </Typography>
-            <Typography sx={{ maxWidth: 700, opacity: 0.92 }}>
-              Bem-vindo ao painel inteligente da Hortelan. Acompanhe sensores, automações e alertas em tempo real para
-              elevar produtividade com decisões baseadas em dados.
-            </Typography>
-          </CardContent>
-        </Card>
+          <Typography variant="overline" sx={{ opacity: 0.85, letterSpacing: 0 }}>
+            Centro de operação
+          </Typography>
+          <Typography variant="h4" sx={{ mt: 1, mb: 1 }}>
+            Olá, {user?.name || 'Usuário'}
+          </Typography>
+          <Typography sx={{ maxWidth: 700, opacity: 0.92 }}>
+            Bem-vindo ao painel inteligente da Hortelan. Acompanhe sensores, automações e alertas em tempo real para
+            elevar produtividade com decisões baseadas em dados.
+          </Typography>
+        </Box>
 
         <Box sx={monitoringContentSx}>
           <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h5" sx={{ mb: 2 }}>
-                  Widgets personalizáveis do dashboard
-                </Typography>
-                <FormGroup row sx={{ rowGap: 1, columnGap: 1, '& .MuiFormControlLabel-root': { mr: 1 } }}>
-                  <FormControlLabel
-                    control={<Switch checked={enabledWidgets.resumoHortas} onChange={onToggleWidget('resumoHortas')} />}
-                    label="Resumo das hortas"
-                  />
-                  <FormControlLabel
-                    control={<Switch checked={enabledWidgets.indicadores} onChange={onToggleWidget('indicadores')} />}
-                    label="Indicadores principais"
-                  />
-                  <FormControlLabel
-                    control={<Switch checked={enabledWidgets.tarefasPendentes} onChange={onToggleWidget('tarefasPendentes')} />}
-                    label="Tarefas pendentes"
-                  />
-                </FormGroup>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {enabledWidgets.indicadores && (
-            <Grid item xs={12}>
-              <Box
-                sx={{
-                  display: 'grid',
-                  width: '100%',
-                  gap: 3,
-                  gridTemplateColumns: {
-                    xs: '1fr',
-                    sm: 'repeat(2, minmax(0, 1fr))',
-                    lg: 'repeat(3, minmax(0, 1fr))',
-                  },
-                }}
-              >
-                <AppWidgetSummary
-                  title="Umidade média"
-                  total={indicadorMedioUmidade}
-                  icon1="carbon:soil-moisture-field"
-                  color="primary"
-                />
-
-                <AppWidgetSummary
-                  title="Temperatura média"
-                  total={indicadorMediaTemperatura}
-                  icon1="mdi:temperature-celsius"
-                  color="warning"
-                />
-
-                <AppWidgetSummary title="Alertas ativos" total={indicadorAlertasAtivos} icon1="icon-park:alarm" color="error" />
-              </Box>
-            </Grid>
-          )}
-
-          {enabledWidgets.resumoHortas && (
             <Grid item xs={12}>
               <Card>
                 <CardContent>
                   <Typography variant="h5" sx={{ mb: 2 }}>
-                    Resumo do status de todas as hortas
+                    Widgets personalizáveis do dashboard
                   </Typography>
-                  <Grid container spacing={2}>
-                    {gardenStatusList.map((horta) => (
-                      <Grid item xs={12} md={6} lg={3} key={horta.id}>
-                        <Card variant="outlined">
-                          <CardContent>
-                            <Typography variant="subtitle1">{horta.nome}</Typography>
-                            <Stack spacing={1} sx={{ mt: 1.5 }}>
-                              <Typography variant="body2" color="text.secondary">
-                                Umidade: <strong>{horta.umidade}%</strong>
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                Temperatura: <strong>{horta.temperatura}°C</strong>
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                Alertas: <strong>{horta.alertas}</strong>
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                Tarefas pendentes: <strong>{horta.tarefasPendentes}</strong>
-                              </Typography>
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    ))}
-                  </Grid>
+                  <FormGroup row sx={{ rowGap: 1, columnGap: 1, '& .MuiFormControlLabel-root': { mr: 1 } }}>
+                    <FormControlLabel
+                      control={
+                        <Switch checked={enabledWidgets.resumoHortas} onChange={onToggleWidget('resumoHortas')} />
+                      }
+                      label="Resumo das hortas"
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={enabledWidgets.indicadores} onChange={onToggleWidget('indicadores')} />}
+                      label="Indicadores principais"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={enabledWidgets.tarefasPendentes}
+                          onChange={onToggleWidget('tarefasPendentes')}
+                        />
+                      }
+                      label="Tarefas pendentes"
+                    />
+                  </FormGroup>
                 </CardContent>
               </Card>
             </Grid>
-          )}
 
-          {enabledWidgets.tarefasPendentes && (
-            <Grid item xs={12}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h5" sx={{ mb: 1 }}>
-                    Visão rápida de tarefas pendentes
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Priorização automática por impacto operacional.
-                  </Typography>
-                  <List disablePadding>
-                    {tarefasOrdenadas.map((task, index) => (
-                      <Box key={task.id}>
-                        <ListItem disableGutters>
-                          <ListItemText
-                            primary={task.titulo}
-                            secondary={`Horta: ${task.horta}`}
-                            primaryTypographyProps={{ variant: 'subtitle2' }}
-                          />
-                          <Chip
-                            size="small"
-                            label={task.prioridade}
-                            color={task.prioridade === 'Alta' ? 'error' : task.prioridade === 'Média' ? 'warning' : 'default'}
-                            variant={task.prioridade === 'Baixa' ? 'outlined' : 'filled'}
-                          />
-                        </ListItem>
-                        {index < tarefasOrdenadas.length - 1 && <Divider />}
-                      </Box>
-                    ))}
-                  </List>
-                </CardContent>
-              </Card>
-            </Grid>
-          )}
+            {enabledWidgets.indicadores && (
+              <Grid item xs={12}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    width: '100%',
+                    gap: 3,
+                    gridTemplateColumns: {
+                      xs: '1fr',
+                      sm: 'repeat(2, minmax(0, 1fr))',
+                      lg: 'repeat(3, minmax(0, 1fr))',
+                    },
+                  }}
+                >
+                  <AppWidgetSummary
+                    title="Umidade média"
+                    total={indicadorMedioUmidade}
+                    icon1="carbon:soil-moisture-field"
+                    color="primary"
+                  />
 
-          <Grid item xs={12}>
-            <AppSensorAnalytics />
-          </Grid>
+                  <AppWidgetSummary
+                    title="Temperatura média"
+                    total={indicadorMediaTemperatura}
+                    icon1="mdi:temperature-celsius"
+                    color="warning"
+                  />
 
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h5" sx={{ mb: 1 }}>
-                  Inteligência climática externa
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Dados externos integrados para ajustar recomendações, irrigação e alertas preventivos.
-                </Typography>
+                  <AppWidgetSummary
+                    title="Alertas ativos"
+                    total={indicadorAlertasAtivos}
+                    icon1="icon-park:alarm"
+                    color="error"
+                  />
+                </Box>
+              </Grid>
+            )}
 
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={4}>
-                    <Stack spacing={1.5}>
-                      <Chip label={`Local: ${climaExternoAtual.local}`} color="primary" variant="outlined" />
-                      <Typography variant="body2" color="text.secondary">
-                        Atualizado em {climaExternoAtual.atualizadoEm}
-                      </Typography>
-                      <Typography variant="body2">{climaExternoAtual.condicao}</Typography>
-                      <Divider />
-                      <Typography variant="body2">Temperatura externa: {climaExternoAtual.temperatura} °C</Typography>
-                      <Typography variant="body2">Umidade externa: {climaExternoAtual.umidade}%</Typography>
-                      <Typography variant="body2">Previsão de chuva: {climaExternoAtual.chuvaChance}%</Typography>
-                      <Typography variant="body2">Velocidade do vento: {climaExternoAtual.vento} km/h</Typography>
-                      <Typography variant="body2">Insolação: {climaExternoAtual.insolacao} kWh/m²</Typography>
-                    </Stack>
-                  </Grid>
-
-                  <Grid item xs={12} md={4}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      Impacto no cultivo e recomendações
+            {enabledWidgets.resumoHortas && (
+              <Grid item xs={12}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h5" sx={{ mb: 2 }}>
+                      Resumo do status de todas as hortas
                     </Typography>
-                    <Stack spacing={1}>
-                      {recomendacoesClimaticas.map((item) => (
-                        <Alert key={item} severity="success" variant="outlined">
-                          {item}
-                        </Alert>
-                      ))}
-                    </Stack>
-                  </Grid>
-
-                  <Grid item xs={12} md={4}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      Alertas climáticos ativos
-                    </Typography>
-                    {alertasClimaticos.length === 0 ? (
-                      <Alert severity="success">Sem alertas de frio/calor ou chuva no momento.</Alert>
-                    ) : (
-                      <Stack spacing={1}>
-                        {alertasClimaticos.map((alerta) => (
-                          <Alert key={alerta.mensagem} severity={alerta.tipo}>
-                            {alerta.mensagem}
-                          </Alert>
-                        ))}
-                      </Stack>
-                    )}
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Divider sx={{ my: 0.5 }} />
-                    <Typography variant="subtitle2" sx={{ mb: 1.5, mt: 1 }}>
-                      Regras com clima externo
-                    </Typography>
-                    <Grid container spacing={1.5}>
-                      {regrasClimaticas.map((item) => (
-                        <Grid key={item.regra} item xs={12} md={4}>
-                          <Card variant="outlined" sx={{ height: '100%' }}>
+                    <Grid container spacing={2}>
+                      {gardenStatusList.map((horta) => (
+                        <Grid item xs={12} md={6} lg={3} key={horta.id}>
+                          <Card variant="outlined">
                             <CardContent>
-                              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                                <Typography variant="subtitle2">{item.regra}</Typography>
-                                <Chip
-                                  size="small"
-                                  label={item.status}
-                                  color={item.status === 'Ativada' ? 'success' : item.status === 'Inativa' ? 'default' : 'warning'}
-                                />
+                              <Typography variant="subtitle1">{horta.nome}</Typography>
+                              <Stack spacing={1} sx={{ mt: 1.5 }}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Umidade: <strong>{horta.umidade}%</strong>
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  Temperatura: <strong>{horta.temperatura}°C</strong>
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  Alertas: <strong>{horta.alertas}</strong>
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  Tarefas pendentes: <strong>{horta.tarefasPendentes}</strong>
+                                </Typography>
                               </Stack>
-                              <Typography variant="body2" color="text.secondary">
-                                {item.detalhe}
-                              </Typography>
                             </CardContent>
                           </Card>
                         </Grid>
                       ))}
                     </Grid>
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      Previsão climática de curto prazo
-                    </Typography>
-                    <List disablePadding>
-                      {previsaoClimatica.map((item, index) => (
-                        <Box key={item.periodo}>
-                          <ListItem disableGutters>
-                            <ListItemText
-                              primary={`${item.periodo} • ${item.condicao}`}
-                              secondary={`Temp: ${item.temp}°C • Chuva: ${item.chuva}%`}
-                            />
-                          </ListItem>
-                          {index < previsaoClimatica.length - 1 && <Divider />}
-                        </Box>
-                      ))}
-                    </List>
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      Histórico climático correlacionado
-                    </Typography>
-                    <List disablePadding>
-                      {historicoClimaticoCorrelacionado.map((item, index) => (
-                        <Box key={item.periodo}>
-                          <ListItem disableGutters>
-                            <ListItemText
-                              primary={`${item.periodo} • Produtividade ${item.produtividade}`}
-                              secondary={`${item.clima}. ${item.evento}`}
-                            />
-                          </ListItem>
-                          {index < historicoClimaticoCorrelacionado.length - 1 && <Divider />}
-                        </Box>
-                      ))}
-                    </List>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h5" sx={{ mb: 1.5 }}>
-                  Motor de automações por regras
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Configure condição + horário, múltiplas condições (AND/OR) e dependências entre sensores antes da execução.
-                </Typography>
-
-                <Grid container spacing={1.5}>
-                  <Grid item xs={12} md={3}>
-                    <TextField
-                      label="Nome da automação"
-                      size="small"
-                      fullWidth
-                      value={automationDraft.nome}
-                      onChange={(event) => setAutomationDraft((prev) => ({ ...prev, nome: event.target.value }))}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={2}>
-                    <FormControl size="small" fullWidth>
-                      <InputLabel id="logica-automacao-label">Combinação</InputLabel>
-                      <Select
-                        labelId="logica-automacao-label"
-                        label="Combinação"
-                        value={automationDraft.logica}
-                        onChange={(event) => setAutomationDraft((prev) => ({ ...prev, logica: event.target.value }))}
-                      >
-                        <MenuItem value="AND">AND</MenuItem>
-                        <MenuItem value="OR">OR</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-
-                  <Grid item xs={6} md={2}>
-                    <TextField
-                      label="Início"
-                      type="time"
-                      size="small"
-                      fullWidth
-                      value={automationDraft.janelaInicio}
-                      onChange={(event) => setAutomationDraft((prev) => ({ ...prev, janelaInicio: event.target.value }))}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={6} md={2}>
-                    <TextField
-                      label="Fim"
-                      type="time"
-                      size="small"
-                      fullWidth
-                      value={automationDraft.janelaFim}
-                      onChange={(event) => setAutomationDraft((prev) => ({ ...prev, janelaFim: event.target.value }))}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={3}>
-                    <Button variant="contained" fullWidth onClick={salvarAutomacao}>
-                      Salvar regra
-                    </Button>
-                  </Grid>
-
-                  <Grid item xs={12} md={7}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      Condições da regra
-                    </Typography>
-                    <Stack spacing={1}>
-                      {automationDraft.condicoes.map((condicao, index) => (
-                        <Stack
-                          key={`condicao-${index}`}
-                          direction={{ xs: 'column', sm: 'row' }}
-                          spacing={1}
-                          alignItems={{ xs: 'stretch', sm: 'center' }}
-                        >
-                          <FormControl size="small" sx={{ minWidth: { sm: 180 } }}>
-                            <InputLabel id={`condicao-sensor-${index}`}>Sensor</InputLabel>
-                            <Select
-                              labelId={`condicao-sensor-${index}`}
-                              label="Sensor"
-                              value={condicao.sensor}
-                              onChange={(event) => atualizarCondicaoAutomacao(index, 'sensor', event.target.value)}
-                            >
-                              {automationSensors.map((sensor) => (
-                                <MenuItem key={sensor.value} value={sensor.value}>
-                                  {sensor.label}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                          <FormControl size="small" sx={{ minWidth: { sm: 90 } }}>
-                            <InputLabel id={`condicao-operador-${index}`}>Op.</InputLabel>
-                            <Select
-                              labelId={`condicao-operador-${index}`}
-                              label="Op."
-                              value={condicao.operador}
-                              onChange={(event) => atualizarCondicaoAutomacao(index, 'operador', event.target.value)}
-                            >
-                              {automationOperators.map((operator) => (
-                                <MenuItem key={operator} value={operator}>
-                                  {operator}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                          <TextField
-                            size="small"
-                            label="Valor"
-                            value={condicao.valor}
-                            onChange={(event) => atualizarCondicaoAutomacao(index, 'valor', event.target.value)}
-                          />
-                          <IconButton
-                            aria-label="Remover condição"
-                            onClick={() => removerCondicaoAutomacao(index)}
-                            disabled={automationDraft.condicoes.length === 1}
-                          >
-                            <DeleteOutlineIcon fontSize="small" />
-                          </IconButton>
-                        </Stack>
-                      ))}
-                      <Button variant="outlined" size="small" onClick={adicionarCondicaoAutomacao} sx={{ alignSelf: 'flex-start' }}>
-                        Adicionar condição
-                      </Button>
-                    </Stack>
-                  </Grid>
-
-                  <Grid item xs={12} md={5}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      Dependência entre sensores
-                    </Typography>
-                    <Stack spacing={1}>
-                      {automationDraft.dependencias.map((dependencia, index) => (
-                        <Stack
-                          key={`dependencia-${index}`}
-                          direction={{ xs: 'column', sm: 'row' }}
-                          spacing={1}
-                          alignItems={{ xs: 'stretch', sm: 'center' }}
-                        >
-                          <FormControl size="small" sx={{ minWidth: { sm: 180 } }}>
-                            <InputLabel id={`dependencia-sensor-${index}`}>Sensor</InputLabel>
-                            <Select
-                              labelId={`dependencia-sensor-${index}`}
-                              label="Sensor"
-                              value={dependencia.sensor}
-                              onChange={(event) => atualizarDependenciaAutomacao(index, 'sensor', event.target.value)}
-                            >
-                              {automationSensors.map((sensor) => (
-                                <MenuItem key={sensor.value} value={sensor.value}>
-                                  {sensor.label}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                          <FormControl size="small" sx={{ minWidth: { sm: 120 } }}>
-                            <InputLabel id={`dependencia-status-${index}`}>Status</InputLabel>
-                            <Select
-                              labelId={`dependencia-status-${index}`}
-                              label="Status"
-                              value={dependencia.status}
-                              onChange={(event) => atualizarDependenciaAutomacao(index, 'status', event.target.value)}
-                            >
-                              {dependencyStatuses.map((status) => (
-                                <MenuItem key={status.value} value={status.value}>
-                                  {status.label}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                          <IconButton
-                            aria-label="Remover dependência"
-                            onClick={() => removerDependenciaAutomacao(index)}
-                            disabled={automationDraft.dependencias.length === 1}
-                          >
-                            <DeleteOutlineIcon fontSize="small" />
-                          </IconButton>
-                        </Stack>
-                      ))}
-                      <Button variant="outlined" size="small" onClick={adicionarDependenciaAutomacao} sx={{ alignSelf: 'flex-start' }}>
-                        Adicionar dependência
-                      </Button>
-                    </Stack>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                      <Chip label={`Janela ativa: ${automationDraft.janelaInicio} - ${automationDraft.janelaFim}`} color="primary" variant="outlined" />
-                      <Chip label={`Condições: ${automationDraft.condicoes.length} (${automationDraft.logica})`} color="secondary" variant="outlined" />
-                      <Chip label={`Dependências: ${automationDraft.dependencias.length}`} color="info" variant="outlined" />
-                    </Stack>
-                  </Grid>
-                </Grid>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Regras criadas nesta sessão
-                </Typography>
-                {automationRules.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">
-                    Nenhuma regra salva ainda.
-                  </Typography>
-                ) : (
-                  <Stack spacing={1}>
-                    {automationRules.map((rule) => (
-                      <Card key={rule.id} variant="outlined">
-                        <CardContent sx={{ py: 1.5 }}>
-                          <Typography variant="subtitle2">{rule.nome}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Executa entre {rule.janelaInicio} e {rule.janelaFim} quando {rule.condicoes.length} condição(ões) ({rule.logica}) e{' '}
-                            {rule.dependencias.length} dependência(s) forem atendidas.
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </Stack>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12}>
-            <BlockchainPanel />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={4}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Status dos setores
-                </Typography>
-                <Stack spacing={1.5}>
-                  {statusSetores.map((setor) => (
-                    <Box key={setor.nome}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-                        <Typography variant="subtitle2">{setor.nome}</Typography>
-                        <Chip label={setor.status} color={setor.color} size="small" />
-                      </Stack>
-                      <Typography variant="body2" color="text.secondary">
-                        {setor.detalhe}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={4}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Sensores em destaque
-                </Typography>
-                <Stack spacing={1.5}>
-                  {sensoresDestaque.map((sensor) => (
-                    <Stack key={sensor.title} direction="row" justifyContent="space-between" alignItems="center">
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Iconify icon={sensor.icon1} width={20} height={20} />
-                        <Typography variant="body2">{sensor.title}</Typography>
-                      </Stack>
-                      <Chip label={sensor.leitura} size="small" color={sensor.color} variant="outlined" />
-                    </Stack>
-                  ))}
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={4}>
-            <AppWidgetSummary
-              title="Dispositivos ativos"
-              total={dispositivosAtivos.ativos}
-              color="success"
-              icon1="mdi:access-point-network"
-              sx={{ height: '100%' }}
-            />
-            <Card variant="outlined" sx={{ mt: 1.5 }}>
-              <CardContent sx={{ py: 1.5 }}>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography variant="body2" color="text.secondary">
-                    Offline
-                  </Typography>
-                  <Typography variant="subtitle2">{dispositivosAtivos.offline}</Typography>
-                </Stack>
-                <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.5 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Automações ativas
-                  </Typography>
-                  <Typography variant="subtitle2">{dispositivosAtivos.automacoes}</Typography>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Próximas ações recomendadas
-                </Typography>
-                <Stack spacing={1}>
-                  {proximasAcoes.map((acao) => (
-                    <Alert key={acao} severity="info" icon={<Iconify icon="mdi:clipboard-text-clock-outline" width={20} height={20} />}>
-                      {acao}
-                    </Alert>
-                  ))}
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Alertas recentes
-                </Typography>
-                <Stack spacing={1}>
-                  {alertasRecentes.map((alerta) => (
-                    <Alert key={alerta.mensagem} severity={alerta.severidade}>
-                      {alerta.mensagem}
-                    </Alert>
-                  ))}
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
-                <Typography variant="h5" sx={{ mb: 1 }}>
-                  Agenda inteligente de tarefas
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                  Gestão operacional com tarefas padrão, tarefas personalizadas, lembretes por vencimento e evidências de execução.
-                </Typography>
-
-                <Grid container spacing={2} sx={{ mb: 2 }}>
-                  <Grid item xs={12} md={4}>
-                    <Alert severity="info">Tarefas do dia: {tarefasDoDia.length}</Alert>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Alert severity={tarefasAtrasadas.length > 0 ? 'warning' : 'success'}>
-                      Tarefas atrasadas: {tarefasAtrasadas.length}
-                    </Alert>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Alert severity="success">Próximas tarefas: {proximasTarefas.length}</Alert>
-                  </Grid>
-                </Grid>
-
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                  7.1 e 7.2 — Tipos base e criação personalizada
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={3}>
-                    <FormControl fullWidth>
-                      <InputLabel id="agenda-tipo-label">Tipo</InputLabel>
-                      <Select
-                        labelId="agenda-tipo-label"
-                        label="Tipo"
-                        value={novaTarefaAgenda.tipo}
-                        onChange={(event) => setNovaTarefaAgenda((prev) => ({ ...prev, tipo: event.target.value }))}
-                      >
-                        {tiposTarefaBase.map((tipo) => (
-                          <MenuItem key={tipo} value={tipo}>
-                            {tipo}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <TextField
-                      fullWidth
-                      label="Título"
-                      value={novaTarefaAgenda.titulo}
-                      onChange={(event) => setNovaTarefaAgenda((prev) => ({ ...prev, titulo: event.target.value }))}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <FormControl fullWidth>
-                      <InputLabel id="agenda-periodicidade-label">Periodicidade</InputLabel>
-                      <Select
-                        labelId="agenda-periodicidade-label"
-                        label="Periodicidade"
-                        value={novaTarefaAgenda.periodicidade}
-                        onChange={(event) => setNovaTarefaAgenda((prev) => ({ ...prev, periodicidade: event.target.value }))}
-                      >
-                        {periodicidadeOptions.map((periodicidade) => (
-                          <MenuItem key={periodicidade} value={periodicidade}>
-                            {periodicidade}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <FormControl fullWidth>
-                      <InputLabel id="agenda-responsavel-label">Responsável</InputLabel>
-                      <Select
-                        labelId="agenda-responsavel-label"
-                        label="Responsável"
-                        value={novaTarefaAgenda.responsavel}
-                        onChange={(event) => setNovaTarefaAgenda((prev) => ({ ...prev, responsavel: event.target.value }))}
-                      >
-                        {responsaveisAgenda.map((responsavel) => (
-                          <MenuItem key={responsavel} value={responsavel}>
-                            {responsavel}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={8}>
-                    <TextField
-                      fullWidth
-                      label="Descrição"
-                      value={novaTarefaAgenda.descricao}
-                      onChange={(event) => setNovaTarefaAgenda((prev) => ({ ...prev, descricao: event.target.value }))}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Vencimento"
-                      type="date"
-                      value={novaTarefaAgenda.vencimento}
-                      onChange={(event) => setNovaTarefaAgenda((prev) => ({ ...prev, vencimento: event.target.value }))}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={9}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Adicionar item ao checklist"
-                      value={novoChecklistItem}
-                      onChange={(event) => setNovoChecklistItem(event.target.value)}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <Button fullWidth variant="outlined" onClick={adicionarItemChecklist}>
-                      Incluir checklist
-                    </Button>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Stack direction="row" flexWrap="wrap" gap={1}>
-                      {novaTarefaAgenda.checklist.map((item) => (
-                        <Chip key={item.id} size="small" label={item.texto} />
-                      ))}
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Button variant="contained" onClick={criarTarefaAgenda}>
-                      Criar tarefa personalizada
-                    </Button>
-                  </Grid>
-                </Grid>
-
-                <Typography variant="subtitle1" sx={{ mt: 3, mb: 1 }}>
-                  7.3 e 7.4 — Lembretes, reagendamento, execução e evidências
-                </Typography>
-                <Stack spacing={1.2}>
-                  {agendaTarefas.map((tarefa) => {
-                    const draft = evidenciaDraftPorTarefa[tarefa.id] || { observacao: '', foto: '', insumo: '' };
-                    return (
-                      <Card key={tarefa.id} variant="outlined">
-                        <CardContent>
-                          <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} justifyContent="space-between" sx={{ mb: 1 }}>
-                            <Typography variant="subtitle2">
-                              {tarefa.titulo} • {tarefa.tipo}
-                            </Typography>
-                            <Stack direction="row" spacing={1}>
-                              <Chip label={tarefa.periodicidade} size="small" />
-                              <Chip label={`Resp: ${tarefa.responsavel}`} size="small" color="secondary" variant="outlined" />
-                              <Chip
-                                label={tarefa.concluida ? 'Concluída' : 'Pendente'}
-                                size="small"
-                                color={tarefa.concluida ? 'success' : 'warning'}
-                              />
-                            </Stack>
-                          </Stack>
-                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                            {tarefa.descricao || 'Sem descrição.'}
-                          </Typography>
-                          <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ mb: 1 }}>
-                            <TextField
-                              size="small"
-                              label="Vencimento"
-                              type="date"
-                              value={tarefa.vencimento}
-                              onChange={(event) => reagendarTarefa(tarefa.id, event.target.value)}
-                              InputLabelProps={{ shrink: true }}
-                            />
-                            <Button size="small" variant="contained" onClick={() => marcarTarefaConcluida(tarefa.id)} disabled={tarefa.concluida}>
-                              Marcar como concluída
-                            </Button>
-                          </Stack>
-                          <Stack spacing={0.5} sx={{ mb: 1 }}>
-                            {tarefa.checklist.map((item) => (
-                              <FormControlLabel
-                                key={item.id}
-                                control={
-                                  <Checkbox
-                                    checked={item.concluido}
-                                    onChange={() => alternarChecklistDaTarefa(tarefa.id, item.id)}
-                                    size="small"
-                                  />
-                                }
-                                label={item.texto}
-                              />
-                            ))}
-                          </Stack>
-                          <Grid container spacing={1}>
-                            <Grid item xs={12} md={4}>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                label="Adicionar observação"
-                                value={draft.observacao}
-                                onChange={(event) => atualizarEvidenciaDraft(tarefa.id, 'observacao', event.target.value)}
-                              />
-                            </Grid>
-                            <Grid item xs={12} md={4}>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                label="Adicionar foto (URL)"
-                                value={draft.foto}
-                                onChange={(event) => atualizarEvidenciaDraft(tarefa.id, 'foto', event.target.value)}
-                              />
-                            </Grid>
-                            <Grid item xs={12} md={3}>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                label="Insumo utilizado"
-                                value={draft.insumo}
-                                onChange={(event) => atualizarEvidenciaDraft(tarefa.id, 'insumo', event.target.value)}
-                              />
-                            </Grid>
-                            <Grid item xs={12} md={1}>
-                              <Button fullWidth size="small" variant="outlined" onClick={() => registrarEvidencia(tarefa.id)}>
-                                Salvar
-                              </Button>
-                            </Grid>
-                          </Grid>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </Stack>
-
-                <Typography variant="subtitle1" sx={{ mt: 3, mb: 1 }}>
-                  7.5 — Rotinas automáticas sugeridas
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={3}>
-                    <FormControl fullWidth>
-                      <InputLabel id="rotina-especie-label">Espécie</InputLabel>
-                      <Select
-                        labelId="rotina-especie-label"
-                        label="Espécie"
-                        value={filtroRotina.especie}
-                        onChange={(event) => setFiltroRotina((prev) => ({ ...prev, especie: event.target.value }))}
-                      >
-                        {opcoesEspecie.map((especie) => (
-                          <MenuItem key={especie} value={especie}>
-                            {especie}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <FormControl fullWidth>
-                      <InputLabel id="rotina-clima-label">Clima</InputLabel>
-                      <Select
-                        labelId="rotina-clima-label"
-                        label="Clima"
-                        value={filtroRotina.clima}
-                        onChange={(event) => setFiltroRotina((prev) => ({ ...prev, clima: event.target.value }))}
-                      >
-                        {climaOptions.map((clima) => (
-                          <MenuItem key={clima} value={clima}>
-                            {clima}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <FormControl fullWidth>
-                      <InputLabel id="rotina-estacao-label">Estação</InputLabel>
-                      <Select
-                        labelId="rotina-estacao-label"
-                        label="Estação"
-                        value={filtroRotina.estacao}
-                        onChange={(event) => setFiltroRotina((prev) => ({ ...prev, estacao: event.target.value }))}
-                      >
-                        {estacaoOptions.map((estacao) => (
-                          <MenuItem key={estacao} value={estacao}>
-                            {estacao}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <Alert severity="info">Taxa de conclusão: {taxaConclusao}%</Alert>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Card variant="outlined">
-                      <CardContent>
-                        <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                          Sugestão por espécie
-                        </Typography>
-                        <List dense>
-                          {sugestoesEspecie.map((item) => (
-                            <ListItem key={item} sx={{ py: 0 }}>
-                              <ListItemText primary={`• ${item}`} />
-                            </ListItem>
-                          ))}
-                        </List>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Alert severity="warning">{ajusteClima}</Alert>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Stack spacing={1}>
-                      <Alert severity="info">{ajusteEstacao}</Alert>
-                      <Alert severity={taxaConclusao >= 75 ? 'success' : 'warning'}>{ajusteHistorico}</Alert>
-                    </Stack>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h5" sx={{ mb: 1 }}>
-                  Programador de automações
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                  Configure rega por horário, iluminação por ciclo, ventilação periódica e calendários recorrentes.
-                </Typography>
-
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={3}>
-                    <TextField
-                      fullWidth
-                      label="Rega por horário"
-                      type="time"
-                      value={programacao.irrigacaoHora}
-                      onChange={(event) => atualizarProgramacao('irrigacaoHora', event.target.value)}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={3}>
-                    <TextField
-                      fullWidth
-                      label="Iluminação - início"
-                      type="time"
-                      value={programacao.iluminacaoInicio}
-                      onChange={(event) => atualizarProgramacao('iluminacaoInicio', event.target.value)}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={3}>
-                    <TextField
-                      fullWidth
-                      label="Iluminação - fim"
-                      type="time"
-                      value={programacao.iluminacaoFim}
-                      onChange={(event) => atualizarProgramacao('iluminacaoFim', event.target.value)}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={3}>
-                    <TextField
-                      fullWidth
-                      label="Ventilação (intervalo min)"
-                      type="number"
-                      value={programacao.ventilacaoIntervalo}
-                      onChange={(event) => atualizarProgramacao('ventilacaoIntervalo', Number(event.target.value))}
-                      inputProps={{ min: 5 }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={3}>
-                    <TextField
-                      fullWidth
-                      label="Ventilação (duração min)"
-                      type="number"
-                      value={programacao.ventilacaoDuracao}
-                      onChange={(event) => atualizarProgramacao('ventilacaoDuracao', Number(event.target.value))}
-                      inputProps={{ min: 1 }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={9}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      Calendário recorrente
-                    </Typography>
-                    <Stack direction="row" flexWrap="wrap" gap={1}>
-                      {diasSemana.map((dia) => (
-                        <Chip
-                          key={dia.value}
-                          clickable
-                          color={programacao.recorrencia.includes(dia.value) ? 'primary' : 'default'}
-                          variant={programacao.recorrencia.includes(dia.value) ? 'filled' : 'outlined'}
-                          label={dia.label}
-                          onClick={() => alternarDiaRecorrencia(dia.value)}
-                        />
-                      ))}
-                    </Stack>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Button variant="contained" onClick={salvarProgramacao}>
-                      Salvar programação
-                    </Button>
-                  </Grid>
-                </Grid>
-
-                <Card variant="outlined" sx={{ mt: 3 }}>
-                  <CardContent>
-                    <Typography variant="subtitle1" sx={{ mb: 1.5 }}>
-                      Programações ativas
-                    </Typography>
-                    {agendamentosAtivos.length === 0 ? (
-                      <Typography variant="body2" color="text.secondary">
-                        Nenhuma programação salva ainda.
-                      </Typography>
-                    ) : (
-                      <Stack spacing={1.2}>
-                        {agendamentosAtivos.map((item) => (
-                          <Card key={item.id} variant="outlined">
-                            <CardContent sx={{ py: 1.5 }}>
-                              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} justifyContent="space-between">
-                                <Typography variant="body2">
-                                  Rega às <strong>{item.irrigacaoHora}</strong> • Luz de <strong>{item.iluminacaoInicio}</strong> até{' '}
-                                  <strong>{item.iluminacaoFim}</strong>
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  Ventilação a cada {item.ventilacaoIntervalo} min por {item.ventilacaoDuracao} min
-                                </Typography>
-                              </Stack>
-                              <Stack direction="row" flexWrap="wrap" gap={0.8} sx={{ mt: 1 }}>
-                                {item.recorrencia.map((dia) => (
-                                  <Chip key={`${item.id}-${dia}`} size="small" label={diasSemana.find((opt) => opt.value === dia)?.label || dia} />
-                                ))}
-                              </Stack>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </Stack>
-                    )}
                   </CardContent>
                 </Card>
-                <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1} sx={{ mb: 2 }}>
-                  <Typography variant="h5">Regras por condição (if/then)</Typography>
-                  <Chip
-                    color={triggeredRules.length > 0 ? 'warning' : 'success'}
-                    label={
-                      triggeredRules.length > 0
-                        ? `${triggeredRules.length} ação(ões) pronta(s) para execução`
-                        : 'Nenhuma condição acionada no momento'
-                    }
-                  />
-                </Stack>
+              </Grid>
+            )}
 
-                <Grid container spacing={2}>
-                  {evaluatedConditionRules.map((rule) => (
-                    <Grid item xs={12} md={4} key={rule.id}>
-                      <Card variant="outlined" sx={{ height: '100%' }}>
-                        <CardContent>
-                          <Stack spacing={1.5}>
-                            <FormControlLabel
-                              control={<Switch checked={rule.enabled} onChange={onToggleConditionRule(rule.id)} />}
-                              label={rule.label}
+            {enabledWidgets.tarefasPendentes && (
+              <Grid item xs={12}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h5" sx={{ mb: 1 }}>
+                      Visão rápida de tarefas pendentes
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Priorização automática por impacto operacional.
+                    </Typography>
+                    <List disablePadding>
+                      {tarefasOrdenadas.map((task, index) => (
+                        <Box key={task.id}>
+                          <ListItem disableGutters>
+                            <ListItemText
+                              primary={task.titulo}
+                              secondary={`Horta: ${task.horta}`}
+                              primaryTypographyProps={{ variant: 'subtitle2' }}
                             />
-                            <Typography variant="body2" color="text.secondary">
-                              Leitura atual de {rule.sensorLabel.toLowerCase()}: <strong>{rule.currentValue}</strong>
-                              {rule.sensor === 'temperatura' ? ' °C' : ' %'}
-                            </Typography>
-                            <TextField
-                              label={rule.thresholdLabel}
-                              type="number"
-                              value={rule.threshold}
-                              onChange={onThresholdChange(rule.id)}
-                              disabled={!rule.enabled}
-                              fullWidth
+                            <Chip
+                              size="small"
+                              label={task.prioridade}
+                              color={
+                                task.prioridade === 'Alta'
+                                  ? 'error'
+                                  : task.prioridade === 'Média'
+                                    ? 'warning'
+                                    : 'default'
+                              }
+                              variant={task.prioridade === 'Baixa' ? 'outlined' : 'filled'}
                             />
-                            <Alert severity={rule.triggered ? 'warning' : 'success'}>
-                              {rule.triggered ? `Condição verdadeira → ${rule.actionLabel}` : 'Condição falsa → aguardar próxima leitura'}
-                            </Alert>
-                          </Stack>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-
-                {triggeredRules.length > 0 && (
-                  <Alert severity="info" sx={{ mt: 2 }}>
-                    Ações recomendadas agora: {triggeredRules.map((rule) => rule.actionLabel).join(' • ')}.
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }} sx={{ mb: 3 }}>
-                  <Typography variant="h5">Planejamento de plantio inteligente</Typography>
-                  <FormControl fullWidth sx={{ maxWidth: { md: 320 } }}>
-                    <InputLabel id="regiao-label">Sazonalidade por região</InputLabel>
-                    <Select labelId="regiao-label" label="Sazonalidade por região" value={region} onChange={(event) => setRegion(event.target.value)}>
-                      {regionOptions.map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
-                        </MenuItem>
+                          </ListItem>
+                          {index < tarefasOrdenadas.length - 1 && <Divider />}
+                        </Box>
                       ))}
-                    </Select>
-                  </FormControl>
-                </Stack>
+                    </List>
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
 
-                <Typography variant="h5" sx={{ mb: 2 }}>
-                  Adicionar planta manualmente
-                </Typography>
+            <Grid item xs={12}>
+              <AppSensorAnalytics />
+            </Grid>
 
-                <Box component="form" onSubmit={adicionarPlanta}>
+            <Grid item xs={12}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h5" sx={{ mb: 1 }}>
+                    Inteligência climática externa
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Dados externos integrados para ajustar recomendações, irrigação e alertas preventivos.
+                  </Typography>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={4}>
+                      <Stack spacing={1.5}>
+                        <Chip label={`Local: ${climaExternoAtual.local}`} color="primary" variant="outlined" />
+                        <Typography variant="body2" color="text.secondary">
+                          Atualizado em {climaExternoAtual.atualizadoEm}
+                        </Typography>
+                        <Typography variant="body2">{climaExternoAtual.condicao}</Typography>
+                        <Divider />
+                        <Typography variant="body2">Temperatura externa: {climaExternoAtual.temperatura} °C</Typography>
+                        <Typography variant="body2">Umidade externa: {climaExternoAtual.umidade}%</Typography>
+                        <Typography variant="body2">Previsão de chuva: {climaExternoAtual.chuvaChance}%</Typography>
+                        <Typography variant="body2">Velocidade do vento: {climaExternoAtual.vento} km/h</Typography>
+                        <Typography variant="body2">Insolação: {climaExternoAtual.insolacao} kWh/m²</Typography>
+                      </Stack>
+                    </Grid>
+
+                    <Grid item xs={12} md={4}>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Impacto no cultivo e recomendações
+                      </Typography>
+                      <Stack spacing={1}>
+                        {recomendacoesClimaticas.map((item) => (
+                          <Alert key={item} severity="success" variant="outlined">
+                            {item}
+                          </Alert>
+                        ))}
+                      </Stack>
+                    </Grid>
+
+                    <Grid item xs={12} md={4}>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Alertas climáticos ativos
+                      </Typography>
+                      {alertasClimaticos.length === 0 ? (
+                        <Alert severity="success">Sem alertas de frio/calor ou chuva no momento.</Alert>
+                      ) : (
+                        <Stack spacing={1}>
+                          {alertasClimaticos.map((alerta) => (
+                            <Alert key={alerta.mensagem} severity={alerta.tipo}>
+                              {alerta.mensagem}
+                            </Alert>
+                          ))}
+                        </Stack>
+                      )}
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Divider sx={{ my: 0.5 }} />
+                      <Typography variant="subtitle2" sx={{ mb: 1.5, mt: 1 }}>
+                        Regras com clima externo
+                      </Typography>
+                      <Grid container spacing={1.5}>
+                        {regrasClimaticas.map((item) => (
+                          <Grid key={item.regra} item xs={12} md={4}>
+                            <Card variant="outlined" sx={{ height: '100%' }}>
+                              <CardContent>
+                                <Stack
+                                  direction="row"
+                                  justifyContent="space-between"
+                                  alignItems="center"
+                                  sx={{ mb: 1 }}
+                                >
+                                  <Typography variant="subtitle2">{item.regra}</Typography>
+                                  <Chip
+                                    size="small"
+                                    label={item.status}
+                                    color={
+                                      item.status === 'Ativada'
+                                        ? 'success'
+                                        : item.status === 'Inativa'
+                                          ? 'default'
+                                          : 'warning'
+                                    }
+                                  />
+                                </Stack>
+                                <Typography variant="body2" color="text.secondary">
+                                  {item.detalhe}
+                                </Typography>
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Previsão climática de curto prazo
+                      </Typography>
+                      <List disablePadding>
+                        {previsaoClimatica.map((item, index) => (
+                          <Box key={item.periodo}>
+                            <ListItem disableGutters>
+                              <ListItemText
+                                primary={`${item.periodo} • ${item.condicao}`}
+                                secondary={`Temp: ${item.temp}°C • Chuva: ${item.chuva}%`}
+                              />
+                            </ListItem>
+                            {index < previsaoClimatica.length - 1 && <Divider />}
+                          </Box>
+                        ))}
+                      </List>
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Histórico climático correlacionado
+                      </Typography>
+                      <List disablePadding>
+                        {historicoClimaticoCorrelacionado.map((item, index) => (
+                          <Box key={item.periodo}>
+                            <ListItem disableGutters>
+                              <ListItemText
+                                primary={`${item.periodo} • Produtividade ${item.produtividade}`}
+                                secondary={`${item.clima}. ${item.evento}`}
+                              />
+                            </ListItem>
+                            {index < historicoClimaticoCorrelacionado.length - 1 && <Divider />}
+                          </Box>
+                        ))}
+                      </List>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h5" sx={{ mb: 1.5 }}>
+                    Motor de automações por regras
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Configure condição + horário, múltiplas condições (AND/OR) e dependências entre sensores antes da
+                    execução.
+                  </Typography>
+
+                  <Grid container spacing={1.5}>
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        label="Nome da automação"
+                        size="small"
+                        fullWidth
+                        value={automationDraft.nome}
+                        onChange={(event) => setAutomationDraft((prev) => ({ ...prev, nome: event.target.value }))}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={2}>
+                      <FormControl size="small" fullWidth>
+                        <InputLabel id="logica-automacao-label">Combinação</InputLabel>
+                        <Select
+                          labelId="logica-automacao-label"
+                          label="Combinação"
+                          value={automationDraft.logica}
+                          onChange={(event) => setAutomationDraft((prev) => ({ ...prev, logica: event.target.value }))}
+                        >
+                          <MenuItem value="AND">AND</MenuItem>
+                          <MenuItem value="OR">OR</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={6} md={2}>
+                      <TextField
+                        label="Início"
+                        type="time"
+                        size="small"
+                        fullWidth
+                        value={automationDraft.janelaInicio}
+                        onChange={(event) =>
+                          setAutomationDraft((prev) => ({ ...prev, janelaInicio: event.target.value }))
+                        }
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={6} md={2}>
+                      <TextField
+                        label="Fim"
+                        type="time"
+                        size="small"
+                        fullWidth
+                        value={automationDraft.janelaFim}
+                        onChange={(event) => setAutomationDraft((prev) => ({ ...prev, janelaFim: event.target.value }))}
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={3}>
+                      <Button variant="contained" fullWidth onClick={salvarAutomacao}>
+                        Salvar regra
+                      </Button>
+                    </Grid>
+
+                    <Grid item xs={12} md={7}>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Condições da regra
+                      </Typography>
+                      <Stack spacing={1}>
+                        {automationDraft.condicoes.map((condicao, index) => (
+                          <Stack
+                            key={`condicao-${index}`}
+                            direction={{ xs: 'column', sm: 'row' }}
+                            spacing={1}
+                            alignItems={{ xs: 'stretch', sm: 'center' }}
+                          >
+                            <FormControl size="small" sx={{ minWidth: { sm: 180 } }}>
+                              <InputLabel id={`condicao-sensor-${index}`}>Sensor</InputLabel>
+                              <Select
+                                labelId={`condicao-sensor-${index}`}
+                                label="Sensor"
+                                value={condicao.sensor}
+                                onChange={(event) => atualizarCondicaoAutomacao(index, 'sensor', event.target.value)}
+                              >
+                                {automationSensors.map((sensor) => (
+                                  <MenuItem key={sensor.value} value={sensor.value}>
+                                    {sensor.label}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                            <FormControl size="small" sx={{ minWidth: { sm: 90 } }}>
+                              <InputLabel id={`condicao-operador-${index}`}>Op.</InputLabel>
+                              <Select
+                                labelId={`condicao-operador-${index}`}
+                                label="Op."
+                                value={condicao.operador}
+                                onChange={(event) => atualizarCondicaoAutomacao(index, 'operador', event.target.value)}
+                              >
+                                {automationOperators.map((operator) => (
+                                  <MenuItem key={operator} value={operator}>
+                                    {operator}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                            <TextField
+                              size="small"
+                              label="Valor"
+                              value={condicao.valor}
+                              onChange={(event) => atualizarCondicaoAutomacao(index, 'valor', event.target.value)}
+                            />
+                            <IconButton
+                              aria-label="Remover condição"
+                              onClick={() => removerCondicaoAutomacao(index)}
+                              disabled={automationDraft.condicoes.length === 1}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Stack>
+                        ))}
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={adicionarCondicaoAutomacao}
+                          sx={{ alignSelf: 'flex-start' }}
+                        >
+                          Adicionar condição
+                        </Button>
+                      </Stack>
+                    </Grid>
+
+                    <Grid item xs={12} md={5}>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Dependência entre sensores
+                      </Typography>
+                      <Stack spacing={1}>
+                        {automationDraft.dependencias.map((dependencia, index) => (
+                          <Stack
+                            key={`dependencia-${index}`}
+                            direction={{ xs: 'column', sm: 'row' }}
+                            spacing={1}
+                            alignItems={{ xs: 'stretch', sm: 'center' }}
+                          >
+                            <FormControl size="small" sx={{ minWidth: { sm: 180 } }}>
+                              <InputLabel id={`dependencia-sensor-${index}`}>Sensor</InputLabel>
+                              <Select
+                                labelId={`dependencia-sensor-${index}`}
+                                label="Sensor"
+                                value={dependencia.sensor}
+                                onChange={(event) => atualizarDependenciaAutomacao(index, 'sensor', event.target.value)}
+                              >
+                                {automationSensors.map((sensor) => (
+                                  <MenuItem key={sensor.value} value={sensor.value}>
+                                    {sensor.label}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                            <FormControl size="small" sx={{ minWidth: { sm: 120 } }}>
+                              <InputLabel id={`dependencia-status-${index}`}>Status</InputLabel>
+                              <Select
+                                labelId={`dependencia-status-${index}`}
+                                label="Status"
+                                value={dependencia.status}
+                                onChange={(event) => atualizarDependenciaAutomacao(index, 'status', event.target.value)}
+                              >
+                                {dependencyStatuses.map((status) => (
+                                  <MenuItem key={status.value} value={status.value}>
+                                    {status.label}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                            <IconButton
+                              aria-label="Remover dependência"
+                              onClick={() => removerDependenciaAutomacao(index)}
+                              disabled={automationDraft.dependencias.length === 1}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Stack>
+                        ))}
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={adicionarDependenciaAutomacao}
+                          sx={{ alignSelf: 'flex-start' }}
+                        >
+                          Adicionar dependência
+                        </Button>
+                      </Stack>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        <Chip
+                          label={`Janela ativa: ${automationDraft.janelaInicio} - ${automationDraft.janelaFim}`}
+                          color="primary"
+                          variant="outlined"
+                        />
+                        <Chip
+                          label={`Condições: ${automationDraft.condicoes.length} (${automationDraft.logica})`}
+                          color="secondary"
+                          variant="outlined"
+                        />
+                        <Chip
+                          label={`Dependências: ${automationDraft.dependencias.length}`}
+                          color="info"
+                          variant="outlined"
+                        />
+                      </Stack>
+                    </Grid>
+                  </Grid>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    Regras criadas nesta sessão
+                  </Typography>
+                  {automationRules.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Nenhuma regra salva ainda.
+                    </Typography>
+                  ) : (
+                    <Stack spacing={1}>
+                      {automationRules.map((rule) => (
+                        <Card key={rule.id} variant="outlined">
+                          <CardContent sx={{ py: 1.5 }}>
+                            <Typography variant="subtitle2">{rule.nome}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Executa entre {rule.janelaInicio} e {rule.janelaFim} quando {rule.condicoes.length}{' '}
+                              condição(ões) ({rule.logica}) e {rule.dependencias.length} dependência(s) forem atendidas.
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </Stack>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12}>
+              <BlockchainPanel />
+            </Grid>
+
+            <Grid item xs={12} md={6} lg={4}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography variant="h6" sx={{ mb: 2 }}>
+                    Status dos setores
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    {statusSetores.map((setor) => (
+                      <Box key={setor.nome}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                          <Typography variant="subtitle2">{setor.nome}</Typography>
+                          <Chip label={setor.status} color={setor.color} size="small" />
+                        </Stack>
+                        <Typography variant="body2" color="text.secondary">
+                          {setor.detalhe}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={6} lg={4}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography variant="h6" sx={{ mb: 2 }}>
+                    Sensores em destaque
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    {sensoresDestaque.map((sensor) => (
+                      <Stack key={sensor.title} direction="row" justifyContent="space-between" alignItems="center">
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Iconify icon={sensor.icon1} width={20} height={20} />
+                          <Typography variant="body2">{sensor.title}</Typography>
+                        </Stack>
+                        <Chip label={sensor.leitura} size="small" color={sensor.color} variant="outlined" />
+                      </Stack>
+                    ))}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={6} lg={4}>
+              <AppWidgetSummary
+                title="Dispositivos ativos"
+                total={dispositivosAtivos.ativos}
+                color="success"
+                icon1="mdi:access-point-network"
+                sx={{ height: '100%' }}
+              />
+              <Card variant="outlined" sx={{ mt: 1.5 }}>
+                <CardContent sx={{ py: 1.5 }}>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">
+                      Offline
+                    </Typography>
+                    <Typography variant="subtitle2">{dispositivosAtivos.offline}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.5 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Automações ativas
+                    </Typography>
+                    <Typography variant="subtitle2">{dispositivosAtivos.automacoes}</Typography>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography variant="h6" sx={{ mb: 2 }}>
+                    Próximas ações recomendadas
+                  </Typography>
+                  <Stack spacing={1}>
+                    {proximasAcoes.map((acao) => (
+                      <Alert
+                        key={acao}
+                        severity="info"
+                        icon={<Iconify icon="mdi:clipboard-text-clock-outline" width={20} height={20} />}
+                      >
+                        {acao}
+                      </Alert>
+                    ))}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography variant="h6" sx={{ mb: 2 }}>
+                    Alertas recentes
+                  </Typography>
+                  <Stack spacing={1}>
+                    {alertasRecentes.map((alerta) => (
+                      <Alert key={alerta.mensagem} severity={alerta.severidade}>
+                        {alerta.mensagem}
+                      </Alert>
+                    ))}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant="h5" sx={{ mb: 1 }}>
+                    Agenda inteligente de tarefas
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                    Gestão operacional com tarefas padrão, tarefas personalizadas, lembretes por vencimento e evidências
+                    de execução.
+                  </Typography>
+
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                    <Grid item xs={12} md={4}>
+                      <Alert severity="info">Tarefas do dia: {tarefasDoDia.length}</Alert>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Alert severity={tarefasAtrasadas.length > 0 ? 'warning' : 'success'}>
+                        Tarefas atrasadas: {tarefasAtrasadas.length}
+                      </Alert>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Alert severity="success">Próximas tarefas: {proximasTarefas.length}</Alert>
+                    </Grid>
+                  </Grid>
+
+                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                    7.1 e 7.2 — Tipos base e criação personalizada
+                  </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={12} md={3}>
                       <FormControl fullWidth>
-                        <InputLabel id="especie-label">Espécie / variedade</InputLabel>
+                        <InputLabel id="agenda-tipo-label">Tipo</InputLabel>
                         <Select
-                          labelId="especie-label"
-                          label="Espécie / variedade"
-                          value={novaPlanta.especie}
-                          onChange={onChangeCampo('especie')}
+                          labelId="agenda-tipo-label"
+                          label="Tipo"
+                          value={novaTarefaAgenda.tipo}
+                          onChange={(event) => setNovaTarefaAgenda((prev) => ({ ...prev, tipo: event.target.value }))}
+                        >
+                          {tiposTarefaBase.map((tipo) => (
+                            <MenuItem key={tipo} value={tipo}>
+                              {tipo}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        fullWidth
+                        label="Título"
+                        value={novaTarefaAgenda.titulo}
+                        onChange={(event) => setNovaTarefaAgenda((prev) => ({ ...prev, titulo: event.target.value }))}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={3}>
+                      <FormControl fullWidth>
+                        <InputLabel id="agenda-periodicidade-label">Periodicidade</InputLabel>
+                        <Select
+                          labelId="agenda-periodicidade-label"
+                          label="Periodicidade"
+                          value={novaTarefaAgenda.periodicidade}
+                          onChange={(event) =>
+                            setNovaTarefaAgenda((prev) => ({ ...prev, periodicidade: event.target.value }))
+                          }
+                        >
+                          {periodicidadeOptions.map((periodicidade) => (
+                            <MenuItem key={periodicidade} value={periodicidade}>
+                              {periodicidade}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={3}>
+                      <FormControl fullWidth>
+                        <InputLabel id="agenda-responsavel-label">Responsável</InputLabel>
+                        <Select
+                          labelId="agenda-responsavel-label"
+                          label="Responsável"
+                          value={novaTarefaAgenda.responsavel}
+                          onChange={(event) =>
+                            setNovaTarefaAgenda((prev) => ({ ...prev, responsavel: event.target.value }))
+                          }
+                        >
+                          {responsaveisAgenda.map((responsavel) => (
+                            <MenuItem key={responsavel} value={responsavel}>
+                              {responsavel}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={8}>
+                      <TextField
+                        fullWidth
+                        label="Descrição"
+                        value={novaTarefaAgenda.descricao}
+                        onChange={(event) =>
+                          setNovaTarefaAgenda((prev) => ({ ...prev, descricao: event.target.value }))
+                        }
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Vencimento"
+                        type="date"
+                        value={novaTarefaAgenda.vencimento}
+                        onChange={(event) =>
+                          setNovaTarefaAgenda((prev) => ({ ...prev, vencimento: event.target.value }))
+                        }
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={9}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="Adicionar item ao checklist"
+                        value={novoChecklistItem}
+                        onChange={(event) => setNovoChecklistItem(event.target.value)}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={3}>
+                      <Button fullWidth variant="outlined" onClick={adicionarItemChecklist}>
+                        Incluir checklist
+                      </Button>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Stack direction="row" flexWrap="wrap" gap={1}>
+                        {novaTarefaAgenda.checklist.map((item) => (
+                          <Chip key={item.id} size="small" label={item.texto} />
+                        ))}
+                      </Stack>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Button variant="contained" onClick={criarTarefaAgenda}>
+                        Criar tarefa personalizada
+                      </Button>
+                    </Grid>
+                  </Grid>
+
+                  <Typography variant="subtitle1" sx={{ mt: 3, mb: 1 }}>
+                    7.3 e 7.4 — Lembretes, reagendamento, execução e evidências
+                  </Typography>
+                  <Stack spacing={1.2}>
+                    {agendaTarefas.map((tarefa) => {
+                      const draft = evidenciaDraftPorTarefa[tarefa.id] || { observacao: '', foto: '', insumo: '' };
+                      return (
+                        <Card key={tarefa.id} variant="outlined">
+                          <CardContent>
+                            <Stack
+                              direction={{ xs: 'column', md: 'row' }}
+                              spacing={1}
+                              justifyContent="space-between"
+                              sx={{ mb: 1 }}
+                            >
+                              <Typography variant="subtitle2">
+                                {tarefa.titulo} • {tarefa.tipo}
+                              </Typography>
+                              <Stack direction="row" spacing={1}>
+                                <Chip label={tarefa.periodicidade} size="small" />
+                                <Chip
+                                  label={`Resp: ${tarefa.responsavel}`}
+                                  size="small"
+                                  color="secondary"
+                                  variant="outlined"
+                                />
+                                <Chip
+                                  label={tarefa.concluida ? 'Concluída' : 'Pendente'}
+                                  size="small"
+                                  color={tarefa.concluida ? 'success' : 'warning'}
+                                />
+                              </Stack>
+                            </Stack>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                              {tarefa.descricao || 'Sem descrição.'}
+                            </Typography>
+                            <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ mb: 1 }}>
+                              <TextField
+                                size="small"
+                                label="Vencimento"
+                                type="date"
+                                value={tarefa.vencimento}
+                                onChange={(event) => reagendarTarefa(tarefa.id, event.target.value)}
+                                InputLabelProps={{ shrink: true }}
+                              />
+                              <Button
+                                size="small"
+                                variant="contained"
+                                onClick={() => marcarTarefaConcluida(tarefa.id)}
+                                disabled={tarefa.concluida}
+                              >
+                                Marcar como concluída
+                              </Button>
+                            </Stack>
+                            <Stack spacing={0.5} sx={{ mb: 1 }}>
+                              {tarefa.checklist.map((item) => (
+                                <FormControlLabel
+                                  key={item.id}
+                                  control={
+                                    <Checkbox
+                                      checked={item.concluido}
+                                      onChange={() => alternarChecklistDaTarefa(tarefa.id, item.id)}
+                                      size="small"
+                                    />
+                                  }
+                                  label={item.texto}
+                                />
+                              ))}
+                            </Stack>
+                            <Grid container spacing={1}>
+                              <Grid item xs={12} md={4}>
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  label="Adicionar observação"
+                                  value={draft.observacao}
+                                  onChange={(event) =>
+                                    atualizarEvidenciaDraft(tarefa.id, 'observacao', event.target.value)
+                                  }
+                                />
+                              </Grid>
+                              <Grid item xs={12} md={4}>
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  label="Adicionar foto (URL)"
+                                  value={draft.foto}
+                                  onChange={(event) => atualizarEvidenciaDraft(tarefa.id, 'foto', event.target.value)}
+                                />
+                              </Grid>
+                              <Grid item xs={12} md={3}>
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  label="Insumo utilizado"
+                                  value={draft.insumo}
+                                  onChange={(event) => atualizarEvidenciaDraft(tarefa.id, 'insumo', event.target.value)}
+                                />
+                              </Grid>
+                              <Grid item xs={12} md={1}>
+                                <Button
+                                  fullWidth
+                                  size="small"
+                                  variant="outlined"
+                                  onClick={() => registrarEvidencia(tarefa.id)}
+                                >
+                                  Salvar
+                                </Button>
+                              </Grid>
+                            </Grid>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </Stack>
+
+                  <Typography variant="subtitle1" sx={{ mt: 3, mb: 1 }}>
+                    7.5 — Rotinas automáticas sugeridas
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={3}>
+                      <FormControl fullWidth>
+                        <InputLabel id="rotina-especie-label">Espécie</InputLabel>
+                        <Select
+                          labelId="rotina-especie-label"
+                          label="Espécie"
+                          value={filtroRotina.especie}
+                          onChange={(event) => setFiltroRotina((prev) => ({ ...prev, especie: event.target.value }))}
                         >
                           {opcoesEspecie.map((especie) => (
                             <MenuItem key={especie} value={especie}>
@@ -2241,616 +2056,989 @@ export default function DashboardApp() {
                         </Select>
                       </FormControl>
                     </Grid>
+                    <Grid item xs={12} md={3}>
+                      <FormControl fullWidth>
+                        <InputLabel id="rotina-clima-label">Clima</InputLabel>
+                        <Select
+                          labelId="rotina-clima-label"
+                          label="Clima"
+                          value={filtroRotina.clima}
+                          onChange={(event) => setFiltroRotina((prev) => ({ ...prev, clima: event.target.value }))}
+                        >
+                          {climaOptions.map((clima) => (
+                            <MenuItem key={clima} value={clima}>
+                              {clima}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={3}>
+                      <FormControl fullWidth>
+                        <InputLabel id="rotina-estacao-label">Estação</InputLabel>
+                        <Select
+                          labelId="rotina-estacao-label"
+                          label="Estação"
+                          value={filtroRotina.estacao}
+                          onChange={(event) => setFiltroRotina((prev) => ({ ...prev, estacao: event.target.value }))}
+                        >
+                          {estacaoOptions.map((estacao) => (
+                            <MenuItem key={estacao} value={estacao}>
+                              {estacao}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={3}>
+                      <Alert severity="info">Taxa de conclusão: {taxaConclusao}%</Alert>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                            Sugestão por espécie
+                          </Typography>
+                          <List dense>
+                            {sugestoesEspecie.map((item) => (
+                              <ListItem key={item} sx={{ py: 0 }}>
+                                <ListItemText primary={`• ${item}`} />
+                              </ListItem>
+                            ))}
+                          </List>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Alert severity="warning">{ajusteClima}</Alert>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Stack spacing={1}>
+                        <Alert severity="info">{ajusteEstacao}</Alert>
+                        <Alert severity={taxaConclusao >= 75 ? 'success' : 'warning'}>{ajusteHistorico}</Alert>
+                      </Stack>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
 
+            <Grid item xs={12}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h5" sx={{ mb: 1 }}>
+                    Programador de automações
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                    Configure rega por horário, iluminação por ciclo, ventilação periódica e calendários recorrentes.
+                  </Typography>
+
+                  <Grid container spacing={2}>
                     <Grid item xs={12} md={3}>
                       <TextField
                         fullWidth
-                        label="Data de plantio"
-                        type="date"
-                        value={novaPlanta.dataPlantio}
-                        onChange={onChangeCampo('dataPlantio')}
+                        label="Rega por horário"
+                        type="time"
+                        value={programacao.irrigacaoHora}
+                        onChange={(event) => atualizarProgramacao('irrigacaoHora', event.target.value)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </Grid>
 
-                    <Grid item xs={12} md={2}>
+                    <Grid item xs={12} md={3}>
                       <TextField
                         fullWidth
-                        label="Quantidade"
-                        type="number"
-                        value={novaPlanta.quantidade}
-                        onChange={onChangeCampo('quantidade')}
-                        inputProps={{ min: 1 }}
+                        label="Iluminação - início"
+                        type="time"
+                        value={programacao.iluminacaoInicio}
+                        onChange={(event) => atualizarProgramacao('iluminacaoInicio', event.target.value)}
+                        InputLabelProps={{ shrink: true }}
                       />
                     </Grid>
 
                     <Grid item xs={12} md={3}>
-                      <FormControl fullWidth>
-                        <InputLabel id="fase-cultivo-label">Fase do cultivo</InputLabel>
-                        <Select
-                          labelId="fase-cultivo-label"
-                          label="Fase do cultivo"
-                          value={novaPlanta.faseCultivo}
-                          onChange={onChangeCampo('faseCultivo')}
-                        >
-                          {fasesCultivo.map((fase) => (
-                            <MenuItem key={fase} value={fase}>
-                              {fase}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                      <TextField
+                        fullWidth
+                        label="Iluminação - fim"
+                        type="time"
+                        value={programacao.iluminacaoFim}
+                        onChange={(event) => atualizarProgramacao('iluminacaoFim', event.target.value)}
+                        InputLabelProps={{ shrink: true }}
+                      />
                     </Grid>
 
-                    <Grid item xs={12} md={2}>
-                      <FormControl fullWidth>
-                        <InputLabel id="setor-label">Canteiro</InputLabel>
-                        <Select labelId="setor-label" label="Canteiro" value={novaPlanta.setor} onChange={onChangeCampo('setor')}>
-                          {setores.map((setor) => (
-                            <MenuItem key={setor} value={setor}>
-                              {setor}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        fullWidth
+                        label="Ventilação (intervalo min)"
+                        type="number"
+                        value={programacao.ventilacaoIntervalo}
+                        onChange={(event) => atualizarProgramacao('ventilacaoIntervalo', Number(event.target.value))}
+                        inputProps={{ min: 5 }}
+                      />
                     </Grid>
 
-                    <Grid item xs={12} md={2}>
-                      <Button fullWidth type="submit" variant="contained" sx={{ height: '100%' }}>
-                        Adicionar
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        fullWidth
+                        label="Ventilação (duração min)"
+                        type="number"
+                        value={programacao.ventilacaoDuracao}
+                        onChange={(event) => atualizarProgramacao('ventilacaoDuracao', Number(event.target.value))}
+                        inputProps={{ min: 1 }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={9}>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Calendário recorrente
+                      </Typography>
+                      <Stack direction="row" flexWrap="wrap" gap={1}>
+                        {diasSemana.map((dia) => (
+                          <Chip
+                            key={dia.value}
+                            clickable
+                            color={programacao.recorrencia.includes(dia.value) ? 'primary' : 'default'}
+                            variant={programacao.recorrencia.includes(dia.value) ? 'filled' : 'outlined'}
+                            label={dia.label}
+                            onClick={() => alternarDiaRecorrencia(dia.value)}
+                          />
+                        ))}
+                      </Stack>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Button variant="contained" onClick={salvarProgramacao}>
+                        Salvar programação
                       </Button>
                     </Grid>
                   </Grid>
-                </Box>
 
-                <Card variant="outlined" sx={{ mt: 3 }}>
-                  <CardContent>
-                    <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                      Recomendação de janela de plantio
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                      {novaPlanta.especie
-                        ? `${novaPlanta.especie} • meses ideais para ${region}: ${janelaAtual
-                            .map((month) => monthFormatter.format(new Date(2024, month - 1, 1)))
-                            .join(', ')}`
-                        : 'Selecione uma espécie para visualizar os meses recomendados por região.'}
-                    </Typography>
-                    <Alert severity={mesEscolhido && janelaAtual.includes(mesEscolhido) ? 'success' : 'warning'}>{statusJanela}</Alert>
-                  </CardContent>
-                </Card>
-
-                <Card variant="outlined" sx={{ mt: 2 }}>
-                  <CardContent>
-                    <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                      Planejamento por calendário (próximos 6 meses)
-                    </Typography>
-                    <Grid container spacing={1.5}>
-                      {proximosMeses.map((periodo) => (
-                        <Grid item xs={12} md={6} lg={4} key={`${periodo.month}-${periodo.label}`}>
-                          <Card variant="outlined" sx={{ height: '100%' }}>
-                            <CardContent>
-                              <Typography variant="subtitle2" sx={{ textTransform: 'capitalize', mb: 1 }}>
-                                {periodo.label}
-                              </Typography>
-                              <Stack direction="row" gap={1} flexWrap="wrap">
-                                {periodo.recomendadas.map((item) => (
-                                  <Chip key={`${periodo.label}-${item}`} label={item} size="small" color="success" variant="outlined" />
-                                ))}
-                              </Stack>
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </CardContent>
-                </Card>
-
-                <Card variant="outlined" sx={{ mt: 2 }}>
-                  <CardContent>
-                    <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                      Rotação de cultura (fase avançada)
-                    </Typography>
-                    <Grid container spacing={1.5}>
-                      {rotationInsights.map((insight) => (
-                        <Grid item xs={12} md={4} key={insight.setor}>
-                          <Card variant="outlined">
-                            <CardContent>
-                              <Typography variant="subtitle2">{insight.setor}</Typography>
-                              <Chip
-                                label={insight.status}
-                                size="small"
-                                sx={{ my: 1 }}
-                                color={insight.status.includes('Risco') ? 'warning' : 'success'}
-                              />
-                              <Typography variant="body2" color="text.secondary">
-                                {insight.recomendacao}
-                              </Typography>
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </CardContent>
-                </Card>
-
-                <Stack spacing={1.2} sx={{ mt: 3 }}>
-                  {plantas.length === 0 ? (
-                    <Typography color="text.secondary">Nenhuma planta cadastrada manualmente até o momento.</Typography>
-                  ) : (
-                    plantas.map((planta) => {
-                      const draftEvento = novoEventoPorPlanta[planta.id] || { tipo: '', data: '', detalhes: '' };
-                      const draftFoto = novaFotoPorPlanta[planta.id] || { data: '', url: '', legenda: '' };
-                      const draftObservacao = novaObservacaoPorPlanta[planta.id] || { data: '', texto: '' };
-                      const draftTarefa = novaTarefaPorPlanta[planta.id] || '';
-                      const tarefasPendentes = planta.tarefas.filter((tarefa) => !tarefa.concluida);
-                      const ultimoEvento = planta.eventos[0];
-                      const ultimaFoto = planta.fotos[0];
-                      const condicoes = [
-                        {
-                          label: `Fase: ${planta.faseCultivo}`,
-                          color: planta.faseCultivo === 'Colheita' ? 'success' : 'info',
-                        },
-                        {
-                          label: `${tarefasPendentes.length} tarefa(s) pendente(s)`,
-                          color: tarefasPendentes.length > 0 ? 'warning' : 'success',
-                        },
-                        {
-                          label: ultimoEvento
-                            ? `Último cuidado: ${eventTypeOptions.find((option) => option.value === ultimoEvento.tipo)?.label || 'Registro manual'}`
-                            : 'Sem cuidado registrado',
-                          color: ultimoEvento ? 'primary' : 'default',
-                        },
-                        {
-                          label: ultimaFoto ? `Última foto em ${ultimaFoto.data}` : 'Sem foto de evolução',
-                          color: ultimaFoto ? 'secondary' : 'default',
-                        },
-                      ];
-
-                      const timeline = [
-                        ...planta.eventos.map((evento) => ({
-                          id: evento.id,
-                          tipo: 'evento',
-                          data: evento.data,
-                          titulo: eventTypeOptions.find((option) => option.value === evento.tipo)?.label || evento.tipo,
-                          descricao: evento.detalhes,
-                        })),
-                        ...planta.fotos.map((foto) => ({
-                          id: foto.id,
-                          tipo: 'foto',
-                          data: foto.data,
-                          titulo: 'Foto de evolução',
-                          descricao: foto.legenda || 'Sem legenda',
-                          url: foto.url,
-                        })),
-                        ...planta.observacoes.map((observacao) => ({
-                          id: observacao.id,
-                          tipo: 'observacao',
-                          data: observacao.data,
-                          titulo: 'Observação do usuário',
-                          descricao: observacao.texto,
-                        })),
-                      ].sort((a, b) => new Date(`${b.data}T00:00:00`) - new Date(`${a.data}T00:00:00`));
-
-                      return (
-                        <Card key={planta.id} variant="outlined">
-                          <CardContent sx={{ py: 2 }}>
-                            <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1}>
-                              <Typography variant="subtitle1">{planta.especie}</Typography>
-                              <Stack direction="row" spacing={1} flexWrap="wrap">
-                                <Chip label={`Plantio: ${planta.dataPlantio}`} size="small" />
-                                <Chip label={`Qtd: ${planta.quantidade}`} size="small" color="primary" variant="outlined" />
-                                <Chip label={planta.faseCultivo} size="small" color="success" />
-                                <Chip label={planta.setor} size="small" />
-                                <Chip label={`Família: ${planta.familia}`} size="small" color="warning" variant="outlined" />
-                                <Chip label={`Ciclo: ${planta.ciclo}`} size="small" color="info" variant="outlined" />
-                              </Stack>
-                            </Stack>
-
-                            <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                              <Grid item xs={12}>
-                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                  Condições atuais relacionadas à planta
-                                </Typography>
-                                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                                  {condicoes.map((item) => (
-                                    <Chip key={item.label} size="small" label={item.label} color={item.color} variant="outlined" />
+                  <Card variant="outlined" sx={{ mt: 3 }}>
+                    <CardContent>
+                      <Typography variant="subtitle1" sx={{ mb: 1.5 }}>
+                        Programações ativas
+                      </Typography>
+                      {agendamentosAtivos.length === 0 ? (
+                        <Typography variant="body2" color="text.secondary">
+                          Nenhuma programação salva ainda.
+                        </Typography>
+                      ) : (
+                        <Stack spacing={1.2}>
+                          {agendamentosAtivos.map((item) => (
+                            <Card key={item.id} variant="outlined">
+                              <CardContent sx={{ py: 1.5 }}>
+                                <Stack
+                                  direction={{ xs: 'column', md: 'row' }}
+                                  spacing={1}
+                                  justifyContent="space-between"
+                                >
+                                  <Typography variant="body2">
+                                    Rega às <strong>{item.irrigacaoHora}</strong> • Luz de{' '}
+                                    <strong>{item.iluminacaoInicio}</strong> até <strong>{item.iluminacaoFim}</strong>
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    Ventilação a cada {item.ventilacaoIntervalo} min por {item.ventilacaoDuracao} min
+                                  </Typography>
+                                </Stack>
+                                <Stack direction="row" flexWrap="wrap" gap={0.8} sx={{ mt: 1 }}>
+                                  {item.recorrencia.map((dia) => (
+                                    <Chip
+                                      key={`${item.id}-${dia}`}
+                                      size="small"
+                                      label={diasSemana.find((opt) => opt.value === dia)?.label || dia}
+                                    />
                                   ))}
                                 </Stack>
-                              </Grid>
-
-                              <Grid item xs={12} md={4}>
-                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                  Histórico de cuidados
-                                </Typography>
-                                <Stack spacing={1}>
-                                  <FormControl size="small" fullWidth>
-                                    <InputLabel id={`tipo-evento-${planta.id}`}>Tipo</InputLabel>
-                                    <Select
-                                      labelId={`tipo-evento-${planta.id}`}
-                                      label="Tipo"
-                                      value={draftEvento.tipo}
-                                      onChange={(event) => atualizarNovoEvento(planta.id, 'tipo', event.target.value)}
-                                    >
-                                      {eventTypeOptions.map((option) => (
-                                        <MenuItem key={option.value} value={option.value}>
-                                          {option.label}
-                                        </MenuItem>
-                                      ))}
-                                    </Select>
-                                  </FormControl>
-                                  <TextField
-                                    size="small"
-                                    label="Data"
-                                    type="date"
-                                    value={draftEvento.data}
-                                    onChange={(event) => atualizarNovoEvento(planta.id, 'data', event.target.value)}
-                                    InputLabelProps={{ shrink: true }}
-                                  />
-                                  <TextField
-                                    size="small"
-                                    label="Detalhes"
-                                    value={draftEvento.detalhes}
-                                    onChange={(event) => atualizarNovoEvento(planta.id, 'detalhes', event.target.value)}
-                                  />
-                                  <Button size="small" variant="contained" onClick={() => adicionarEvento(planta.id)}>
-                                    Salvar evento
-                                  </Button>
-                                  {planta.eventos.length > 0 ? (
-                                    <Stack spacing={0.75}>
-                                      {planta.eventos.slice(0, 3).map((evento) => (
-                                        <Typography key={evento.id} variant="caption" color="text.secondary">
-                                          {evento.data} • {eventTypeOptions.find((option) => option.value === evento.tipo)?.label || evento.tipo}
-                                        </Typography>
-                                      ))}
-                                    </Stack>
-                                  ) : (
-                                    <Typography variant="caption" color="text.secondary">
-                                      Nenhum cuidado registrado até o momento.
-                                    </Typography>
-                                  )}
-                                </Stack>
-                              </Grid>
-
-                              <Grid item xs={12} md={4}>
-                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                  Fotos de evolução
-                                </Typography>
-                                <Stack spacing={1}>
-                                  <TextField
-                                    size="small"
-                                    label="Data"
-                                    type="date"
-                                    value={draftFoto.data}
-                                    onChange={(event) => atualizarNovaFoto(planta.id, { data: event.target.value })}
-                                    InputLabelProps={{ shrink: true }}
-                                  />
-                                  <TextField
-                                    size="small"
-                                    label="URL da foto"
-                                    value={draftFoto.url}
-                                    onChange={(event) => atualizarNovaFoto(planta.id, { url: event.target.value })}
-                                  />
-                                  <TextField
-                                    size="small"
-                                    label="Legenda"
-                                    value={draftFoto.legenda}
-                                    onChange={(event) => atualizarNovaFoto(planta.id, { legenda: event.target.value })}
-                                  />
-                                  <Button size="small" variant="contained" onClick={() => adicionarFoto(planta.id)}>
-                                    Salvar foto
-                                  </Button>
-                                </Stack>
-                              </Grid>
-
-                              <Grid item xs={12} md={4}>
-                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                  Próximas tarefas
-                                </Typography>
-                                <Stack spacing={1}>
-                                  <TextField
-                                    size="small"
-                                    label="Nova tarefa"
-                                    value={draftTarefa}
-                                    onChange={(event) => atualizarNovaTarefa(planta.id, event.target.value)}
-                                  />
-                                  <Button size="small" variant="contained" onClick={() => adicionarTarefa(planta.id)}>
-                                    Adicionar tarefa
-                                  </Button>
-                                  {planta.tarefas.length > 0 ? (
-                                    <Stack spacing={0.25}>
-                                      {planta.tarefas.slice(0, 4).map((tarefa) => (
-                                        <Stack key={tarefa.id} direction="row" spacing={0.5} alignItems="center">
-                                          <Checkbox
-                                            size="small"
-                                            checked={tarefa.concluida}
-                                            onChange={() => alternarTarefa(planta.id, tarefa.id)}
-                                          />
-                                          <Typography
-                                            variant="caption"
-                                            color="text.secondary"
-                                            sx={{ textDecoration: tarefa.concluida ? 'line-through' : 'none' }}
-                                          >
-                                            {tarefa.titulo}
-                                          </Typography>
-                                        </Stack>
-                                      ))}
-                                    </Stack>
-                                  ) : (
-                                    <Typography variant="caption" color="text.secondary">
-                                      Nenhuma tarefa cadastrada.
-                                    </Typography>
-                                  )}
-                                </Stack>
-                              </Grid>
-                            </Grid>
-
-                            <Card variant="outlined" sx={{ mt: 2 }}>
-                              <CardContent>
-                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                  Observações de evolução
-                                </Typography>
-                                <Stack spacing={1}>
-                                  <TextField
-                                    size="small"
-                                    label="Data"
-                                    type="date"
-                                    value={draftObservacao.data}
-                                    onChange={(event) => atualizarNovaObservacao(planta.id, { data: event.target.value })}
-                                    InputLabelProps={{ shrink: true }}
-                                  />
-                                  <TextField
-                                    size="small"
-                                    label="Observação"
-                                    multiline
-                                    minRows={2}
-                                    value={draftObservacao.texto}
-                                    onChange={(event) => atualizarNovaObservacao(planta.id, { texto: event.target.value })}
-                                  />
-                                  <Button size="small" variant="contained" onClick={() => adicionarObservacao(planta.id)}>
-                                    Salvar observação
-                                  </Button>
-                                </Stack>
                               </CardContent>
                             </Card>
+                          ))}
+                        </Stack>
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Stack
+                    direction={{ xs: 'column', md: 'row' }}
+                    justifyContent="space-between"
+                    spacing={1}
+                    sx={{ mb: 2 }}
+                  >
+                    <Typography variant="h5">Regras por condição (if/then)</Typography>
+                    <Chip
+                      color={triggeredRules.length > 0 ? 'warning' : 'success'}
+                      label={
+                        triggeredRules.length > 0
+                          ? `${triggeredRules.length} ação(ões) pronta(s) para execução`
+                          : 'Nenhuma condição acionada no momento'
+                      }
+                    />
+                  </Stack>
 
-                            <Card variant="outlined" sx={{ mt: 2, bgcolor: 'background.neutral' }}>
-                              <CardContent>
-                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                  Linha do tempo da planta
-                                </Typography>
-                                {timeline.length === 0 ? (
-                                  <Typography variant="body2" color="text.secondary">
-                                    Ainda não há registros de eventos, fotos ou observações para esta planta.
-                                  </Typography>
-                                ) : (
-                                  <Stack spacing={1.2}>
-                                    {timeline.map((item) => (
-                                      <Card key={item.id} variant="outlined">
-                                        <CardContent sx={{ py: 1.5 }}>
-                                          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1}>
-                                            <Stack direction="row" spacing={1} alignItems="center">
-                                              <Chip
-                                                size="small"
-                                                color={item.tipo === 'evento' ? 'primary' : item.tipo === 'foto' ? 'secondary' : 'default'}
-                                                label={item.tipo}
-                                              />
-                                              <Typography variant="subtitle2">{item.titulo}</Typography>
-                                            </Stack>
-                                            <Typography variant="caption" color="text.secondary">
-                                              {dateTimeFormatter.format(new Date(`${item.data}T00:00:00`))}
-                                            </Typography>
-                                          </Stack>
-                                          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                            {item.descricao}
-                                          </Typography>
-                                          {item.url ? (
-                                            <Box component="a" href={item.url} target="_blank" rel="noopener noreferrer" sx={{ fontSize: 12 }}>
-                                              Abrir foto
-                                            </Box>
-                                          ) : null}
-                                        </CardContent>
-                                      </Card>
-                                    ))}
-                                  </Stack>
-                                )}
-                              </CardContent>
-                            </Card>
+                  <Grid container spacing={2}>
+                    {evaluatedConditionRules.map((rule) => (
+                      <Grid item xs={12} md={4} key={rule.id}>
+                        <Card variant="outlined" sx={{ height: '100%' }}>
+                          <CardContent>
+                            <Stack spacing={1.5}>
+                              <FormControlLabel
+                                control={<Switch checked={rule.enabled} onChange={onToggleConditionRule(rule.id)} />}
+                                label={rule.label}
+                              />
+                              <Typography variant="body2" color="text.secondary">
+                                Leitura atual de {rule.sensorLabel.toLowerCase()}: <strong>{rule.currentValue}</strong>
+                                {rule.sensor === 'temperatura' ? ' °C' : ' %'}
+                              </Typography>
+                              <TextField
+                                label={rule.thresholdLabel}
+                                type="number"
+                                value={rule.threshold}
+                                onChange={onThresholdChange(rule.id)}
+                                disabled={!rule.enabled}
+                                fullWidth
+                              />
+                              <Alert severity={rule.triggered ? 'warning' : 'success'}>
+                                {rule.triggered
+                                  ? `Condição verdadeira → ${rule.actionLabel}`
+                                  : 'Condição falsa → aguardar próxima leitura'}
+                              </Alert>
+                            </Stack>
                           </CardContent>
                         </Card>
-                      );
-                    })
+                      </Grid>
+                    ))}
+                  </Grid>
+
+                  {triggeredRules.length > 0 && (
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                      Ações recomendadas agora: {triggeredRules.map((rule) => rule.actionLabel).join(' • ')}.
+                    </Alert>
                   )}
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Divider sx={{ my: 1 }} />
-            <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>
-              Painel analítico consolidado
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Organização única dos dashboards com indicadores operacionais, sensores, custos e evolução das hortas.
-            </Typography>
-          </Grid>
-
-          {sensorWidgets.map((sensor) => (
-            <Grid key={sensor.title} item xs={12} sm={6} md={3}>
-              <AppWidgetSummary title={sensor.title} total={sensor.total} color={sensor.color} icon1={sensor.icon1} />
+                </CardContent>
+              </Card>
             </Grid>
-          ))}
 
-          <Grid item xs={12} md={6} lg={8}>
-            <AppWebsiteVisits
-              title="Desempenho das hortas"
-              subheader="Comparativo de produtividade mensal"
-              chartLabels={[
-                '01/01/2022',
-                '02/01/2022',
-                '03/01/2022',
-                '04/01/2022',
-                '05/01/2022',
-                '06/01/2022',
-                '07/01/2022',
-                '08/01/2022',
-                '09/01/2022',
-                '10/01/2022',
-                '11/01/2022',
-              ]}
-              chartData={[
-                {
-                  name: 'Estufa A',
-                  type: 'column',
-                  fill: 'solid',
-                  data: [23, 11, 22, 27, 13, 22, 37, 21, 44, 22, 30],
-                },
-                {
-                  name: 'Canteiro B',
-                  type: 'area',
-                  fill: 'gradient',
-                  data: [44, 55, 76, 67, 22, 43, 21, 41, 56, 27, 43],
-                },
-                {
-                  name: 'Hidroponia',
-                  type: 'line',
-                  fill: 'solid',
-                  data: [30, 25, 36, 30, 45, 35, 64, 52, 59, 36, 39],
-                },
-              ]}
-            />
-          </Grid>
+            <Grid item xs={12}>
+              <Card>
+                <CardContent>
+                  <Stack
+                    direction={{ xs: 'column', md: 'row' }}
+                    spacing={2}
+                    alignItems={{ md: 'center' }}
+                    sx={{ mb: 3 }}
+                  >
+                    <Typography variant="h5">Planejamento de plantio inteligente</Typography>
+                    <FormControl fullWidth sx={{ maxWidth: { md: 320 } }}>
+                      <InputLabel id="regiao-label">Sazonalidade por região</InputLabel>
+                      <Select
+                        labelId="regiao-label"
+                        label="Sazonalidade por região"
+                        value={region}
+                        onChange={(event) => setRegion(event.target.value)}
+                      >
+                        {regionOptions.map((option) => (
+                          <MenuItem key={option} value={option}>
+                            {option}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Stack>
 
-          <Grid item xs={12} md={6} lg={4}>
-            <AppCurrentVisits
-              title="Distribuição de produção por horta"
-              chartData={[
-                { label: 'Estufa A', value: 4344 },
-                { label: 'Canteiro B', value: 5435 },
-                { label: 'Hidroponia', value: 1443 },
-                { label: 'Jardim Vertical', value: 4443 },
-              ]}
-              chartColors={[
-                theme.palette.primary.main,
-                theme.palette.chart.red[0],
-                theme.palette.chart.violet[0],
-                theme.palette.chart.yellow[0],
-              ]}
-            />
-          </Grid>
+                  <Typography variant="h5" sx={{ mb: 2 }}>
+                    Adicionar planta manualmente
+                  </Typography>
 
-          <Grid item xs={12} md={6} lg={8}>
-            <AppConversionRates
-              title="Custos operacionais por horta"
-              subheader="Comparativo por unidade monitorada"
-              chartData={[
-                { label: 'Estufa A', value: 400 },
-                { label: 'Canteiro B', value: 430 },
-                { label: 'Hidroponia', value: 448 },
-                { label: 'Jardim Vertical', value: 470 },
-                { label: 'Mudas', value: 540 },
-                { label: 'Irrigação', value: 580 },
-                { label: 'Nutrientes', value: 690 },
-                { label: 'Manutenção', value: 1100 },
-                { label: 'Energia', value: 1200 },
-                { label: 'Logística', value: 1380 },
-              ]}
-            />
-          </Grid>
+                  <Box component="form" onSubmit={adicionarPlanta}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={3}>
+                        <FormControl fullWidth>
+                          <InputLabel id="especie-label">Espécie / variedade</InputLabel>
+                          <Select
+                            labelId="especie-label"
+                            label="Espécie / variedade"
+                            value={novaPlanta.especie}
+                            onChange={onChangeCampo('especie')}
+                          >
+                            {opcoesEspecie.map((especie) => (
+                              <MenuItem key={especie} value={especie}>
+                                {especie}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
 
-          <Grid item xs={12} md={6} lg={4}>
-            <AppCurrentSubject
-              title="Sensores ativos por cultivo"
-              chartLabels={[
-                'Umidade do solo',
-                'Temperatura ambiente',
-                'Umidade do ar',
-                'Luminosidade',
-                'pH',
-                'EC / condutividade',
-                'Nível de reservatório',
-                'Fluxo',
-              ]}
-              chartData={[
-                { name: 'Estufa A', data: [82, 71, 65, 78, 73, 52, 69, 48] },
-                { name: 'Canteiro B', data: [74, 67, 61, 70, 69, 45, 72, 41] },
-                { name: 'Hidroponia', data: [88, 69, 72, 66, 76, 81, 77, 64] },
-              ]}
-              chartColors={[...Array(8)].map(() => theme.palette.text.secondary)}
-            />
-          </Grid>
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          fullWidth
+                          label="Data de plantio"
+                          type="date"
+                          value={novaPlanta.dataPlantio}
+                          onChange={onChangeCampo('dataPlantio')}
+                          InputLabelProps={{ shrink: true }}
+                        />
+                      </Grid>
 
-          <Grid item xs={12} md={6} lg={8}>
-            <AppNewsUpdate
-              title="Atualizações e comunicados relevantes"
-              list={[...Array(5)].map((_, index) => ({
-                id: faker.string.uuid(),
-                title: 'Atualização operacional registrada',
-                description: 'Acompanhe os detalhes no painel de monitoramento',
-                image: `/static/mock-images/covers/cover_${index + 1}.jpg`,
-                postedAt: faker.date.recent(),
-              }))}
-            />
-          </Grid>
+                      <Grid item xs={12} md={2}>
+                        <TextField
+                          fullWidth
+                          label="Quantidade"
+                          type="number"
+                          value={novaPlanta.quantidade}
+                          onChange={onChangeCampo('quantidade')}
+                          inputProps={{ min: 1 }}
+                        />
+                      </Grid>
 
-          <Grid item xs={12} md={6} lg={4}>
-            <AppOrderTimeline
-              title="Linha do tempo operacional"
-              list={[...Array(5)].map((_, index) => ({
-                id: faker.string.uuid(),
-                title: [
-                  'Estufa A registrada',
-                  'Compra de insumos concluída',
-                  'Chamado técnico aberto',
-                  'Canteiro B atualizado',
-                  'Checklist diário finalizado',
-                ][index],
-                type: `order${index + 1}`,
-                time: faker.date.past(),
-              }))}
-            />
-          </Grid>
+                      <Grid item xs={12} md={3}>
+                        <FormControl fullWidth>
+                          <InputLabel id="fase-cultivo-label">Fase do cultivo</InputLabel>
+                          <Select
+                            labelId="fase-cultivo-label"
+                            label="Fase do cultivo"
+                            value={novaPlanta.faseCultivo}
+                            onChange={onChangeCampo('faseCultivo')}
+                          >
+                            {fasesCultivo.map((fase) => (
+                              <MenuItem key={fase} value={fase}>
+                                {fase}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
 
-          <Grid item xs={12} md={6} lg={4}>
-            <AppTrafficBySite
-              title="Monitoramento de infraestrutura"
-              list={[
-                {
-                  name: 'Nível de água',
-                  value: 10,
-                  icon: <Iconify icon={'icon-park:water-level'} color="#1877F2" width={32} height={32} />,
-                },
-                {
-                  name: 'Nível da bateria',
-                  value: 100,
-                  icon: <Iconify icon={'emojione:battery'} color="#DF3E30" width={32} height={32} />,
-                },
-                {
-                  name: 'Alertas de praga',
-                  value: 0,
-                  icon: <Iconify icon={'icon-park:bug'} color="#006097" width={32} height={32} />,
-                },
-                {
-                  name: 'Notificações',
-                  value: 0,
-                  icon: <Iconify icon={'streamline-emojis:bell'} color="#1C9CEA" width={32} height={32} />,
-                },
-              ]}
-            />
-          </Grid>
+                      <Grid item xs={12} md={2}>
+                        <FormControl fullWidth>
+                          <InputLabel id="setor-label">Canteiro</InputLabel>
+                          <Select
+                            labelId="setor-label"
+                            label="Canteiro"
+                            value={novaPlanta.setor}
+                            onChange={onChangeCampo('setor')}
+                          >
+                            {setores.map((setor) => (
+                              <MenuItem key={setor} value={setor}>
+                                {setor}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
 
-          <Grid item xs={12} md={6} lg={8}>
-            <AppTasks
-              title="Tarefas planejadas da operação"
-              list={[
-                { id: '1', label: 'Agendar poda preventiva para a Estufa A' },
-                { id: '2', label: 'Programar controle de pragas na Hidroponia' },
-                { id: '3', label: 'Reorganizar plantas no Jardim Vertical' },
-                { id: '4', label: 'Ajustar umidade do solo para 70%' },
-                { id: '5', label: 'Realizar troca de água do reservatório' },
-              ]}
-            />
-          </Grid>
+                      <Grid item xs={12} md={2}>
+                        <Button fullWidth type="submit" variant="contained" sx={{ height: '100%' }}>
+                          Adicionar
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Box>
+
+                  <Card variant="outlined" sx={{ mt: 3 }}>
+                    <CardContent>
+                      <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                        Recomendação de janela de plantio
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        {novaPlanta.especie
+                          ? `${novaPlanta.especie} • meses ideais para ${region}: ${janelaAtual
+                              .map((month) => monthFormatter.format(new Date(2024, month - 1, 1)))
+                              .join(', ')}`
+                          : 'Selecione uma espécie para visualizar os meses recomendados por região.'}
+                      </Typography>
+                      <Alert severity={mesEscolhido && janelaAtual.includes(mesEscolhido) ? 'success' : 'warning'}>
+                        {statusJanela}
+                      </Alert>
+                    </CardContent>
+                  </Card>
+
+                  <Card variant="outlined" sx={{ mt: 2 }}>
+                    <CardContent>
+                      <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                        Planejamento por calendário (próximos 6 meses)
+                      </Typography>
+                      <Grid container spacing={1.5}>
+                        {proximosMeses.map((periodo) => (
+                          <Grid item xs={12} md={6} lg={4} key={`${periodo.month}-${periodo.label}`}>
+                            <Card variant="outlined" sx={{ height: '100%' }}>
+                              <CardContent>
+                                <Typography variant="subtitle2" sx={{ textTransform: 'capitalize', mb: 1 }}>
+                                  {periodo.label}
+                                </Typography>
+                                <Stack direction="row" gap={1} flexWrap="wrap">
+                                  {periodo.recomendadas.map((item) => (
+                                    <Chip
+                                      key={`${periodo.label}-${item}`}
+                                      label={item}
+                                      size="small"
+                                      color="success"
+                                      variant="outlined"
+                                    />
+                                  ))}
+                                </Stack>
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </CardContent>
+                  </Card>
+
+                  <Card variant="outlined" sx={{ mt: 2 }}>
+                    <CardContent>
+                      <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                        Rotação de cultura (fase avançada)
+                      </Typography>
+                      <Grid container spacing={1.5}>
+                        {rotationInsights.map((insight) => (
+                          <Grid item xs={12} md={4} key={insight.setor}>
+                            <Card variant="outlined">
+                              <CardContent>
+                                <Typography variant="subtitle2">{insight.setor}</Typography>
+                                <Chip
+                                  label={insight.status}
+                                  size="small"
+                                  sx={{ my: 1 }}
+                                  color={insight.status.includes('Risco') ? 'warning' : 'success'}
+                                />
+                                <Typography variant="body2" color="text.secondary">
+                                  {insight.recomendacao}
+                                </Typography>
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </CardContent>
+                  </Card>
+
+                  <Stack spacing={1.2} sx={{ mt: 3 }}>
+                    {plantas.length === 0 ? (
+                      <Typography color="text.secondary">
+                        Nenhuma planta cadastrada manualmente até o momento.
+                      </Typography>
+                    ) : (
+                      plantas.map((planta) => {
+                        const draftEvento = novoEventoPorPlanta[planta.id] || { tipo: '', data: '', detalhes: '' };
+                        const draftFoto = novaFotoPorPlanta[planta.id] || { data: '', url: '', legenda: '' };
+                        const draftObservacao = novaObservacaoPorPlanta[planta.id] || { data: '', texto: '' };
+                        const draftTarefa = novaTarefaPorPlanta[planta.id] || '';
+                        const tarefasPendentes = planta.tarefas.filter((tarefa) => !tarefa.concluida);
+                        const ultimoEvento = planta.eventos[0];
+                        const ultimaFoto = planta.fotos[0];
+                        const condicoes = [
+                          {
+                            label: `Fase: ${planta.faseCultivo}`,
+                            color: planta.faseCultivo === 'Colheita' ? 'success' : 'info',
+                          },
+                          {
+                            label: `${tarefasPendentes.length} tarefa(s) pendente(s)`,
+                            color: tarefasPendentes.length > 0 ? 'warning' : 'success',
+                          },
+                          {
+                            label: ultimoEvento
+                              ? `Último cuidado: ${eventTypeOptions.find((option) => option.value === ultimoEvento.tipo)?.label || 'Registro manual'}`
+                              : 'Sem cuidado registrado',
+                            color: ultimoEvento ? 'primary' : 'default',
+                          },
+                          {
+                            label: ultimaFoto ? `Última foto em ${ultimaFoto.data}` : 'Sem foto de evolução',
+                            color: ultimaFoto ? 'secondary' : 'default',
+                          },
+                        ];
+
+                        const timeline = [
+                          ...planta.eventos.map((evento) => ({
+                            id: evento.id,
+                            tipo: 'evento',
+                            data: evento.data,
+                            titulo:
+                              eventTypeOptions.find((option) => option.value === evento.tipo)?.label || evento.tipo,
+                            descricao: evento.detalhes,
+                          })),
+                          ...planta.fotos.map((foto) => ({
+                            id: foto.id,
+                            tipo: 'foto',
+                            data: foto.data,
+                            titulo: 'Foto de evolução',
+                            descricao: foto.legenda || 'Sem legenda',
+                            url: foto.url,
+                          })),
+                          ...planta.observacoes.map((observacao) => ({
+                            id: observacao.id,
+                            tipo: 'observacao',
+                            data: observacao.data,
+                            titulo: 'Observação do usuário',
+                            descricao: observacao.texto,
+                          })),
+                        ].sort((a, b) => new Date(`${b.data}T00:00:00`) - new Date(`${a.data}T00:00:00`));
+
+                        return (
+                          <Card key={planta.id} variant="outlined">
+                            <CardContent sx={{ py: 2 }}>
+                              <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1}>
+                                <Typography variant="subtitle1">{planta.especie}</Typography>
+                                <Stack direction="row" spacing={1} flexWrap="wrap">
+                                  <Chip label={`Plantio: ${planta.dataPlantio}`} size="small" />
+                                  <Chip
+                                    label={`Qtd: ${planta.quantidade}`}
+                                    size="small"
+                                    color="primary"
+                                    variant="outlined"
+                                  />
+                                  <Chip label={planta.faseCultivo} size="small" color="success" />
+                                  <Chip label={planta.setor} size="small" />
+                                  <Chip
+                                    label={`Família: ${planta.familia}`}
+                                    size="small"
+                                    color="warning"
+                                    variant="outlined"
+                                  />
+                                  <Chip label={`Ciclo: ${planta.ciclo}`} size="small" color="info" variant="outlined" />
+                                </Stack>
+                              </Stack>
+
+                              <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                                <Grid item xs={12}>
+                                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                    Condições atuais relacionadas à planta
+                                  </Typography>
+                                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                                    {condicoes.map((item) => (
+                                      <Chip
+                                        key={item.label}
+                                        size="small"
+                                        label={item.label}
+                                        color={item.color}
+                                        variant="outlined"
+                                      />
+                                    ))}
+                                  </Stack>
+                                </Grid>
+
+                                <Grid item xs={12} md={4}>
+                                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                    Histórico de cuidados
+                                  </Typography>
+                                  <Stack spacing={1}>
+                                    <FormControl size="small" fullWidth>
+                                      <InputLabel id={`tipo-evento-${planta.id}`}>Tipo</InputLabel>
+                                      <Select
+                                        labelId={`tipo-evento-${planta.id}`}
+                                        label="Tipo"
+                                        value={draftEvento.tipo}
+                                        onChange={(event) => atualizarNovoEvento(planta.id, 'tipo', event.target.value)}
+                                      >
+                                        {eventTypeOptions.map((option) => (
+                                          <MenuItem key={option.value} value={option.value}>
+                                            {option.label}
+                                          </MenuItem>
+                                        ))}
+                                      </Select>
+                                    </FormControl>
+                                    <TextField
+                                      size="small"
+                                      label="Data"
+                                      type="date"
+                                      value={draftEvento.data}
+                                      onChange={(event) => atualizarNovoEvento(planta.id, 'data', event.target.value)}
+                                      InputLabelProps={{ shrink: true }}
+                                    />
+                                    <TextField
+                                      size="small"
+                                      label="Detalhes"
+                                      value={draftEvento.detalhes}
+                                      onChange={(event) =>
+                                        atualizarNovoEvento(planta.id, 'detalhes', event.target.value)
+                                      }
+                                    />
+                                    <Button size="small" variant="contained" onClick={() => adicionarEvento(planta.id)}>
+                                      Salvar evento
+                                    </Button>
+                                    {planta.eventos.length > 0 ? (
+                                      <Stack spacing={0.75}>
+                                        {planta.eventos.slice(0, 3).map((evento) => (
+                                          <Typography key={evento.id} variant="caption" color="text.secondary">
+                                            {evento.data} •{' '}
+                                            {eventTypeOptions.find((option) => option.value === evento.tipo)?.label ||
+                                              evento.tipo}
+                                          </Typography>
+                                        ))}
+                                      </Stack>
+                                    ) : (
+                                      <Typography variant="caption" color="text.secondary">
+                                        Nenhum cuidado registrado até o momento.
+                                      </Typography>
+                                    )}
+                                  </Stack>
+                                </Grid>
+
+                                <Grid item xs={12} md={4}>
+                                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                    Fotos de evolução
+                                  </Typography>
+                                  <Stack spacing={1}>
+                                    <TextField
+                                      size="small"
+                                      label="Data"
+                                      type="date"
+                                      value={draftFoto.data}
+                                      onChange={(event) => atualizarNovaFoto(planta.id, { data: event.target.value })}
+                                      InputLabelProps={{ shrink: true }}
+                                    />
+                                    <TextField
+                                      size="small"
+                                      label="URL da foto"
+                                      value={draftFoto.url}
+                                      onChange={(event) => atualizarNovaFoto(planta.id, { url: event.target.value })}
+                                    />
+                                    <TextField
+                                      size="small"
+                                      label="Legenda"
+                                      value={draftFoto.legenda}
+                                      onChange={(event) =>
+                                        atualizarNovaFoto(planta.id, { legenda: event.target.value })
+                                      }
+                                    />
+                                    <Button size="small" variant="contained" onClick={() => adicionarFoto(planta.id)}>
+                                      Salvar foto
+                                    </Button>
+                                  </Stack>
+                                </Grid>
+
+                                <Grid item xs={12} md={4}>
+                                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                    Próximas tarefas
+                                  </Typography>
+                                  <Stack spacing={1}>
+                                    <TextField
+                                      size="small"
+                                      label="Nova tarefa"
+                                      value={draftTarefa}
+                                      onChange={(event) => atualizarNovaTarefa(planta.id, event.target.value)}
+                                    />
+                                    <Button size="small" variant="contained" onClick={() => adicionarTarefa(planta.id)}>
+                                      Adicionar tarefa
+                                    </Button>
+                                    {planta.tarefas.length > 0 ? (
+                                      <Stack spacing={0.25}>
+                                        {planta.tarefas.slice(0, 4).map((tarefa) => (
+                                          <Stack key={tarefa.id} direction="row" spacing={0.5} alignItems="center">
+                                            <Checkbox
+                                              size="small"
+                                              checked={tarefa.concluida}
+                                              onChange={() => alternarTarefa(planta.id, tarefa.id)}
+                                            />
+                                            <Typography
+                                              variant="caption"
+                                              color="text.secondary"
+                                              sx={{ textDecoration: tarefa.concluida ? 'line-through' : 'none' }}
+                                            >
+                                              {tarefa.titulo}
+                                            </Typography>
+                                          </Stack>
+                                        ))}
+                                      </Stack>
+                                    ) : (
+                                      <Typography variant="caption" color="text.secondary">
+                                        Nenhuma tarefa cadastrada.
+                                      </Typography>
+                                    )}
+                                  </Stack>
+                                </Grid>
+                              </Grid>
+
+                              <Card variant="outlined" sx={{ mt: 2 }}>
+                                <CardContent>
+                                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                    Observações de evolução
+                                  </Typography>
+                                  <Stack spacing={1}>
+                                    <TextField
+                                      size="small"
+                                      label="Data"
+                                      type="date"
+                                      value={draftObservacao.data}
+                                      onChange={(event) =>
+                                        atualizarNovaObservacao(planta.id, { data: event.target.value })
+                                      }
+                                      InputLabelProps={{ shrink: true }}
+                                    />
+                                    <TextField
+                                      size="small"
+                                      label="Observação"
+                                      multiline
+                                      minRows={2}
+                                      value={draftObservacao.texto}
+                                      onChange={(event) =>
+                                        atualizarNovaObservacao(planta.id, { texto: event.target.value })
+                                      }
+                                    />
+                                    <Button
+                                      size="small"
+                                      variant="contained"
+                                      onClick={() => adicionarObservacao(planta.id)}
+                                    >
+                                      Salvar observação
+                                    </Button>
+                                  </Stack>
+                                </CardContent>
+                              </Card>
+
+                              <Card variant="outlined" sx={{ mt: 2, bgcolor: 'background.neutral' }}>
+                                <CardContent>
+                                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                    Linha do tempo da planta
+                                  </Typography>
+                                  {timeline.length === 0 ? (
+                                    <Typography variant="body2" color="text.secondary">
+                                      Ainda não há registros de eventos, fotos ou observações para esta planta.
+                                    </Typography>
+                                  ) : (
+                                    <Stack spacing={1.2}>
+                                      {timeline.map((item) => (
+                                        <Card key={item.id} variant="outlined">
+                                          <CardContent sx={{ py: 1.5 }}>
+                                            <Stack
+                                              direction={{ xs: 'column', sm: 'row' }}
+                                              justifyContent="space-between"
+                                              spacing={1}
+                                            >
+                                              <Stack direction="row" spacing={1} alignItems="center">
+                                                <Chip
+                                                  size="small"
+                                                  color={
+                                                    item.tipo === 'evento'
+                                                      ? 'primary'
+                                                      : item.tipo === 'foto'
+                                                        ? 'secondary'
+                                                        : 'default'
+                                                  }
+                                                  label={item.tipo}
+                                                />
+                                                <Typography variant="subtitle2">{item.titulo}</Typography>
+                                              </Stack>
+                                              <Typography variant="caption" color="text.secondary">
+                                                {dateTimeFormatter.format(new Date(`${item.data}T00:00:00`))}
+                                              </Typography>
+                                            </Stack>
+                                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                              {item.descricao}
+                                            </Typography>
+                                            {item.url ? (
+                                              <Box
+                                                component="a"
+                                                href={item.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                sx={{ fontSize: 12 }}
+                                              >
+                                                Abrir foto
+                                              </Box>
+                                            ) : null}
+                                          </CardContent>
+                                        </Card>
+                                      ))}
+                                    </Stack>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            </CardContent>
+                          </Card>
+                        );
+                      })
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Divider sx={{ my: 1 }} />
+              <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>
+                Painel analítico consolidado
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Organização única dos dashboards com indicadores operacionais, sensores, custos e evolução das hortas.
+              </Typography>
+            </Grid>
+
+            {sensorWidgets.map((sensor) => (
+              <Grid key={sensor.title} item xs={12} sm={6} md={3}>
+                <AppWidgetSummary title={sensor.title} total={sensor.total} color={sensor.color} icon1={sensor.icon1} />
+              </Grid>
+            ))}
+
+            <Grid item xs={12} md={6} lg={8}>
+              <AppWebsiteVisits
+                title="Desempenho das hortas"
+                subheader="Comparativo de produtividade mensal"
+                chartLabels={[
+                  '01/01/2022',
+                  '02/01/2022',
+                  '03/01/2022',
+                  '04/01/2022',
+                  '05/01/2022',
+                  '06/01/2022',
+                  '07/01/2022',
+                  '08/01/2022',
+                  '09/01/2022',
+                  '10/01/2022',
+                  '11/01/2022',
+                ]}
+                chartData={[
+                  {
+                    name: 'Estufa A',
+                    type: 'column',
+                    fill: 'solid',
+                    data: [23, 11, 22, 27, 13, 22, 37, 21, 44, 22, 30],
+                  },
+                  {
+                    name: 'Canteiro B',
+                    type: 'area',
+                    fill: 'gradient',
+                    data: [44, 55, 76, 67, 22, 43, 21, 41, 56, 27, 43],
+                  },
+                  {
+                    name: 'Hidroponia',
+                    type: 'line',
+                    fill: 'solid',
+                    data: [30, 25, 36, 30, 45, 35, 64, 52, 59, 36, 39],
+                  },
+                ]}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6} lg={4}>
+              <AppCurrentVisits
+                title="Distribuição de produção por horta"
+                chartData={[
+                  { label: 'Estufa A', value: 4344 },
+                  { label: 'Canteiro B', value: 5435 },
+                  { label: 'Hidroponia', value: 1443 },
+                  { label: 'Jardim Vertical', value: 4443 },
+                ]}
+                chartColors={[
+                  theme.palette.primary.main,
+                  theme.palette.chart.red[0],
+                  theme.palette.chart.violet[0],
+                  theme.palette.chart.yellow[0],
+                ]}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6} lg={8}>
+              <AppConversionRates
+                title="Custos operacionais por horta"
+                subheader="Comparativo por unidade monitorada"
+                chartData={[
+                  { label: 'Estufa A', value: 400 },
+                  { label: 'Canteiro B', value: 430 },
+                  { label: 'Hidroponia', value: 448 },
+                  { label: 'Jardim Vertical', value: 470 },
+                  { label: 'Mudas', value: 540 },
+                  { label: 'Irrigação', value: 580 },
+                  { label: 'Nutrientes', value: 690 },
+                  { label: 'Manutenção', value: 1100 },
+                  { label: 'Energia', value: 1200 },
+                  { label: 'Logística', value: 1380 },
+                ]}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6} lg={4}>
+              <AppCurrentSubject
+                title="Sensores ativos por cultivo"
+                chartLabels={[
+                  'Umidade do solo',
+                  'Temperatura ambiente',
+                  'Umidade do ar',
+                  'Luminosidade',
+                  'pH',
+                  'EC / condutividade',
+                  'Nível de reservatório',
+                  'Fluxo',
+                ]}
+                chartData={[
+                  { name: 'Estufa A', data: [82, 71, 65, 78, 73, 52, 69, 48] },
+                  { name: 'Canteiro B', data: [74, 67, 61, 70, 69, 45, 72, 41] },
+                  { name: 'Hidroponia', data: [88, 69, 72, 66, 76, 81, 77, 64] },
+                ]}
+                chartColors={[...Array(8)].map(() => theme.palette.text.secondary)}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6} lg={8}>
+              <AppNewsUpdate
+                title="Atualizações e comunicados relevantes"
+                list={[...Array(5)].map((_, index) => ({
+                  id: `atualizacao-${index + 1}`,
+                  title: 'Atualização operacional registrada',
+                  description: 'Acompanhe os detalhes no painel de monitoramento',
+                  image: `/static/mock-images/covers/cover_${index + 1}.jpg`,
+                  postedAt: new Date(dashboardReferenceTime - (index + 1) * 60 * 60 * 1000),
+                }))}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6} lg={4}>
+              <AppOrderTimeline
+                title="Linha do tempo operacional"
+                list={[...Array(5)].map((_, index) => ({
+                  id: `atividade-${index + 1}`,
+                  title: [
+                    'Estufa A registrada',
+                    'Compra de insumos concluída',
+                    'Chamado técnico aberto',
+                    'Canteiro B atualizado',
+                    'Checklist diário finalizado',
+                  ][index],
+                  type: `order${index + 1}`,
+                  time: new Date(dashboardReferenceTime - (index + 1) * 24 * 60 * 60 * 1000),
+                }))}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6} lg={4}>
+              <AppTrafficBySite
+                title="Monitoramento de infraestrutura"
+                list={[
+                  {
+                    name: 'Nível de água',
+                    value: 10,
+                    icon: <Iconify icon={'icon-park:water-level'} color="#1877F2" width={32} height={32} />,
+                  },
+                  {
+                    name: 'Nível da bateria',
+                    value: 100,
+                    icon: <Iconify icon={'emojione:battery'} color="#DF3E30" width={32} height={32} />,
+                  },
+                  {
+                    name: 'Alertas de praga',
+                    value: 0,
+                    icon: <Iconify icon={'icon-park:bug'} color="#006097" width={32} height={32} />,
+                  },
+                  {
+                    name: 'Notificações',
+                    value: 0,
+                    icon: <Iconify icon={'streamline-emojis:bell'} color="#1C9CEA" width={32} height={32} />,
+                  },
+                ]}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6} lg={8}>
+              <AppTasks
+                title="Tarefas planejadas da operação"
+                list={[
+                  { id: '1', label: 'Agendar poda preventiva para a Estufa A' },
+                  { id: '2', label: 'Programar controle de pragas na Hidroponia' },
+                  { id: '3', label: 'Reorganizar plantas no Jardim Vertical' },
+                  { id: '4', label: 'Ajustar umidade do solo para 70%' },
+                  { id: '5', label: 'Realizar troca de água do reservatório' },
+                ]}
+              />
+            </Grid>
           </Grid>
         </Box>
       </Container>

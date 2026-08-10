@@ -1,30 +1,49 @@
-import React from 'react';
-import { renderToString } from 'react-dom/server';
-import { StaticRouter } from 'react-router-dom/server';
-import { HelmetProvider } from 'react-helmet-async';
+import { renderToStaticMarkup, renderToString } from 'react-dom/server';
+import { StaticRouter } from 'react-router-dom';
 import App from './App';
-
-const SSR_ROUTES = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/404'];
+import AppProviders from './app/AppProviders';
+import { ssrRoutePaths } from './routing/routeManifest';
+import { getRouteMetadata } from './routing/RouteMetadata';
+import { siteMetadata } from './seo/siteMetadata';
 
 export function shouldUseSsr(url) {
-  const path = url.split('?')[0];
-  return SSR_ROUTES.includes(path);
+  const path = url.split('?')[0].replace(/\/$/, '') || '/';
+  return ssrRoutePaths.has(path);
 }
 
 export function render(url) {
   const helmetContext = {};
   const appHtml = renderToString(
-    <HelmetProvider context={helmetContext}>
+    <AppProviders helmetContext={helmetContext}>
       <StaticRouter location={url}>
-        <App />
+        <App ssr />
       </StaticRouter>
-    </HelmetProvider>
+    </AppProviders>
+  );
+
+  const pathname = new URL(url, 'https://hortelan.local').pathname;
+  const { title, description, canonicalUrl, previewImage } = getRouteMetadata(pathname);
+  const headTags = renderToStaticMarkup(
+    <>
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <meta name="robots" content="noindex,nofollow" />
+      <link rel="canonical" href={canonicalUrl} />
+      <meta property="og:type" content="website" />
+      <meta property="og:site_name" content={siteMetadata.siteName} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      <meta property="og:url" content={canonicalUrl} />
+      <meta property="og:image" content={previewImage} />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={previewImage} />
+    </>
   );
 
   return {
     appHtml,
-    headTags: helmetContext.helmet
-      ? `${helmetContext.helmet.title.toString()}${helmetContext.helmet.meta.toString()}${helmetContext.helmet.link.toString()}${helmetContext.helmet.script.toString()}`
-      : '',
+    headTags,
   };
 }

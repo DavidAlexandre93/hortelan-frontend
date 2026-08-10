@@ -1,135 +1,141 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import crypto from 'node:crypto';
+import ts from 'typescript';
 
 const root = process.cwd();
 const srcDir = path.join(root, 'src');
-const entryFile = path.join(srcDir, 'index.js');
-const exts = ['.js', '.jsx'];
-const IGNORE_ORPHAN_PATTERNS = [
-  '/_mock/',
-  '/setupTests.js',
-  '/entry-server.js',
-  '/serviceWorker.js',
-  '/data/',
-];
+const extensions = ['.js', '.jsx', '.mjs'];
+const entries = [path.join(srcDir, 'index.js'), path.join(srcDir, 'entry-server.js')];
 
-function listFiles(dir) {
-  const output = [];
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      output.push(...listFiles(full));
-      continue;
-    }
-    if (exts.includes(path.extname(entry.name))) {
-      output.push(full);
-    }
-  }
-  return output;
+function listFiles(directory) {
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const target = path.join(directory, entry.name);
+    if (entry.isDirectory()) return listFiles(target);
+    return extensions.includes(path.extname(entry.name)) ? [path.resolve(target)] : [];
+  });
 }
 
-function findExistingFile(basePath) {
-  if (fs.existsSync(basePath) && fs.statSync(basePath).isFile()) return basePath;
-  for (const ext of exts) {
-    if (fs.existsSync(`${basePath}${ext}`)) return `${basePath}${ext}`;
+function isTestFile(file) {
+  const normalized = file.replaceAll(path.sep, '/');
+  return (
+    /\.(?:test|spec)\.[jt]sx?$/.test(normalized) ||
+    normalized.includes('/src/test/') ||
+    normalized.endsWith('/src/setupTests.js')
+  );
+}
+
+function resolveFile(basePath) {
+  const candidates = [
+    basePath,
+    ...extensions.map((extension) => `${basePath}${extension}`),
+    ...extensions.map((extension) => path.join(basePath, `index${extension}`)),
+  ];
+  return candidates.find((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile()) || null;
+}
+
+function extractSpecifiers(content, file) {
+  const source = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true, ts.ScriptKind.JSX);
+  const specifiers = new Set();
+
+  function visit(node) {
+    if (
+      (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteral(node.moduleSpecifier)
+    ) {
+      specifiers.add(node.moduleSpecifier.text);
+    }
+
+    if (ts.isCallExpression(node) && node.arguments.length === 1 && ts.isStringLiteral(node.arguments[0])) {
+      const dynamicImport = node.expression.kind === ts.SyntaxKind.ImportKeyword;
+      const commonJsRequire = ts.isIdentifier(node.expression) && node.expression.text === 'require';
+      if (dynamicImport || commonJsRequire) specifiers.add(node.arguments[0].text);
+    }
+
+    ts.forEachChild(node, visit);
   }
-  for (const ext of exts) {
-    const indexFile = path.join(basePath, `index${ext}`);
-    if (fs.existsSync(indexFile)) return indexFile;
-  }
+
+  visit(source);
+  return [...specifiers];
+}
+
+function resolveSpecifier(fromFile, specifier) {
+  if (specifier.startsWith('.')) return resolveFile(path.resolve(path.dirname(fromFile), specifier));
+  if (specifier.startsWith('src/')) return resolveFile(path.resolve(root, specifier));
+  if (specifier.startsWith('/src/')) return resolveFile(path.resolve(root, specifier.slice(1)));
   return null;
 }
 
-function extractImports(content) {
-  const imports = [];
-  const re = /(?:import|export)\s+(?:[^'"\n]+?\s+from\s+)?['"]([^'"]+)['"]/g;
-  let match;
-  while ((match = re.exec(content))) {
-    imports.push(match[1]);
-  }
-  return imports;
-}
-
-function toProjectPath(filePath) {
-  return path.relative(root, filePath).replaceAll(path.sep, '/');
+function relative(file) {
+  return path.relative(root, file).replaceAll(path.sep, '/');
 }
 
 const files = listFiles(srcDir);
-const fileSet = new Set(files.map((f) => path.resolve(f)));
-
+const productionFiles = files.filter((file) => !isTestFile(file));
+const fileSet = new Set(productionFiles);
 const graph = new Map();
-for (const file of files) {
+const unresolved = [];
+
+for (const file of productionFiles) {
   const content = fs.readFileSync(file, 'utf8');
-  const imports = extractImports(content);
-  const resolved = [];
-
-  for (const spec of imports) {
-    if (spec.startsWith('.')) {
-      const target = findExistingFile(path.resolve(path.dirname(file), spec));
-      if (target && fileSet.has(path.resolve(target))) {
-        resolved.push(path.resolve(target));
-      }
-      continue;
-    }
-
-    if (spec.startsWith('src/')) {
-      const target = findExistingFile(path.join(root, spec));
-      if (target && fileSet.has(path.resolve(target))) {
-        resolved.push(path.resolve(target));
-      }
-    }
+  const dependencies = [];
+  for (const specifier of extractSpecifiers(content, file)) {
+    const resolved = resolveSpecifier(file, specifier);
+    if (resolved && fileSet.has(path.resolve(resolved))) dependencies.push(path.resolve(resolved));
+    else if (specifier.startsWith('.') || specifier.startsWith('/src/') || specifier.startsWith('src/'))
+      unresolved.push(`${relative(file)} -> ${specifier}`);
   }
-
-  graph.set(path.resolve(file), resolved);
+  graph.set(file, dependencies);
 }
 
 const visited = new Set();
-const queue = [path.resolve(entryFile)];
-
+const queue = entries.map((entry) => path.resolve(entry));
 while (queue.length) {
-  const current = queue.shift();
-  if (!current || visited.has(current) || !graph.has(current)) continue;
-  visited.add(current);
-  for (const dep of graph.get(current) ?? []) {
-    if (!visited.has(dep)) queue.push(dep);
-  }
+  const file = queue.shift();
+  if (!file || visited.has(file) || !graph.has(file)) continue;
+  visited.add(file);
+  queue.push(...graph.get(file));
 }
 
-const orphanFiles = files
-  .map((f) => path.resolve(f))
-  .filter((f) => !visited.has(f))
-  .map((f) => toProjectPath(f))
-  .filter((f) => !IGNORE_ORPHAN_PATTERNS.some((pattern) => f.endsWith(pattern) || f.includes(pattern)));
+const orphans = productionFiles
+  .filter((file) => !visited.has(file))
+  .map(relative)
+  .sort();
+const oversized = productionFiles
+  .map((file) => ({ file: relative(file), lines: fs.readFileSync(file, 'utf8').split(/\r?\n/).length }))
+  .filter(({ lines }) => lines > 800)
+  .sort((a, b) => b.lines - a.lines);
 
-const hashMap = new Map();
-for (const file of files) {
-  const content = fs.readFileSync(file, 'utf8');
-  const normalized = content.replace(/\s+/g, ' ').trim();
+const hashes = new Map();
+for (const file of productionFiles) {
+  const normalized = fs.readFileSync(file, 'utf8').replace(/\s+/g, ' ').trim();
   const hash = crypto.createHash('sha1').update(normalized).digest('hex');
-  const bucket = hashMap.get(hash) ?? [];
-  bucket.push(toProjectPath(file));
-  hashMap.set(hash, bucket);
+  hashes.set(hash, [...(hashes.get(hash) || []), relative(file)]);
+}
+const duplicates = [...hashes.values()].filter((group) => group.length > 1);
+
+console.log('Frontend reachability audit');
+console.log(`Production modules: ${productionFiles.length}`);
+console.log(`Reachable from client/SSR entries: ${visited.size}`);
+console.log(`Oversized modules (>800 lines): ${oversized.length}`);
+oversized.forEach(({ file, lines }) => console.log(`- ${file}: ${lines} lines`));
+
+if (duplicates.length) {
+  console.log(`Duplicate-content groups: ${duplicates.length}`);
+  duplicates.forEach((group) => console.log(`- ${group.join(', ')}`));
 }
 
-const duplicateGroups = [...hashMap.values()].filter((group) => group.length > 1);
-
-console.log('Frontend audit summary');
-console.log('======================');
-console.log(`Scanned files: ${files.length}`);
-console.log(`Reachable files from src/index.js: ${visited.size}`);
-console.log(`Potential orphan files: ${orphanFiles.length}`);
-
-if (orphanFiles.length) {
-  console.log('\nPotential orphan files (review before removal):');
-  orphanFiles.forEach((file) => console.log(`- ${file}`));
+if (unresolved.length || orphans.length) {
+  if (unresolved.length) {
+    console.error('\nImports locais nao resolvidos:');
+    unresolved.forEach((item) => console.error(`- ${item}`));
+  }
+  if (orphans.length) {
+    console.error('\nModulos de producao inacessiveis:');
+    orphans.forEach((file) => console.error(`- ${file}`));
+  }
+  process.exit(1);
 }
 
-console.log(`\nDuplicate-content groups: ${duplicateGroups.length}`);
-if (duplicateGroups.length) {
-  duplicateGroups.forEach((group, idx) => {
-    console.log(`\nGroup ${idx + 1}:`);
-    group.forEach((file) => console.log(`- ${file}`));
-  });
-}
+console.log('Grafo de producao sem modulos orfaos ou imports quebrados.');

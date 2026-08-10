@@ -215,7 +215,8 @@ export default function AlertCenter() {
               Central de alertas
             </Typography>
             <Typography color="text.secondary">
-              Monitore alertas ativos, histórico resolvido, políticas de notificação e gestão de incidentes em um único painel.
+              Monitore alertas ativos, histórico resolvido, políticas de notificação e gestão de incidentes em um único
+              painel.
             </Typography>
           </Paper>
 
@@ -224,7 +225,11 @@ export default function AlertCenter() {
               <Card sx={sectionCardSx}>
                 <CardContent sx={sectionCardContentSx}>
                   <Stack spacing={2.5}>
-                    <Tabs value={tab} onChange={(_, value) => setTab(value)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                    <Tabs
+                      value={tab}
+                      onChange={(_, value) => setTab(value)}
+                      sx={{ borderBottom: 1, borderColor: 'divider' }}
+                    >
                       <Tab value="ativos" label="Alertas ativos" />
                       <Tab value="resolvidos" label="Alertas resolvidos" />
                     </Tabs>
@@ -243,7 +248,11 @@ export default function AlertCenter() {
                       <Grid item xs={12} md={6} lg={3}>
                         <FormControl fullWidth size="small">
                           <InputLabel>Criticidade</InputLabel>
-                          <Select value={severityFilter} label="Criticidade" onChange={(event) => setSeverityFilter(event.target.value)}>
+                          <Select
+                            value={severityFilter}
+                            label="Criticidade"
+                            onChange={(event) => setSeverityFilter(event.target.value)}
+                          >
                             <MenuItem value="todos">Todas</MenuItem>
                             <MenuItem value="Crítica">Crítica</MenuItem>
                             <MenuItem value="Alta">Alta</MenuItem>
@@ -255,7 +264,11 @@ export default function AlertCenter() {
                       <Grid item xs={12} md={6} lg={3}>
                         <FormControl fullWidth size="small">
                           <InputLabel>Tipo</InputLabel>
-                          <Select value={typeFilter} label="Tipo" onChange={(event) => setTypeFilter(event.target.value)}>
+                          <Select
+                            value={typeFilter}
+                            label="Tipo"
+                            onChange={(event) => setTypeFilter(event.target.value)}
+                          >
                             <MenuItem value="todos">Todos</MenuItem>
                             {alertTypes.map((type) => (
                               <MenuItem key={type} value={type}>
@@ -268,7 +281,11 @@ export default function AlertCenter() {
                       <Grid item xs={12} md={6} lg={3}>
                         <FormControl fullWidth size="small">
                           <InputLabel>Horta</InputLabel>
-                          <Select value={gardenFilter} label="Horta" onChange={(event) => setGardenFilter(event.target.value)}>
+                          <Select
+                            value={gardenFilter}
+                            label="Horta"
+                            onChange={(event) => setGardenFilter(event.target.value)}
+                          >
                             {gardens.map((garden) => (
                               <MenuItem key={garden} value={garden}>
                                 {garden === 'todos' ? 'Todas' : garden}
@@ -286,12 +303,20 @@ export default function AlertCenter() {
                             key={alert.id}
                             divider
                             alignItems="flex-start"
-                            secondaryAction={<Chip size="small" label={alert.severity} color={severityColors[alert.severity]} />}
+                            secondaryAction={
+                              <Chip size="small" label={alert.severity} color={severityColors[alert.severity]} />
+                            }
                             sx={{ py: 1.25, pr: 10 }}
                           >
                             <ListItemAvatar>
-                              <Avatar sx={{ bgcolor: alert.status === 'ativo' ? 'warning.lighter' : 'success.lighter' }}>
-                                {alert.status === 'ativo' ? <WarningAmberRoundedIcon color="warning" /> : <CheckCircleRoundedIcon color="success" />}
+                              <Avatar
+                                sx={{ bgcolor: alert.status === 'ativo' ? 'warning.lighter' : 'success.lighter' }}
+                              >
+                                {alert.status === 'ativo' ? (
+                                  <WarningAmberRoundedIcon color="warning" />
+                                ) : (
+                                  <CheckCircleRoundedIcon color="success" />
+                                )}
                               </Avatar>
                             </ListItemAvatar>
                             <ListItemText
@@ -302,7 +327,9 @@ export default function AlertCenter() {
                         ))}
                       </List>
                     </Paper>
-                    {filteredAlerts.length === 0 && <Alert severity="info">Nenhum alerta encontrado para os filtros aplicados.</Alert>}
+                    {filteredAlerts.length === 0 && (
+                      <Alert severity="info">Nenhum alerta encontrado para os filtros aplicados.</Alert>
+                    )}
                   </Stack>
                 </CardContent>
               </Card>
@@ -332,15 +359,24 @@ export default function AlertCenter() {
                         <Typography variant="h6">Notificações</Typography>
                         <Stack direction="row" justifyContent="space-between" alignItems="center">
                           <Typography variant="body2">Web push (navegador)</Typography>
-                          <Switch checked={policy.webPush} onChange={(event) => setPolicy((prev) => ({ ...prev, webPush: event.target.checked }))} />
+                          <Switch
+                            checked={policy.webPush}
+                            onChange={(event) => setPolicy((prev) => ({ ...prev, webPush: event.target.checked }))}
+                          />
                         </Stack>
                         <Stack direction="row" justifyContent="space-between" alignItems="center">
                           <Typography variant="body2">E-mail</Typography>
-                          <Switch checked={policy.email} onChange={(event) => setPolicy((prev) => ({ ...prev, email: event.target.checked }))} />
+                          <Switch
+                            checked={policy.email}
+                            onChange={(event) => setPolicy((prev) => ({ ...prev, email: event.target.checked }))}
+                          />
                         </Stack>
                         <Stack direction="row" justifyContent="space-between" alignItems="center">
                           <Typography variant="body2">In-app</Typography>
-                          <Switch checked={policy.inApp} onChange={(event) => setPolicy((prev) => ({ ...prev, inApp: event.target.checked }))} />
+                          <Switch
+                            checked={policy.inApp}
+                            onChange={(event) => setPolicy((prev) => ({ ...prev, inApp: event.target.checked }))}
+                          />
                         </Stack>
                         <Stack direction="row" justifyContent="space-between" alignItems="center">
                           <Typography variant="body2">WhatsApp/SMS (futuro)</Typography>
@@ -364,13 +400,20 @@ export default function AlertCenter() {
                         </Alert>
                         <Stack direction="row" justifyContent="space-between" alignItems="center">
                           <Typography variant="body2">Silenciar tipos específicos</Typography>
-                          <Switch checked={policy.silenceByType} onChange={(event) => setPolicy((prev) => ({ ...prev, silenceByType: event.target.checked }))} />
+                          <Switch
+                            checked={policy.silenceByType}
+                            onChange={(event) =>
+                              setPolicy((prev) => ({ ...prev, silenceByType: event.target.checked }))
+                            }
+                          />
                         </Stack>
                         <Stack direction="row" justifyContent="space-between" alignItems="center">
                           <Typography variant="body2">Horário de silêncio</Typography>
                           <Switch
                             checked={policy.silenceWindow}
-                            onChange={(event) => setPolicy((prev) => ({ ...prev, silenceWindow: event.target.checked }))}
+                            onChange={(event) =>
+                              setPolicy((prev) => ({ ...prev, silenceWindow: event.target.checked }))
+                            }
                           />
                         </Stack>
                         <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -405,7 +448,8 @@ export default function AlertCenter() {
               <Stack spacing={2}>
                 <Typography variant="h6">Gestão de incidentes (fase avançada)</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Fluxo operacional: abrir incidente, atribuir responsável, registrar comentários internos, atualizar status e acompanhar tempo de resolução.
+                  Fluxo operacional: abrir incidente, atribuir responsável, registrar comentários internos, atualizar
+                  status e acompanhar tempo de resolução.
                 </Typography>
                 <Divider />
                 <Paper variant="outlined">
@@ -418,7 +462,11 @@ export default function AlertCenter() {
                         sx={{ py: 1.25, pr: { xs: 2, md: 22 } }}
                         secondaryAction={
                           <Stack direction="row" spacing={1}>
-                            <Chip label={incident.status} color={incident.status === 'resolvido' ? 'success' : 'warning'} size="small" />
+                            <Chip
+                              label={incident.status}
+                              color={incident.status === 'resolvido' ? 'success' : 'warning'}
+                              size="small"
+                            />
                             <Chip label={`TTR ${incident.resolutionTime}`} variant="outlined" size="small" />
                           </Stack>
                         }

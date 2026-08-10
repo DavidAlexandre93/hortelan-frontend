@@ -2,33 +2,25 @@ import { useRef, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // @mui
 import { alpha } from '@mui/material/styles';
-import {
-  Box,
-  Divider,
-  Typography,
-  Stack,
-  MenuItem,
-  Avatar,
-  IconButton,
-  ListItemText,
-} from '@mui/material';
+import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, ListItemText } from '@mui/material';
 // components
 import MenuPopover from '../../components/MenuPopover';
 import useAuth from '../../auth/useAuth';
+import ConfirmationDialog from '../../components/states/ConfirmationDialog';
 
 // ----------------------------------------------------------------------
 
 const MENU_OPTIONS = [
   {
-    label: 'Home',
+    label: 'Monitoramento',
     linkTo: '/dashboard/app',
   },
   {
-    label: 'Profile',
+    label: 'Perfil',
     linkTo: '/dashboard/profile',
   },
   {
-    label: 'Settings',
+    label: 'Seguranca',
     linkTo: '/dashboard/security',
   },
 ];
@@ -41,6 +33,7 @@ export default function AccountPopover() {
   const { user, sessions, logout, logoutAll, logoutOthers } = useAuth();
 
   const [open, setOpen] = useState(null);
+  const [confirmation, setConfirmation] = useState(null);
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
@@ -57,13 +50,24 @@ export default function AccountPopover() {
   };
 
   const handleLogoutOthers = () => {
-    logoutOthers();
     handleClose();
+    setConfirmation('others');
   };
 
   const handleLogoutAll = () => {
-    logoutAll();
     handleClose();
+    setConfirmation('all');
+  };
+
+  const handleConfirmedLogout = () => {
+    if (confirmation === 'others') {
+      logoutOthers();
+      setConfirmation(null);
+      return;
+    }
+
+    logoutAll();
+    setConfirmation(null);
     navigate('/login', { replace: true });
   };
 
@@ -72,6 +76,7 @@ export default function AccountPopover() {
       <IconButton
         ref={anchorRef}
         onClick={handleOpen}
+        aria-label="Abrir menu da conta"
         sx={{
           p: 0,
           ...(open && {
@@ -152,6 +157,18 @@ export default function AccountPopover() {
           </MenuItem>
         </Stack>
       </MenuPopover>
+
+      <ConfirmationDialog
+        open={Boolean(confirmation)}
+        title={confirmation === 'all' ? 'Encerrar todas as sessoes?' : 'Encerrar outras sessoes?'}
+        description={
+          confirmation === 'all'
+            ? 'Todos os dispositivos, incluindo este, precisarao entrar novamente.'
+            : 'Este dispositivo permanecera conectado. Os demais perderao o acesso imediatamente.'
+        }
+        onCancel={() => setConfirmation(null)}
+        onConfirm={handleConfirmedLogout}
+      />
     </>
   );
 }

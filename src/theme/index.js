@@ -75,6 +75,7 @@ export default function ThemeProvider({ children }) {
               body: { width: '100%', minHeight: '100%', overflowX: 'hidden' },
               '#root': { width: '100%', minHeight: '100%' },
               img: { maxWidth: '100%', height: 'auto' },
+              button: { minWidth: 44, minHeight: 44 },
             }}
           />
           {children}

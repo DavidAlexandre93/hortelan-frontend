@@ -168,247 +168,275 @@ export default function Security() {
           <Card variant="outlined" sx={SECTION_CARD_SX}>
             <CardContent sx={SECTION_CONTENT_SX}>
               <Stack spacing={2}>
-              <Typography variant="h6">Controle de sessão e acesso não autorizado</Typography>
-              <Typography color="text.secondary">
-                Sessões inativas expiram em 30 minutos. Encerre sessões suspeitas para evitar acesso não autorizado.
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap">
-                <Button variant="outlined" onClick={logoutOthers}>Encerrar outras sessões</Button>
-                <Button color="error" variant="outlined" onClick={logoutAll}>Encerrar todas as sessões</Button>
-              </Stack>
-              <TableContainer component={Paper} elevation={0} sx={TABLE_CONTAINER_SX}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Sessão</TableCell>
-                      <TableCell>Última atividade</TableCell>
-                      <TableCell>Método</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {sessions.map((session) => (
-                      <TableRow key={session.id}>
-                        <TableCell>
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            <Typography variant="subtitle2">{session.isCurrent ? 'Atual' : 'Remota'}</Typography>
-                            {session.isCurrent && <Chip label="Atual" size="small" color="success" />}
-                          </Stack>
-                          <Typography variant="caption" color="text.secondary">{session.userAgent}</Typography>
-                        </TableCell>
-                        <TableCell>{new Date(session.lastActiveAt).toLocaleString()}</TableCell>
-                        <TableCell>{session.authMethod}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Stack>
-            </CardContent>
-          </Card>
-
-          <Card variant="outlined" sx={SECTION_CARD_SX}>
-            <CardContent sx={SECTION_CONTENT_SX}>
-              <Stack spacing={2}>
-              <Typography variant="h6">Autenticação em dois fatores (2FA)</Typography>
-              <Typography color="text.secondary">
-                Ative o segundo fator por e-mail ou app autenticador para elevar o nível de proteção do login.
-              </Typography>
-
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Switch
-                    checked={Boolean(twoFactor?.enabled)}
-                    onChange={(_, checked) => {
-                      const result = update2FASettings({ enabled: checked, method });
-
-                      if (!result.error) {
-                        setFeedback(checked ? '2FA ativado com sucesso.' : '2FA desativado com sucesso.');
-                      }
-                    }}
-                  />
-                  <Typography>{twoFactor?.enabled ? '2FA habilitado' : '2FA desabilitado'}</Typography>
+                <Typography variant="h6">Controle de sessão e acesso não autorizado</Typography>
+                <Typography color="text.secondary">
+                  Sessões inativas expiram em 30 minutos. Encerre sessões suspeitas para evitar acesso não autorizado.
+                </Typography>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap">
+                  <Button variant="outlined" onClick={logoutOthers}>
+                    Encerrar outras sessões
+                  </Button>
+                  <Button color="error" variant="outlined" onClick={logoutAll}>
+                    Encerrar todas as sessões
+                  </Button>
                 </Stack>
-
-                <FormControl sx={{ minWidth: 220 }} size="small" disabled={!twoFactor?.enabled}>
-                  <InputLabel id="two-factor-method-label">Método</InputLabel>
-                  <Select
-                    labelId="two-factor-method-label"
-                    label="Método"
-                    value={method}
-                    onChange={(event) => {
-                      const nextMethod = event.target.value;
-                      setMethod(nextMethod);
-                      const result = update2FASettings({ enabled: true, method: nextMethod });
-
-                      if (!result.error) {
-                        setFeedback(`Método de 2FA alterado para ${TWO_FACTOR_METHOD_LABELS[nextMethod]}.`);
-                      }
-                    }}
-                  >
-                    <MenuItem value="email">E-mail</MenuItem>
-                    <MenuItem value="authenticator">App autenticador</MenuItem>
-                  </Select>
-                </FormControl>
-              </Stack>
-              </Stack>
-            </CardContent>
-          </Card>
-
-          <Card variant="outlined" sx={SECTION_CARD_SX}>
-            <CardContent sx={SECTION_CONTENT_SX}>
-              <Stack spacing={2}>
-              <Typography variant="h6">Privacidade e consentimento</Typography>
-              <Typography color="text.secondary">
-                Gerencie cookies, notificações e uso de dados analíticos conforme suas preferências de privacidade.
-              </Typography>
-
-              <Stack spacing={1}>
-                {Object.entries(CONSENT_LABELS).map(([key, label]) => (
-                  <Stack key={key} direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography>{label}</Typography>
-                    <Switch checked={Boolean(consents?.[key])} onChange={(_, checked) => handleConsentToggle(key, checked)} />
-                  </Stack>
-                ))}
-              </Stack>
-
-              <FormControl size="small" sx={{ maxWidth: 280 }}>
-                <InputLabel id="privacy-mode-label">Preferência de privacidade</InputLabel>
-                <Select
-                  labelId="privacy-mode-label"
-                  label="Preferência de privacidade"
-                  value={consents?.privacyMode || 'balanced'}
-                  onChange={(event) => {
-                    updateConsents({ privacyMode: event.target.value });
-                    setFeedback(`Preferência de privacidade alterada para ${event.target.value}.`);
-                  }}
-                >
-                  <MenuItem value="restricted">Restrita</MenuItem>
-                  <MenuItem value="balanced">Balanceada</MenuItem>
-                  <MenuItem value="personalized">Personalizada</MenuItem>
-                </Select>
-              </FormControl>
-
-              <Typography variant="caption" color="text.secondary">
-                Última atualização: {consents?.updatedAt ? new Date(consents.updatedAt).toLocaleString() : 'Sem registro'}
-              </Typography>
-              </Stack>
-            </CardContent>
-          </Card>
-
-          <Card variant="outlined" sx={SECTION_CARD_SX}>
-            <CardContent sx={SECTION_CONTENT_SX}>
-              <Stack spacing={2}>
-              <Typography variant="h6">LGPD e dados pessoais</Typography>
-              <Typography color="text.secondary">
-                Exporte, solicite exclusão e acompanhe retenção de dados com trilha de consentimentos.
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap">
-                <Button variant="contained" onClick={handleExport}>Exportar dados pessoais</Button>
-                <Button color="warning" variant="outlined" onClick={() => setDeactivationOpen(true)}>Desativar conta</Button>
-                <Button color="error" variant="outlined" onClick={() => setDeletionOpen(true)}>Solicitar exclusão de conta</Button>
-              </Stack>
-
-              {deletionRequest && (
-                <Alert severity="info">
-                  Solicitação em andamento ({new Date(deletionRequest.requestedAt).toLocaleString()}) - status: {deletionRequest.status}.
-                </Alert>
-              )}
-
-              <Typography variant="body2" color="text.secondary">
-                Política de retenção: {retentionPolicy?.retentionDays} dias ({retentionPolicy?.legalBasis}).
-              </Typography>
-
-              {!user?.isActive && <Alert severity="warning">Sua conta está desativada.</Alert>}
-              </Stack>
-            </CardContent>
-          </Card>
-
-          <Card variant="outlined" sx={SECTION_CARD_SX}>
-            <CardContent sx={SECTION_CONTENT_SX}>
-              <Stack spacing={2}>
-              <Typography variant="h6">Segurança de dispositivos (fase avançada)</Typography>
-              <Typography color="text.secondary">
-                Faça vinculação segura de dispositivos, rotação de credenciais e revogação em caso de comprometimento.
-              </Typography>
-
-              {trustedDevices.length === 0 ? (
-                <Typography color="text.secondary">Nenhum dispositivo confiável cadastrado.</Typography>
-              ) : (
-                <TableContainer component={Paper} elevation={0} sx={TABLE_CONTAINER_SX}>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Nome</TableCell>
-                        <TableCell>Confiado em</TableCell>
-                        <TableCell>Credencial</TableCell>
-                        <TableCell align="right">Ações</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {trustedDevices.map((device) => (
-                        <TableRow key={device.id}>
-                          <TableCell>
-                            <Stack spacing={0.5}>
-                              <Typography variant="subtitle2">{device.deviceName || 'Dispositivo sem nome'}</Typography>
-                              <Typography variant="caption" color="text.secondary">{device.userAgent}</Typography>
-                            </Stack>
-                          </TableCell>
-                          <TableCell>{new Date(device.trustedAt).toLocaleString()}</TableCell>
-                          <TableCell>v{device.credentialVersion || 1}</TableCell>
-                          <TableCell align="right">
-                            <Stack direction="row" justifyContent="flex-end" spacing={1} useFlexGap flexWrap="wrap">
-                              <Button size="small" variant="text" onClick={() => rotateDeviceCredential(device.id)}>
-                                Rotacionar chave
-                              </Button>
-                              <Button
-                                size="small"
-                                color="warning"
-                                variant="text"
-                                onClick={() => revokeCompromised(device.id, 'Revogado por suspeita de comprometimento')}
-                              >
-                                Comprometido
-                              </Button>
-                              <Button size="small" color="error" variant="text" onClick={() => removeTrustedDevice(device.id)}>
-                                Revogar
-                              </Button>
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-              </Stack>
-            </CardContent>
-          </Card>
-
-          <Card variant="outlined" sx={SECTION_CARD_SX}>
-            <CardContent sx={SECTION_CONTENT_SX}>
-              <Stack spacing={2}>
-              <Typography variant="h6">Registro de consentimentos</Typography>
-              {consentLogs?.length ? (
                 <TableContainer component={Paper} elevation={0} sx={TABLE_CONTAINER_SX}>
                   <Table size="small">
                     <TableHead>
                       <TableRow>
-                        <TableCell>Data/Hora</TableCell>
-                        <TableCell>Alterações</TableCell>
+                        <TableCell>Sessão</TableCell>
+                        <TableCell>Última atividade</TableCell>
+                        <TableCell>Método</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {consentLogs.slice(0, 10).map((entry) => (
-                        <TableRow key={entry.id}>
-                          <TableCell>{new Date(entry.changedAt).toLocaleString()}</TableCell>
-                          <TableCell>{Object.keys(entry.payload || {}).join(', ')}</TableCell>
+                      {sessions.map((session) => (
+                        <TableRow key={session.id}>
+                          <TableCell>
+                            <Stack direction="row" spacing={1} alignItems="center">
+                              <Typography variant="subtitle2">{session.isCurrent ? 'Atual' : 'Remota'}</Typography>
+                              {session.isCurrent && <Chip label="Atual" size="small" color="success" />}
+                            </Stack>
+                            <Typography variant="caption" color="text.secondary">
+                              {session.userAgent}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>{new Date(session.lastActiveAt).toLocaleString()}</TableCell>
+                          <TableCell>{session.authMethod}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </TableContainer>
-              ) : (
-                <Typography color="text.secondary">Sem alterações registradas.</Typography>
-              )}
+              </Stack>
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined" sx={SECTION_CARD_SX}>
+            <CardContent sx={SECTION_CONTENT_SX}>
+              <Stack spacing={2}>
+                <Typography variant="h6">Autenticação em dois fatores (2FA)</Typography>
+                <Typography color="text.secondary">
+                  Ative o segundo fator por e-mail ou app autenticador para elevar o nível de proteção do login.
+                </Typography>
+
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Switch
+                      checked={Boolean(twoFactor?.enabled)}
+                      onChange={(_, checked) => {
+                        const result = update2FASettings({ enabled: checked, method });
+
+                        if (!result.error) {
+                          setFeedback(checked ? '2FA ativado com sucesso.' : '2FA desativado com sucesso.');
+                        }
+                      }}
+                    />
+                    <Typography>{twoFactor?.enabled ? '2FA habilitado' : '2FA desabilitado'}</Typography>
+                  </Stack>
+
+                  <FormControl sx={{ minWidth: 220 }} size="small" disabled={!twoFactor?.enabled}>
+                    <InputLabel id="two-factor-method-label">Método</InputLabel>
+                    <Select
+                      labelId="two-factor-method-label"
+                      label="Método"
+                      value={method}
+                      onChange={(event) => {
+                        const nextMethod = event.target.value;
+                        setMethod(nextMethod);
+                        const result = update2FASettings({ enabled: true, method: nextMethod });
+
+                        if (!result.error) {
+                          setFeedback(`Método de 2FA alterado para ${TWO_FACTOR_METHOD_LABELS[nextMethod]}.`);
+                        }
+                      }}
+                    >
+                      <MenuItem value="email">E-mail</MenuItem>
+                      <MenuItem value="authenticator">App autenticador</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined" sx={SECTION_CARD_SX}>
+            <CardContent sx={SECTION_CONTENT_SX}>
+              <Stack spacing={2}>
+                <Typography variant="h6">Privacidade e consentimento</Typography>
+                <Typography color="text.secondary">
+                  Gerencie cookies, notificações e uso de dados analíticos conforme suas preferências de privacidade.
+                </Typography>
+
+                <Stack spacing={1}>
+                  {Object.entries(CONSENT_LABELS).map(([key, label]) => (
+                    <Stack key={key} direction="row" justifyContent="space-between" alignItems="center">
+                      <Typography>{label}</Typography>
+                      <Switch
+                        checked={Boolean(consents?.[key])}
+                        onChange={(_, checked) => handleConsentToggle(key, checked)}
+                      />
+                    </Stack>
+                  ))}
+                </Stack>
+
+                <FormControl size="small" sx={{ maxWidth: 280 }}>
+                  <InputLabel id="privacy-mode-label">Preferência de privacidade</InputLabel>
+                  <Select
+                    labelId="privacy-mode-label"
+                    label="Preferência de privacidade"
+                    value={consents?.privacyMode || 'balanced'}
+                    onChange={(event) => {
+                      updateConsents({ privacyMode: event.target.value });
+                      setFeedback(`Preferência de privacidade alterada para ${event.target.value}.`);
+                    }}
+                  >
+                    <MenuItem value="restricted">Restrita</MenuItem>
+                    <MenuItem value="balanced">Balanceada</MenuItem>
+                    <MenuItem value="personalized">Personalizada</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <Typography variant="caption" color="text.secondary">
+                  Última atualização:{' '}
+                  {consents?.updatedAt ? new Date(consents.updatedAt).toLocaleString() : 'Sem registro'}
+                </Typography>
+              </Stack>
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined" sx={SECTION_CARD_SX}>
+            <CardContent sx={SECTION_CONTENT_SX}>
+              <Stack spacing={2}>
+                <Typography variant="h6">LGPD e dados pessoais</Typography>
+                <Typography color="text.secondary">
+                  Exporte, solicite exclusão e acompanhe retenção de dados com trilha de consentimentos.
+                </Typography>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap">
+                  <Button variant="contained" onClick={handleExport}>
+                    Exportar dados pessoais
+                  </Button>
+                  <Button color="warning" variant="outlined" onClick={() => setDeactivationOpen(true)}>
+                    Desativar conta
+                  </Button>
+                  <Button color="error" variant="outlined" onClick={() => setDeletionOpen(true)}>
+                    Solicitar exclusão de conta
+                  </Button>
+                </Stack>
+
+                {deletionRequest && (
+                  <Alert severity="info">
+                    Solicitação em andamento ({new Date(deletionRequest.requestedAt).toLocaleString()}) - status:{' '}
+                    {deletionRequest.status}.
+                  </Alert>
+                )}
+
+                <Typography variant="body2" color="text.secondary">
+                  Política de retenção: {retentionPolicy?.retentionDays} dias ({retentionPolicy?.legalBasis}).
+                </Typography>
+
+                {!user?.isActive && <Alert severity="warning">Sua conta está desativada.</Alert>}
+              </Stack>
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined" sx={SECTION_CARD_SX}>
+            <CardContent sx={SECTION_CONTENT_SX}>
+              <Stack spacing={2}>
+                <Typography variant="h6">Segurança de dispositivos (fase avançada)</Typography>
+                <Typography color="text.secondary">
+                  Faça vinculação segura de dispositivos, rotação de credenciais e revogação em caso de comprometimento.
+                </Typography>
+
+                {trustedDevices.length === 0 ? (
+                  <Typography color="text.secondary">Nenhum dispositivo confiável cadastrado.</Typography>
+                ) : (
+                  <TableContainer component={Paper} elevation={0} sx={TABLE_CONTAINER_SX}>
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Nome</TableCell>
+                          <TableCell>Confiado em</TableCell>
+                          <TableCell>Credencial</TableCell>
+                          <TableCell align="right">Ações</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {trustedDevices.map((device) => (
+                          <TableRow key={device.id}>
+                            <TableCell>
+                              <Stack spacing={0.5}>
+                                <Typography variant="subtitle2">
+                                  {device.deviceName || 'Dispositivo sem nome'}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {device.userAgent}
+                                </Typography>
+                              </Stack>
+                            </TableCell>
+                            <TableCell>{new Date(device.trustedAt).toLocaleString()}</TableCell>
+                            <TableCell>v{device.credentialVersion || 1}</TableCell>
+                            <TableCell align="right">
+                              <Stack direction="row" justifyContent="flex-end" spacing={1} useFlexGap flexWrap="wrap">
+                                <Button size="small" variant="text" onClick={() => rotateDeviceCredential(device.id)}>
+                                  Rotacionar chave
+                                </Button>
+                                <Button
+                                  size="small"
+                                  color="warning"
+                                  variant="text"
+                                  onClick={() =>
+                                    revokeCompromised(device.id, 'Revogado por suspeita de comprometimento')
+                                  }
+                                >
+                                  Comprometido
+                                </Button>
+                                <Button
+                                  size="small"
+                                  color="error"
+                                  variant="text"
+                                  onClick={() => removeTrustedDevice(device.id)}
+                                >
+                                  Revogar
+                                </Button>
+                              </Stack>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Stack>
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined" sx={SECTION_CARD_SX}>
+            <CardContent sx={SECTION_CONTENT_SX}>
+              <Stack spacing={2}>
+                <Typography variant="h6">Registro de consentimentos</Typography>
+                {consentLogs?.length ? (
+                  <TableContainer component={Paper} elevation={0} sx={TABLE_CONTAINER_SX}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Data/Hora</TableCell>
+                          <TableCell>Alterações</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {consentLogs.slice(0, 10).map((entry) => (
+                          <TableRow key={entry.id}>
+                            <TableCell>{new Date(entry.changedAt).toLocaleString()}</TableCell>
+                            <TableCell>{Object.keys(entry.payload || {}).join(', ')}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <Typography color="text.secondary">Sem alterações registradas.</Typography>
+                )}
               </Stack>
             </CardContent>
           </Card>

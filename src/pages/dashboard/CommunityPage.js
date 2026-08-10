@@ -27,13 +27,7 @@ import {
 import Page from '../../components/Page';
 import Iconify from '../../components/Iconify';
 
-const interestFeeds = [
-  'Feed geral',
-  'Espécies',
-  'Tipo de cultivo',
-  'Local/regional',
-  'Usuários seguidos',
-];
+const interestFeeds = ['Feed geral', 'Espécies', 'Tipo de cultivo', 'Local/regional', 'Usuários seguidos'];
 
 const profileData = {
   name: 'Ana Oliveira',
@@ -203,7 +197,9 @@ export default function Blog() {
     const startIndex = (postsPage - 1) * POSTS_PER_PAGE;
     return posts.slice(startIndex, startIndex + POSTS_PER_PAGE);
   }, [posts, postsPage]);
-  const visibleBadges = showAllBadges ? profileData.achievements : profileData.achievements.slice(0, INITIAL_BADGES_VISIBLE);
+  const visibleBadges = showAllBadges
+    ? profileData.achievements
+    : profileData.achievements.slice(0, INITIAL_BADGES_VISIBLE);
 
   const toggleTag = (tag) => {
     setNewPost((previous) => ({
@@ -282,11 +278,7 @@ export default function Blog() {
                   ))}
                 </Stack>
                 {profileData.achievements.length > INITIAL_BADGES_VISIBLE && (
-                  <Button
-                    size="small"
-                    sx={{ mt: 1 }}
-                    onClick={() => setShowAllBadges((previous) => !previous)}
-                  >
+                  <Button size="small" sx={{ mt: 1 }} onClick={() => setShowAllBadges((previous) => !previous)}>
                     {showAllBadges ? 'Ver menos' : 'Ver mais'}
                   </Button>
                 )}
@@ -395,7 +387,10 @@ export default function Blog() {
                         item.id === id
                           ? {
                               ...item,
-                              comments: [...item.comments, { id: Date.now(), user: profileData.name, text, replies: [] }],
+                              comments: [
+                                ...item.comments,
+                                { id: Date.now(), user: profileData.name, text, replies: [] },
+                              ],
                             }
                           : item
                       )

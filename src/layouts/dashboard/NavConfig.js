@@ -1,25 +1,19 @@
-// component
 import Iconify from '../../components/Iconify';
 
-// ----------------------------------------------------------------------
-
-const getIcon = (name) => <Iconify icon={name} width={22} height={22} />;
+const icon = (name) => <Iconify icon={name} width={21} height={21} />;
 
 const navConfig = [
-  { title: 'monitoramento', path: '/dashboard/app', icon: getIcon('eva:pie-chart-2-fill') },
-  { title: 'administração', path: '/dashboard/admin', icon: getIcon('eva:people-fill') },
-  { title: 'catálogo de espécies', path: '/dashboard/products', icon: getIcon('eva:shopping-bag-fill') },
-  { title: 'onboarding', path: '/dashboard/onboarding', icon: getIcon('eva:navigation-2-fill') },
-  { title: 'hortelan 360', path: '/dashboard/hortelan-360', icon: getIcon('eva:layers-fill') },
-  { title: 'comunidade', path: '/dashboard/blog', icon: getIcon('eva:file-text-fill') },
-  { title: 'central de alertas', path: '/dashboard/alertas', icon: getIcon('eva:bell-fill') },
-  { title: 'relatórios', path: '/dashboard/relatorios', icon: getIcon('eva:bar-chart-2-fill') },
-  { title: 'assinaturas', path: '/dashboard/assinaturas', icon: getIcon('eva:credit-card-fill') },
-  { title: 'integrações', path: '/dashboard/integracoes', icon: getIcon('eva:settings-2-fill') },
-  { title: 'central de ajuda', path: '/dashboard/suporte', icon: getIcon('eva:question-mark-circle-fill') },
-  { title: 'status da plataforma', path: '/dashboard/status', icon: getIcon('eva:activity-fill') },
-  { title: 'segurança', path: '/dashboard/security', icon: getIcon('eva:shield-fill') },
-  { title: 'perfil', path: '/dashboard/profile', icon: getIcon('eva:person-fill') },
+  { title: 'Monitoramento', path: '/dashboard/app', icon: icon('eva:activity-fill') },
+  { title: 'Alertas', path: '/dashboard/alertas', icon: icon('eva:bell-fill') },
+  { title: 'Relatorios', path: '/dashboard/relatorios', icon: icon('eva:bar-chart-2-fill') },
+  { title: 'Especies', path: '/dashboard/products', icon: icon('eva:book-open-fill') },
+  { title: 'Hortelan 360', path: '/dashboard/hortelan-360', icon: icon('eva:layers-fill') },
+  { title: 'Integracoes', path: '/dashboard/integracoes', icon: icon('eva:link-2-fill') },
+  { title: 'Comunidade', path: '/dashboard/blog', icon: icon('eva:message-square-fill') },
+  { title: 'Administracao', path: '/dashboard/admin', icon: icon('eva:people-fill') },
+  { title: 'Status', path: '/dashboard/status', icon: icon('eva:activity-outline') },
+  { title: 'Seguranca', path: '/dashboard/security', icon: icon('eva:shield-fill') },
+  { title: 'Perfil', path: '/dashboard/profile', icon: icon('eva:person-fill') },
 ];
 
 export default navConfig;

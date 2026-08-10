@@ -1,0 +1,7 @@
+node_modules
+build
+build-ssr
+coverage
+playwright-report
+test-results
+public/static/media

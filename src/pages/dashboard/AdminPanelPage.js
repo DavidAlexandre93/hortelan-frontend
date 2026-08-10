@@ -107,8 +107,8 @@ export default function User() {
         <Stack spacing={1} mb={4}>
           <Typography variant="h4">Central de Gestão (Admin)</Typography>
           <Typography variant="body2" color="text.secondary">
-            Painel único para operação de usuários, dispositivos IoT, conteúdo, comunidade, loja,
-            faturamento e observabilidade.
+            Painel único para operação de usuários, dispositivos IoT, conteúdo, comunidade, loja, faturamento e
+            observabilidade.
           </Typography>
         </Stack>
 
@@ -242,11 +242,7 @@ export default function User() {
             >
               <Stack spacing={1.2}>
                 {communityQueue.map((entry) => (
-                  <Paper
-                    key={entry.item}
-                    variant="outlined"
-                    sx={{ borderRadius: 2, p: 1.5 }}
-                  >
+                  <Paper key={entry.item} variant="outlined" sx={{ borderRadius: 2, p: 1.5 }}>
                     <Typography variant="subtitle2">{entry.item}</Typography>
                     <Typography variant="body2" color="text.secondary">
                       {entry.acao} • Severidade {entry.severidade}

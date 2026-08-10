@@ -29,20 +29,20 @@ const GREY = {
 };
 
 const PRIMARY = {
-  lighter: '#CCFBEF',
-  light: '#5BE4C4',
-  main: '#16B88A',
-  dark: '#0A7A60',
-  darker: '#044B3E',
+  lighter: '#DDF4E8',
+  light: '#68C89A',
+  main: '#158052',
+  dark: '#0B603C',
+  darker: '#073E29',
   contrastText: '#fff',
 };
 
 const SECONDARY = {
-  lighter: '#D9ECFF',
-  light: '#6DBDFF',
-  main: '#2B7FFF',
-  dark: '#1451C5',
-  darker: '#0A327D',
+  lighter: '#E4F1FF',
+  light: '#78B6EA',
+  main: '#2878B8',
+  dark: '#185885',
+  darker: '#103B59',
   contrastText: '#fff',
 };
 
@@ -121,7 +121,7 @@ function getPalette(mode = 'light') {
     },
     background: {
       paper: isLight ? '#fff' : GREY[800],
-      default: isLight ? '#F2F8F6' : GREY[900],
+      default: isLight ? '#F5F7F5' : GREY[900],
       neutral: isLight ? GREY[200] : alpha(GREY[500], 0.12),
     },
     action: {

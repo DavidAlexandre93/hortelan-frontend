@@ -1,5 +1,6 @@
 {
-  "generatedAt": "2026-03-06T03:06:24.413Z",
+  "generatedAt": "2026-08-10T05:16:01.118Z",
+  "runtime": "v20.20.2",
   "targetSLO": {
     "frontendRouteP95Ms": 1500,
     "frontendRouteP99Ms": 2500,
@@ -9,58 +10,78 @@
   "checks": {
     "build": {
       "exitCode": 0,
-      "durationMs": 26714,
-      "durationSeconds": 26.71
+      "durationMs": 24121,
+      "durationSeconds": 24.12
     },
     "frontendAudit": {
       "exitCode": 0,
-      "durationMs": 670,
-      "durationSeconds": 0.67
+      "durationMs": 2019,
+      "durationSeconds": 2.02
     }
   },
   "distSummary": {
-    "bundleCount": 36,
-    "totalSizeKb": 4607.85,
+    "html": {
+      "sizeKb": 1.72,
+      "gzipKb": 0.69
+    },
+    "bundleCount": 26,
+    "totalSizeKb": 1608.45,
+    "totalGzipKb": 482.6,
+    "initialGraph": {
+      "entry": "assets/index-3P3_HMMp.js",
+      "imports": ["assets/mui-Bg2N8oRv.js", "assets/react-BxoLbgFN.js", "assets/sentry-KfzmHCR5.js"],
+      "css": ["assets/index-DGSl5OhR.css"]
+    },
     "topBundles": [
       {
-        "file": "build/assets/index-BaKy9Qds.js",
-        "sizeKb": 2992.25
+        "file": "build/assets/index-3P3_HMMp.js",
+        "sizeKb": 483.75,
+        "gzipKb": 151.55
       },
       {
-        "file": "build/assets/charts-mRm2UTag.js",
-        "sizeKb": 528.7
+        "file": "build/assets/charts-CrECIgEX.js",
+        "sizeKb": 414.48,
+        "gzipKb": 113.94
       },
       {
-        "file": "build/assets/mui-B3NNhHv8.js",
-        "sizeKb": 363.68
+        "file": "build/assets/mui-Bg2N8oRv.js",
+        "sizeKb": 389.29,
+        "gzipKb": 112.19
       },
       {
-        "file": "build/assets/react-CcW4e7yl.js",
-        "sizeKb": 160.28
+        "file": "build/assets/MonitoringPage-CXP86gkJ.js",
+        "sizeKb": 84.59,
+        "gzipKb": 23.55
       },
       {
-        "file": "build/assets/MonitoringPage-Ccl4OWP2.js",
-        "sizeKb": 159.36
+        "file": "build/assets/react-BxoLbgFN.js",
+        "sizeKb": 45.76,
+        "gzipKb": 15.98
       },
       {
-        "file": "build/assets/motion-Bbkfe1uD.js",
-        "sizeKb": 115.86
+        "file": "build/assets/Hortelan360Page-Dl1uAgcg.js",
+        "sizeKb": 21.54,
+        "gzipKb": 8.4
       },
       {
-        "file": "build/assets/FormProvider-CnfXjjEA.js",
-        "sizeKb": 45.04
+        "file": "build/assets/SpeciesCatalogPage-D-s-ZYVc.js",
+        "sizeKb": 20.76,
+        "gzipKb": 6.57
       },
       {
-        "file": "build/assets/identity-BrVR6TWu.js",
-        "sizeKb": 35.55
+        "file": "build/assets/ProfileSettingsPage-BhP5R_Ys.js",
+        "sizeKb": 18.91,
+        "gzipKb": 5.07
       },
       {
-        "file": "build/assets/SpeciesCatalogPage-qHF91-b1.js",
-        "sizeKb": 21.47
+        "file": "build/assets/PlatformStatusPage-C9KjtK5M.js",
+        "sizeKb": 17.53,
+        "gzipKb": 5.89
       },
       {
-        "file": "build/assets/ProfileSettingsPage-D5VY27YF.js",
-        "sizeKb": 19.65
+        "file": "build/assets/OnboardingPage-CGp_gILn.js",
+        "sizeKb": 14.64,
+        "gzipKb": 4.64
       }
     ]
   }

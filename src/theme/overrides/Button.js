@@ -5,6 +5,8 @@ export default function Button(theme) {
     MuiButton: {
       styleOverrides: {
         root: {
+          minHeight: 44,
+          borderRadius: theme.shape.borderRadius,
           '&:hover': {
             boxShadow: 'none',
           },
@@ -20,10 +22,10 @@ export default function Button(theme) {
           },
         },
         containedPrimary: {
-          boxShadow: theme.customShadows.primary,
+          boxShadow: 'none',
         },
         containedSecondary: {
-          boxShadow: theme.customShadows.secondary,
+          boxShadow: 'none',
         },
         outlinedInherit: {
           border: `1px solid ${theme.palette.grey[500_32]}`,

@@ -1,34 +1,9 @@
 import PropTypes from 'prop-types';
-import merge from 'lodash/merge';
-import ReactApexChart from 'react-apexcharts';
-// @mui
-import { useTheme, styled } from '@mui/material/styles';
-import { Card, CardHeader } from '@mui/material';
-// utils
+import { useTheme } from '@mui/material/styles';
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Box, Card, CardHeader } from '@mui/material';
 import { fNumber } from '../../../utils/formatNumber';
-// components
-import { BaseOptionChart } from '../../../components/chart';
-
-// ----------------------------------------------------------------------
-
-const CHART_HEIGHT = 372;
-const LEGEND_HEIGHT = 72;
-
-const ChartWrapperStyle = styled('div')(({ theme }) => ({
-  height: CHART_HEIGHT,
-  marginTop: theme.spacing(5),
-  '& .apexcharts-canvas svg': { height: CHART_HEIGHT },
-  '& .apexcharts-canvas svg,.apexcharts-canvas foreignObject': {
-    overflow: 'visible',
-  },
-  '& .apexcharts-legend': {
-    height: LEGEND_HEIGHT,
-    alignContent: 'center',
-    position: 'relative !important',
-    borderTop: `solid 1px ${theme.palette.divider}`,
-    top: `calc(${CHART_HEIGHT - LEGEND_HEIGHT}px) !important`,
-  },
-}));
+import { AccessibleChart, ChartTooltip } from '../../../components/chart';
 
 // ----------------------------------------------------------------------
 
@@ -41,38 +16,28 @@ AppCurrentVisits.propTypes = {
 
 export default function AppCurrentVisits({ title, subheader, chartColors, chartData, ...other }) {
   const theme = useTheme();
-
-  const chartLabels = chartData.map((i) => i.label);
-
-  const chartSeries = chartData.map((i) => i.value);
-
-  const chartOptions = merge(BaseOptionChart(), {
-    colors: chartColors,
-    labels: chartLabels,
-    stroke: { colors: [theme.palette.background.paper] },
-    legend: { floating: true, horizontalAlign: 'center' },
-    dataLabels: { enabled: true, dropShadow: { enabled: false } },
-    tooltip: {
-      fillSeriesColor: false,
-      y: {
-        formatter: (seriesName) => fNumber(seriesName),
-        title: {
-          formatter: (seriesName) => `${seriesName}`,
-        },
-      },
-    },
-    plotOptions: {
-      pie: { donut: { labels: { show: false } } },
-    },
-  });
+  const colors = chartColors || [theme.palette.primary.main, theme.palette.warning.main, theme.palette.info.main];
+  const summary = chartData.map((item) => `${item.label}: ${fNumber(item.value)}`).join('. ');
 
   return (
     <Card {...other}>
       <CardHeader title={title} subheader={subheader} />
 
-      <ChartWrapperStyle dir="ltr">
-        <ReactApexChart type="pie" series={chartSeries} options={chartOptions} height={280} />
-      </ChartWrapperStyle>
+      <Box sx={{ px: 2, pt: 2, pb: 1 }} dir="ltr">
+        <AccessibleChart label={`${title}: gráfico de distribuição`} summary={summary} height={340}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart accessibilityLayer>
+              <Pie data={chartData} dataKey="value" nameKey="label" innerRadius={58} outerRadius={96} paddingAngle={2}>
+                {chartData.map((item, index) => (
+                  <Cell key={item.label} fill={colors[index % colors.length]} stroke={theme.palette.background.paper} />
+                ))}
+              </Pie>
+              <Tooltip content={<ChartTooltip valueFormatter={fNumber} />} />
+              <Legend verticalAlign="bottom" />
+            </PieChart>
+          </ResponsiveContainer>
+        </AccessibleChart>
+      </Box>
     </Card>
   );
 }

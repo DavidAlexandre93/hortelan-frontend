@@ -72,7 +72,7 @@ const INTEGRATION_SECTIONS = [
 ];
 
 const phaseChipProps = {
-  active: { label: 'Disponível', color: 'success' },
+  active: { label: 'Configuração local', color: 'info' },
   beta: { label: 'Beta', color: 'warning' },
   future: { label: 'Futuro', color: 'default' },
 };
@@ -121,7 +121,10 @@ export default function Integrations() {
       return;
     }
 
-    setFeedback({ type: 'success', message: 'Configurações de integrações salvas com sucesso.' });
+    setFeedback({
+      type: 'success',
+      message: 'Preferências salvas. Nenhuma conexão externa foi iniciada por esta demonstração.',
+    });
   };
 
   return (
@@ -133,14 +136,16 @@ export default function Integrations() {
               Integrações externas
             </Typography>
             <Typography color="text.secondary">
-              Configure e acompanhe integrações estratégicas para clima, pagamentos, logística, mensageria e ecossistema IoT.
+              Configure e acompanhe integrações estratégicas para clima, pagamentos, logística, mensageria e ecossistema
+              IoT.
             </Typography>
           </Box>
 
           {feedback && <Alert severity={feedback.type}>{feedback.message}</Alert>}
 
-          <Alert severity="info">
-            Este painel centraliza o roadmap 23.x. Integrações em fase futura podem ser pré-configuradas para facilitar ativação quando disponíveis.
+          <Alert severity="warning">
+            Ambiente ilustrativo: os controles registram preferências locais, mas não conectam serviços externos. Itens
+            futuros permanecem indisponíveis.
           </Alert>
 
           <Grid container spacing={2} alignItems="stretch">
@@ -176,7 +181,12 @@ export default function Integrations() {
                                 <Stack spacing={0.75}>
                                   <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
                                     <Typography variant="body2">{item.label}</Typography>
-                                    <Chip size="small" label={phaseProps.label} color={phaseProps.color} variant="outlined" />
+                                    <Chip
+                                      size="small"
+                                      label={phaseProps.label}
+                                      color={phaseProps.color}
+                                      variant="outlined"
+                                    />
                                   </Stack>
                                   {isFuture && (
                                     <Typography variant="caption" color="text.secondary">
@@ -184,7 +194,13 @@ export default function Integrations() {
                                     </Typography>
                                   )}
                                 </Stack>
-                                <Switch checked={Boolean(enabledById[item.id])} onChange={() => handleToggle(item.id)} color="primary" />
+                                <Switch
+                                  checked={Boolean(enabledById[item.id])}
+                                  onChange={() => handleToggle(item.id)}
+                                  color="primary"
+                                  disabled={isFuture}
+                                  inputProps={{ 'aria-label': `${item.label}: preferência local` }}
+                                />
                               </Stack>
                             </Paper>
                           );

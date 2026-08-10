@@ -1,9 +1,9 @@
-import * as Yup from "yup";
-import { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import * as Yup from 'yup';
+import { useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 // form
-import { useForm, Controller } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
 import {
   Alert,
@@ -15,50 +15,42 @@ import {
   InputAdornment,
   FormControlLabel,
   FormHelperText,
-} from "@mui/material";
-import { LoadingButton } from "@mui/lab";
+} from '@mui/material';
 // components
-import Iconify from "../../../components/Iconify";
-import { FormProvider, RHFTextField } from "../../../components/hook-form";
-import { evaluatePasswordPolicy } from "../../../auth/securityPolicy";
-import { registerWithBackend } from "../../../services/authApi";
+import Iconify from '../../../components/Iconify';
+import { FormProvider, RHFTextField } from '../../../components/hook-form';
+import { evaluatePasswordPolicy } from '../../../auth/securityPolicy';
+import { registerWithBackend } from '../../../services/authApi';
 
 // ----------------------------------------------------------------------
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const [verificationEmail, setVerificationEmail] = useState("");
-  const [submitError, setSubmitError] = useState("");
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [submitError, setSubmitError] = useState('');
 
   const RegisterSchema = Yup.object().shape({
-    name: Yup.string().required("Nome é obrigatório"),
-    email: Yup.string()
-      .email("Informe um e-mail válido")
-      .required("E-mail é obrigatório"),
+    name: Yup.string().required('Nome é obrigatório'),
+    email: Yup.string().email('Informe um e-mail válido').required('E-mail é obrigatório'),
     phone: Yup.string()
       .nullable()
-      .test("phone-format", "Informe um telefone válido", (value) => {
+      .test('phone-format', 'Informe um telefone válido', (value) => {
         if (!value) return true;
 
-        const digits = value.replace(/\D/g, "");
+        const digits = value.replace(/\D/g, '');
         return digits.length >= 10 && digits.length <= 11;
       }),
     password: Yup.string()
-      .required("Senha é obrigatória")
-      .test("password-policy", "Senha fora da política de segurança", (value) =>
-        evaluatePasswordPolicy(value).valid
-      ),
-    acceptedTerms: Yup.bool().oneOf(
-      [true],
-      "Você precisa aceitar os termos para continuar"
-    ),
+      .required('Senha é obrigatória')
+      .test('password-policy', 'Senha fora da política de segurança', (value) => evaluatePasswordPolicy(value).valid),
+    acceptedTerms: Yup.bool().oneOf([true], 'Você precisa aceitar os termos para continuar'),
   });
 
   const defaultValues = {
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
     acceptedTerms: false,
   };
 
@@ -75,14 +67,14 @@ export default function RegisterForm() {
   } = methods;
 
   const onSubmit = async ({ name, email, phone, password, acceptedTerms }) => {
-    setSubmitError("");
+    setSubmitError('');
 
     try {
       await registerWithBackend({ name, email, phone, password, acceptedTerms });
       setVerificationEmail(email);
       reset();
     } catch (error) {
-      setSubmitError(error.message || "Não foi possível concluir o cadastro.");
+      setSubmitError(error.message || 'Não foi possível concluir o cadastro.');
     }
   };
 
@@ -91,17 +83,11 @@ export default function RegisterForm() {
       <Stack spacing={3}>
         {submitError && <Alert severity="error">{submitError}</Alert>}
         <Alert severity="success">
-          Cadastro realizado com sucesso! Enviamos um link de verificação para{" "}
-          <strong>{verificationEmail}</strong>. Confirme seu e-mail para ativar
-          sua conta.
+          Cadastro realizado com sucesso! Enviamos um link de verificação para <strong>{verificationEmail}</strong>.
+          Confirme seu e-mail para ativar sua conta.
         </Alert>
 
-        <Button
-          component={RouterLink}
-          to="/login"
-          size="large"
-          variant="contained"
-        >
+        <Button component={RouterLink} to="/login" size="large" variant="contained">
           Ir para login
         </Button>
       </Stack>
@@ -116,26 +102,17 @@ export default function RegisterForm() {
 
         <RHFTextField name="email" label="E-mail" />
 
-        <RHFTextField
-          name="phone"
-          label="Telefone (opcional)"
-          placeholder="(11) 99999-9999"
-        />
+        <RHFTextField name="phone" label="Telefone (opcional)" placeholder="(11) 99999-9999" />
 
         <RHFTextField
           name="password"
           label="Senha"
-          type={showPassword ? "text" : "password"}
+          type={showPassword ? 'text' : 'password'}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton
-                  edge="end"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  <Iconify
-                    icon={showPassword ? "eva:eye-fill" : "eva:eye-off-fill"}
-                  />
+                <IconButton edge="end" onClick={() => setShowPassword(!showPassword)}>
+                  <Iconify icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
                 </IconButton>
               </InputAdornment>
             ),
@@ -153,11 +130,11 @@ export default function RegisterForm() {
                 control={<Checkbox {...field} checked={field.value} />}
                 label={
                   <span>
-                    Eu aceito os{" "}
+                    Eu aceito os{' '}
                     <Link underline="always" color="text.primary" href="#">
                       Termos de Uso
-                    </Link>{" "}
-                    e a{" "}
+                    </Link>{' '}
+                    e a{' '}
                     <Link underline="always" color="text.primary" href="#">
                       Política de Privacidade
                     </Link>
@@ -165,24 +142,14 @@ export default function RegisterForm() {
                   </span>
                 }
               />
-              {errors.acceptedTerms && (
-                <FormHelperText error>
-                  {errors.acceptedTerms.message}
-                </FormHelperText>
-              )}
+              {errors.acceptedTerms && <FormHelperText error>{errors.acceptedTerms.message}</FormHelperText>}
             </Stack>
           )}
         />
 
-        <LoadingButton
-          fullWidth
-          size="large"
-          type="submit"
-          variant="contained"
-          loading={isSubmitting}
-        >
+        <Button fullWidth size="large" type="submit" variant="contained" loading={isSubmitting}>
           Criar conta
-        </LoadingButton>
+        </Button>
       </Stack>
     </FormProvider>
   );

@@ -1,37 +1,31 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Alert, Button, Stack } from '@mui/material';
+import { useState } from 'react';
+import { Alert, Button, Stack, Typography } from '@mui/material';
 import useAuth from '../../auth/useAuth';
 
 const ANON_COOKIE_KEY = 'hortelan-cookie-consent-anon';
 
 export default function CookieConsentBanner() {
   const { authenticated, consents, updateConsents } = useAuth();
-  const [hidden, setHidden] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const hasDecision =
+    typeof window === 'undefined' ||
+    (authenticated ? typeof consents?.cookies === 'boolean' : window.localStorage.getItem(ANON_COOKIE_KEY) !== null);
 
-  const hasDecision = useMemo(() => {
-    if (authenticated) {
-      return typeof consents?.cookies === 'boolean';
-    }
-
-    return localStorage.getItem(ANON_COOKIE_KEY) !== null;
-  }, [authenticated, consents?.cookies]);
-
-  useEffect(() => {
-    setHidden(hasDecision);
-  }, [hasDecision]);
-
-  if (hidden) {
+  if (dismissed || hasDecision) {
     return null;
   }
 
   const handleChoice = (accepted) => {
     if (authenticated) {
-      updateConsents({ cookies: accepted, analytics: accepted ? consents?.analytics ?? true : false });
+      updateConsents({ cookies: accepted, analytics: accepted ? (consents?.analytics ?? true) : false });
     } else {
-      localStorage.setItem(ANON_COOKIE_KEY, JSON.stringify({ cookies: accepted, updatedAt: new Date().toISOString() }));
+      localStorage.setItem(
+        ANON_COOKIE_KEY,
+        JSON.stringify({ cookies: accepted, analytics: accepted, updatedAt: new Date().toISOString() })
+      );
     }
 
-    setHidden(true);
+    setDismissed(true);
   };
 
   return (
@@ -39,23 +33,37 @@ export default function CookieConsentBanner() {
       severity="info"
       sx={{
         position: 'fixed',
-        bottom: 16,
-        left: 16,
-        right: 16,
+        bottom: { xs: 8, sm: 16 },
+        left: { xs: 8, sm: 16 },
+        right: { xs: 8, sm: 16 },
         zIndex: 1600,
+        alignItems: 'flex-start',
+        boxShadow: 12,
+        '& .MuiAlert-message': { width: '100%', py: 0.25 },
       }}
-      action={
-        <Stack direction="row" spacing={1}>
-          <Button color="inherit" size="small" onClick={() => handleChoice(false)}>
+    >
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={{ xs: 1.25, sm: 2 }}
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+      >
+        <Typography variant="body2" sx={{ flex: 1, lineHeight: 1.55 }}>
+          Utilizamos cookies para segurança e medição analítica. Escolha seu consentimento.
+        </Typography>
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+          <Button color="inherit" onClick={() => handleChoice(false)} sx={{ flex: { xs: 1, sm: 'initial' } }}>
             Recusar
           </Button>
-          <Button variant="contained" color="info" size="small" onClick={() => handleChoice(true)}>
+          <Button
+            variant="contained"
+            color="info"
+            onClick={() => handleChoice(true)}
+            sx={{ flex: { xs: 1, sm: 'initial' } }}
+          >
             Aceitar
           </Button>
         </Stack>
-      }
-    >
-      Utilizamos cookies para segurança e medição analítica. Escolha seu consentimento.
+      </Stack>
     </Alert>
   );
 }

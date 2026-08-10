@@ -2,15 +2,15 @@ name: CD - Multi-Environment Frontend Delivery
 
 on:
   workflow_run:
-    workflows: ["CI - Frontend Quality, Security and Reliability"]
+    workflows: ['CI - Frontend Quality, Security and Reliability']
     types: [completed]
     branches: [main, develop]
   workflow_dispatch:
     inputs:
       promote_to_production:
-        description: "Promote latest staging artifact to production"
+        description: 'Promote latest staging artifact to production'
         required: false
-        default: "false"
+        default: 'false'
 
 permissions:
   contents: read

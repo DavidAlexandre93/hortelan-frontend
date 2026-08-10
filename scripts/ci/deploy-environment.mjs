@@ -1,43 +1,35 @@
-import fs from "node:fs";
+import fs from 'node:fs';
 
 const [environment] = process.argv.slice(2);
 
 if (!environment) {
-  console.error(
-    "Usage: node scripts/ci/deploy-environment.mjs <development|staging|production>",
-  );
+  console.error('Usage: node scripts/ci/deploy-environment.mjs <development|staging|production>');
   process.exit(1);
 }
 
-if (!fs.existsSync("build")) {
-  console.error(
-    "Build artifact not found at ./build. Run build before deploy.",
-  );
+if (!fs.existsSync('build')) {
+  console.error('Build artifact not found at ./build. Run build before deploy.');
   process.exit(1);
 }
 
 const webhookUrl = process.env.DEPLOY_WEBHOOK_URL;
-const commitSha = process.env.GITHUB_SHA ?? "local";
+const commitSha = process.env.GITHUB_SHA ?? 'local';
 
 if (!webhookUrl) {
-  console.log(
-    `[dry-run] Deploy for ${environment} skipped: DEPLOY_WEBHOOK_URL is not configured.`,
-  );
+  console.log(`[dry-run] Deploy for ${environment} skipped: DEPLOY_WEBHOOK_URL is not configured.`);
   process.exit(0);
 }
 
 const response = await fetch(webhookUrl, {
-  method: "POST",
+  method: 'POST',
   headers: {
-    "Content-Type": "application/json",
-    Authorization: process.env.DEPLOY_WEBHOOK_TOKEN
-      ? `Bearer ${process.env.DEPLOY_WEBHOOK_TOKEN}`
-      : "",
+    'Content-Type': 'application/json',
+    Authorization: process.env.DEPLOY_WEBHOOK_TOKEN ? `Bearer ${process.env.DEPLOY_WEBHOOK_TOKEN}` : '',
   },
   body: JSON.stringify({
     environment,
     commitSha,
-    source: "github-actions",
+    source: 'github-actions',
   }),
 });
 

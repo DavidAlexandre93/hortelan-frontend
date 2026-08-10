@@ -18,7 +18,7 @@ function responsiveFontSizes({ sm, md, lg }) {
   };
 }
 
-const FONT_PRIMARY = 'Public Sans, sans-serif';
+const FONT_PRIMARY = '"Public Sans", Arial, sans-serif';
 
 const typography = {
   fontFamily: FONT_PRIMARY,
@@ -87,14 +87,15 @@ const typography = {
     fontWeight: 700,
     lineHeight: 1.5,
     fontSize: pxToRem(12),
-    letterSpacing: 1.1,
+    letterSpacing: 0,
     textTransform: 'uppercase',
   },
   button: {
     fontWeight: 700,
     lineHeight: 24 / 14,
     fontSize: pxToRem(14),
-    textTransform: 'capitalize',
+    letterSpacing: 0,
+    textTransform: 'none',
   },
 };
 

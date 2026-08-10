@@ -21,6 +21,9 @@ const SESSION_IDLE_TIMEOUT_MINUTES = 30;
 const LOGIN_RATE_LIMIT_WINDOW_MINUTES = 10;
 const LOGIN_RATE_LIMIT_MAX_ATTEMPTS = 5;
 const DATA_RETENTION_DAYS = 365;
+const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL || 'demo@hortelan.local';
+const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD || '';
+const DEMO_ENABLED = import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true';
 
 const GARDEN_ROLE_DEFAULT_PERMISSIONS = {
   owner: { automation: true, purchases: true, reports: true, community: true },
@@ -65,89 +68,91 @@ const normalizeGardenAccessControl = (accessControl = {}) => ({
   })),
 });
 
-const USERS = [
-  {
-    id: 'admin-1',
-    email: 'davidfernandes@hortelanagtech.com',
-    password: 'admin',
-    name: 'Administrador Hortelan',
-    role: 'administrator',
-    photoURL: '',
-    bio: 'Cultivando alimentos e tecnologia para uma horta mais inteligente.',
-    preferences: {
-      language: 'pt-BR',
-      measurementUnit: 'métrico',
-      timezone: 'America/Sao_Paulo',
-    },
-    notifications: {
-      irrigationAlerts: true,
-      pestAlerts: true,
-      weatherAlerts: true,
-      communityUpdates: false,
-      marketing: false,
-    },
-    savedAddresses: [
+const USERS = DEMO_ENABLED
+  ? [
       {
-        id: 'address-admin-1',
-        label: 'Casa',
-        addressLine: 'Rua das Hortas, 123 - São Paulo/SP',
-      },
-    ],
-    cultivationLevel: 'intermediario',
-    gardens: [
-      {
-        id: 'garden-admin-1',
-        name: 'Horta da varanda',
-        gardenType: 'vaso',
-        location: 'São Paulo/SP - Vila Mariana',
+        id: 'admin-1',
+        email: DEMO_EMAIL,
+        password: DEMO_PASSWORD,
+        name: 'Administrador Hortelan',
+        role: 'administrator',
         photoURL: '',
-        sectors: [
+        bio: 'Cultivando alimentos e tecnologia para uma horta mais inteligente.',
+        preferences: {
+          language: 'pt-BR',
+          measurementUnit: 'métrico',
+          timezone: 'America/Sao_Paulo',
+        },
+        notifications: {
+          irrigationAlerts: true,
+          pestAlerts: true,
+          weatherAlerts: true,
+          communityUpdates: false,
+          marketing: false,
+        },
+        savedAddresses: [
           {
-            id: 'sector-admin-1',
-            name: 'Canteiro 1',
-            dimensions: '2m x 1m',
-            sectorType: 'sol_pleno',
-          },
-          {
-            id: 'sector-admin-2',
-            name: 'Bancada A',
-            dimensions: '',
-            sectorType: 'meia_sombra',
+            id: 'address-admin-1',
+            label: 'Casa',
+            addressLine: 'Rua das Hortas, 123 - São Paulo/SP',
           },
         ],
-      },
-    ],
-    subscription: {
-      plan: 'free',
-      status: 'active',
-      billingCycle: 'monthly',
-      renewalDate: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString(),
-      seats: 1,
-      limits: {
-        gardens: 1,
-        devices: 2,
-        dataHistoryDays: 30,
-        aiPhotoDiagnostics: 10,
-        advancedExports: 1,
-      },
-      usage: {
-        gardens: 1,
-        devices: 1,
-        aiPhotoDiagnostics: 3,
-        advancedExports: 0,
-      },
-      billingHistory: [
-        {
-          id: 'invoice-admin-1-001',
-          date: new Date().toISOString(),
-          description: 'Plano gratuito',
-          amount: 0,
-          status: 'paid',
+        cultivationLevel: 'intermediario',
+        gardens: [
+          {
+            id: 'garden-admin-1',
+            name: 'Horta da varanda',
+            gardenType: 'vaso',
+            location: 'São Paulo/SP - Vila Mariana',
+            photoURL: '',
+            sectors: [
+              {
+                id: 'sector-admin-1',
+                name: 'Canteiro 1',
+                dimensions: '2m x 1m',
+                sectorType: 'sol_pleno',
+              },
+              {
+                id: 'sector-admin-2',
+                name: 'Bancada A',
+                dimensions: '',
+                sectorType: 'meia_sombra',
+              },
+            ],
+          },
+        ],
+        subscription: {
+          plan: 'free',
+          status: 'active',
+          billingCycle: 'monthly',
+          renewalDate: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString(),
+          seats: 1,
+          limits: {
+            gardens: 1,
+            devices: 2,
+            dataHistoryDays: 30,
+            aiPhotoDiagnostics: 10,
+            advancedExports: 1,
+          },
+          usage: {
+            gardens: 1,
+            devices: 1,
+            aiPhotoDiagnostics: 3,
+            advancedExports: 0,
+          },
+          billingHistory: [
+            {
+              id: 'invoice-admin-1-001',
+              date: new Date().toISOString(),
+              description: 'Plano gratuito',
+              amount: 0,
+              status: 'paid',
+            },
+          ],
         },
-      ],
-    },
-  },
-];
+      },
+    ]
+  : [];
 
 const buildSafeUser = (user) => ({
   id: user.id,
@@ -217,35 +222,41 @@ const buildSafeUser = (user) => ({
   },
 });
 
-const INITIAL_PASSWORD_HISTORY = [
-  {
-    id: `pwd-history-${Date.now()}`,
-    userId: 'admin-1',
-    userEmail: 'davidfernandes@hortelanagtech.com',
-    changedAt: new Date().toISOString(),
-    method: 'seed',
-    changedBy: 'system',
-  },
-];
+const INITIAL_PASSWORD_HISTORY = DEMO_ENABLED
+  ? [
+      {
+        id: `pwd-history-${Date.now()}`,
+        userId: 'admin-1',
+        userEmail: DEMO_EMAIL,
+        changedAt: new Date().toISOString(),
+        method: 'seed',
+        changedBy: 'system',
+      },
+    ]
+  : [];
 
-const INITIAL_MFA_SETTINGS = {
-  'admin-1': {
-    enabled: true,
-    method: 'email',
-  },
-};
+const INITIAL_MFA_SETTINGS = DEMO_ENABLED
+  ? {
+      'admin-1': {
+        enabled: true,
+        method: 'email',
+      },
+    }
+  : {};
 
-const INITIAL_CONSENTS = {
-  'admin-1': {
-    cookies: true,
-    marketing: false,
-    analytics: true,
-    communications: true,
-    notifications: false,
-    privacyMode: 'balanced',
-    updatedAt: new Date().toISOString(),
-  },
-};
+const INITIAL_CONSENTS = DEMO_ENABLED
+  ? {
+      'admin-1': {
+        cookies: true,
+        marketing: false,
+        analytics: true,
+        communications: true,
+        notifications: false,
+        privacyMode: 'balanced',
+        updatedAt: new Date().toISOString(),
+      },
+    }
+  : {};
 
 const getLocalJson = (key, fallback) => {
   const value = localStorage.getItem(key);
@@ -272,7 +283,8 @@ const setCurrentSessionId = (sessionId, persistent) => {
   localStorage.removeItem(SESSION_STORAGE_KEY);
 };
 
-const getCurrentSessionId = () => sessionStorage.getItem(SESSION_STORAGE_KEY) || localStorage.getItem(SESSION_STORAGE_KEY);
+const getCurrentSessionId = () =>
+  sessionStorage.getItem(SESSION_STORAGE_KEY) || localStorage.getItem(SESSION_STORAGE_KEY);
 
 const clearCurrentSessionId = () => {
   localStorage.removeItem(SESSION_STORAGE_KEY);
@@ -330,7 +342,6 @@ const getAccountDeletionRequestsStore = () => getLocalJson(ACCOUNT_DELETION_REQU
 const saveAccountDeletionRequestsStore = (requests) => {
   localStorage.setItem(ACCOUNT_DELETION_REQUESTS_KEY, JSON.stringify(requests));
 };
-
 
 const getConsentLogsStore = () => getLocalJson(CONSENT_LOGS_KEY, []);
 
@@ -443,8 +454,9 @@ const getCurrentSession = () => {
 
   const lastActivityMs = new Date(session.lastActiveAt || session.createdAt).getTime();
   const timedOut = Date.now() - lastActivityMs > SESSION_IDLE_TIMEOUT_MINUTES * 60 * 1000;
+  const expired = session.expiresAt ? new Date(session.expiresAt).getTime() <= Date.now() : false;
 
-  if (timedOut) {
+  if (timedOut || expired) {
     saveActiveSessions(sessions.filter((item) => item.id !== sessionId));
     clearCurrentSessionId();
     return null;
@@ -481,10 +493,7 @@ const isTrustedDeviceForUser = (userId, deviceId) => {
   const now = Date.now();
 
   return getTrustedDevicesStore().some(
-    (device) =>
-      device.userId === userId &&
-      device.deviceId === deviceId &&
-      new Date(device.expiresAt).getTime() > now
+    (device) => device.userId === userId && device.deviceId === deviceId && new Date(device.expiresAt).getTime() > now
   );
 };
 
@@ -562,6 +571,32 @@ const persistAuthUser = (user, persistent) => {
   sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
   localStorage.removeItem(AUTH_STORAGE_KEY);
 };
+
+export function persistBackendIdentity({ user, session, remember = true }) {
+  if (!user || typeof user !== 'object') return { user: null, session: null };
+
+  const safeUser = buildSafeUser(user);
+  const now = new Date().toISOString();
+  const sessionId = typeof session?.id === 'string' ? session.id : `backend-session-${Date.now()}`;
+  const safeSession = {
+    id: sessionId,
+    userId: safeUser.id,
+    email: safeUser.email,
+    createdAt: now,
+    lastActiveAt: now,
+    expiresAt: typeof session?.expiresAt === 'string' ? session.expiresAt : null,
+    persistent: Boolean(remember),
+    userAgent: navigator.userAgent,
+    authMethod: 'backend',
+  };
+
+  saveUsers([...getUsers().filter((item) => item.id !== safeUser.id), safeUser]);
+  saveActiveSessions([...getActiveSessions().filter((item) => item.id !== sessionId), safeSession]);
+  setCurrentSessionId(sessionId, remember);
+  persistAuthUser(safeUser, remember);
+
+  return { user: safeUser, session: safeSession };
+}
 
 export const loginWithEmailAndPassword = ({
   email,
@@ -655,7 +690,9 @@ export const loginWithEmailAndPassword = ({
   if (trustDevice) {
     const currentName = deviceName?.trim() || getDefaultDeviceName();
     const expiresAt = new Date(Date.now() + TRUSTED_DEVICE_EXPIRY_DAYS * 24 * 60 * 60 * 1000).toISOString();
-    const devices = getTrustedDevicesStore().filter((item) => !(item.userId === user.id && item.deviceId === currentDeviceId));
+    const devices = getTrustedDevicesStore().filter(
+      (item) => !(item.userId === user.id && item.deviceId === currentDeviceId)
+    );
     devices.push({
       id: `trusted-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       userId: user.id,
@@ -679,8 +716,8 @@ export const loginWithEmailAndPassword = ({
 
 export const loginWithSocialProvider = ({ provider, remember, trustDevice, deviceName }) => {
   const providerMap = {
-    google: 'davidfernandes@hortelanagtech.com',
-    apple: 'davidfernandes@hortelanagtech.com',
+    google: DEMO_EMAIL,
+    apple: DEMO_EMAIL,
   };
 
   const email = providerMap[provider];
@@ -942,12 +979,18 @@ export const updateAuthenticatedUserProfile = (payload) => {
         dataHistoryDays:
           payload.subscription?.limits?.dataHistoryDays || currentUser.subscription?.limits?.dataHistoryDays || 30,
         aiPhotoDiagnostics:
-          payload.subscription?.limits?.aiPhotoDiagnostics || currentUser.subscription?.limits?.aiPhotoDiagnostics || 10,
+          payload.subscription?.limits?.aiPhotoDiagnostics ||
+          currentUser.subscription?.limits?.aiPhotoDiagnostics ||
+          10,
         advancedExports:
           payload.subscription?.limits?.advancedExports || currentUser.subscription?.limits?.advancedExports || 1,
       },
       usage: {
-        gardens: payload.subscription?.usage?.gardens || currentUser.subscription?.usage?.gardens || payload.gardens?.length || 0,
+        gardens:
+          payload.subscription?.usage?.gardens ||
+          currentUser.subscription?.usage?.gardens ||
+          payload.gardens?.length ||
+          0,
         devices: payload.subscription?.usage?.devices || currentUser.subscription?.usage?.devices || 0,
         aiPhotoDiagnostics:
           payload.subscription?.usage?.aiPhotoDiagnostics || currentUser.subscription?.usage?.aiPhotoDiagnostics || 0,
@@ -972,7 +1015,10 @@ export const updateAuthenticatedUserProfile = (payload) => {
   const safeUser = buildSafeUser(nextUser);
   const currentSessionId = getCurrentSessionId();
   const currentSession = getCurrentSession();
-  persistAuthUser(safeUser, Boolean(currentSession?.persistent || localStorage.getItem(SESSION_STORAGE_KEY) === currentSessionId));
+  persistAuthUser(
+    safeUser,
+    Boolean(currentSession?.persistent || localStorage.getItem(SESSION_STORAGE_KEY) === currentSessionId)
+  );
 
   return { success: true, user: safeUser };
 };
@@ -982,8 +1028,7 @@ export const requestPasswordReset = (email) => {
 
   if (!user) {
     return {
-      message:
-        'Se o e-mail existir, você receberá um link para redefinir sua senha.',
+      message: 'Se o e-mail existir, você receberá um link para redefinir sua senha.',
       resetLink: null,
     };
   }
@@ -1071,8 +1116,6 @@ export const resetPasswordWithToken = ({ token, newPassword }) => {
 
 export const getPasswordChangeHistory = () =>
   getPasswordHistory().sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
-
-
 
 export const getConsentAuditLogs = () => {
   const user = getAuthenticatedUser();
@@ -1226,7 +1269,9 @@ export const revokeTrustedDevice = (trustedDeviceId) => {
     return;
   }
 
-  const devices = getTrustedDevicesStore().filter((device) => !(device.userId === user.id && device.id === trustedDeviceId));
+  const devices = getTrustedDevicesStore().filter(
+    (device) => !(device.userId === user.id && device.id === trustedDeviceId)
+  );
   saveTrustedDevicesStore(devices);
 };
 
@@ -1257,3 +1302,27 @@ export const logoutOtherSessions = () => {
 
   saveActiveSessions(sessions);
 };
+
+export function cleanupLegacyIdentityStorage({ preserveDemoData = false } = {}) {
+  if (typeof window === 'undefined' || preserveDemoData) return;
+
+  const cleanupKey = 'hortelan-identity-cleanup-v2';
+  if (localStorage.getItem(cleanupKey) === 'complete') return;
+
+  [RESET_TOKENS_KEY, PASSWORD_HISTORY_KEY, MFA_CHALLENGES_KEY, LOGIN_RATE_LIMIT_KEY].forEach((key) => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  });
+
+  try {
+    const storedUsers = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || '[]');
+    if (Array.isArray(storedUsers)) {
+      const sanitizedUsers = storedUsers.map(({ password: _password, ...user }) => user);
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(sanitizedUsers));
+    }
+  } catch {
+    localStorage.removeItem(USERS_STORAGE_KEY);
+  }
+
+  localStorage.setItem(cleanupKey, 'complete');
+}

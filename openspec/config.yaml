@@ -1,0 +1,40 @@
+schema: spec-driven
+
+context: |
+  Product: Hortelan smart garden frontend.
+  Stack: React 19, Vite 7, Material UI 7, React Router 7, Node-based selective SSR.
+  Runtime: project targets Node 20.x; OpenSpec requires Node >=20.19.0.
+  Delivery: CI/CD runs lint, format checks, node:test coverage, production build, frontend audit, and OpenSpec validation.
+  Domains: dashboard monitoring, species catalog, account/profile, auth/session, integrations, reports, alerts, platform reliability, subscriptions, community, and support.
+  Architecture constraints:
+    - Preserve route-level lazy loading and authenticated dashboard boundaries.
+    - Keep API calls behind services and avoid direct fetch usage in pages.
+    - Treat localStorage auth as demo-mode state, not production-grade identity storage.
+    - Record security, performance, reliability, or route behavior changes as OpenSpec capabilities before implementation.
+
+rules:
+  proposal:
+    - Keep the Why section concise and explicitly state user or operational impact.
+    - Include Non-goals inside What Changes when scope could otherwise expand.
+    - List capabilities using the existing domain folders before creating new ones.
+  specs:
+    - Specs describe externally observable behavior, constraints, and acceptance scenarios, not file names or React component internals.
+    - Use SHALL or MUST in each requirement body.
+    - Every requirement must include at least one scenario with WHEN and THEN bullets.
+  design:
+    - Include design.md for cross-cutting work, security-sensitive work, route behavior, API behavior, build/CI behavior, or new dependencies.
+    - Capture alternatives considered when changing auth, SSR, bundling, telemetry, or deployment behavior.
+  tasks:
+    - Keep each checkbox independently verifiable.
+    - Include validation tasks for affected tests, build, lint, OpenSpec validation, or frontend audit.
+
+operations:
+  apply:
+    guidance:
+      - Read the active change artifacts before editing code.
+      - Mark tasks complete as implementation and verification actually finish.
+      - Keep changes scoped to the capabilities named in the proposal.
+  archive:
+    guidance:
+      - Run openspec validate --all before archiving.
+      - Summarize which specs changed and which validation commands passed.

@@ -52,5 +52,12 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
 export default function ModeTheme() {
   const { mode, toggleMode } = useThemeMode();
 
-  return <MaterialUISwitch sx={{ m: 1 }} checked={mode === 'dark'} onChange={toggleMode} />;
+  return (
+    <MaterialUISwitch
+      checked={mode === 'dark'}
+      onChange={toggleMode}
+      inputProps={{ 'aria-label': mode === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro' }}
+      slotProps={{ input: { 'aria-label': mode === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro' } }}
+    />
+  );
 }

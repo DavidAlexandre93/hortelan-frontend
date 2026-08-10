@@ -1,1 +1,1 @@
-export { default as BaseOptionChart } from './BaseOptionChart';
+export { AccessibleChart, ChartTooltip, seriesToRows } from './AccessibleChart';

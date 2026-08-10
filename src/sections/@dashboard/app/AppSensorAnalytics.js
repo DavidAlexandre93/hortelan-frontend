@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
-import merge from 'lodash/merge';
-import ReactApexChart from 'react-apexcharts';
+import { useTheme } from '@mui/material/styles';
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
-  Box,
   Button,
   Card,
   CardContent,
@@ -15,7 +14,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { BaseOptionChart } from '../../../components/chart';
+import { AccessibleChart, ChartTooltip, seriesToRows } from '../../../components/chart';
 
 const periodOptions = [
   { value: 'hora', label: 'Hora', points: 24 },
@@ -25,13 +24,7 @@ const periodOptions = [
 ];
 
 const sensorCatalog = [
-  {
-    id: 'temp',
-    label: 'Temperatura (°C)',
-    unit: '°C',
-    base: 22,
-    variation: 4,
-  },
+  { id: 'temp', label: 'Temperatura (°C)', unit: '°C', base: 22, variation: 4 },
   {
     id: 'umidade',
     label: 'Umidade do solo (%)',
@@ -39,13 +32,7 @@ const sensorCatalog = [
     base: 68,
     variation: 16,
   },
-  {
-    id: 'ph',
-    label: 'pH',
-    unit: 'pH',
-    base: 6.3,
-    variation: 0.8,
-  },
+  { id: 'ph', label: 'pH', unit: 'pH', base: 6.3, variation: 0.8 },
   {
     id: 'luminosidade',
     label: 'Luminosidade (lux)',
@@ -76,7 +63,6 @@ const valueForPoint = (sensor, pointIndex, scopeFactor) => {
 
 const buildExportRows = ({ labels, series, period, horta, area }) => {
   const header = ['período', 'horta', 'área', 'referência', ...series.map((item) => item.name)];
-
   const rows = labels.map((label, index) => [
     period,
     horta,
@@ -99,6 +85,7 @@ const downloadTable = (filename, content, mimeType) => {
 };
 
 export default function AppSensorAnalytics() {
+  const theme = useTheme();
   const [period, setPeriod] = useState('hora');
   const [horta, setHorta] = useState('Horta Aurora');
   const [area, setArea] = useState('');
@@ -106,18 +93,19 @@ export default function AppSensorAnalytics() {
   const [comparisonSensors, setComparisonSensors] = useState(['temp', 'umidade']);
 
   const areaOptions = structure[horta] || [];
-
   const activePeriod = periodOptions.find((option) => option.value === period);
   const labels = Array.from({ length: activePeriod.points }, (_, index) => formatLabel(period, index));
-
   const sensorOptions = useMemo(
-    () => sensorCatalog.map((item) => ({ value: item.id, label: item.label, unit: item.unit })),
+    () =>
+      sensorCatalog.map((item) => ({
+        value: item.id,
+        label: item.label,
+        unit: item.unit,
+      })),
     []
   );
-
   const filteredComparisonSensors = comparisonSensors.filter((item) => item !== sensor);
   const sensorsForChart = [sensor, ...filteredComparisonSensors].slice(0, 3);
-
   const chartSeries = sensorsForChart.map((sensorId, seriesIndex) => {
     const selectedSensor = sensorCatalog.find((item) => item.id === sensorId) || sensorCatalog[0];
     const scopeFactor = horta.length + (area || 'todas').length + seriesIndex;
@@ -127,32 +115,20 @@ export default function AppSensorAnalytics() {
       data: labels.map((_, pointIndex) => valueForPoint(selectedSensor, pointIndex, scopeFactor)),
     };
   });
-
-  const tableRows = buildExportRows({ labels, series: chartSeries, period, horta, area });
-
-  const chartOptions = merge(BaseOptionChart(), {
-    chart: {
-      toolbar: { show: false },
-    },
-    stroke: {
-      width: 3,
-      curve: 'smooth',
-    },
-    markers: {
-      size: 4,
-    },
-    xaxis: {
-      categories: labels,
-    },
-    tooltip: {
-      shared: true,
-      intersect: false,
-    },
+  const chartRows = seriesToRows(labels, chartSeries);
+  const tableRows = buildExportRows({
+    labels,
+    series: chartSeries,
+    period,
+    horta,
+    area,
   });
+  const colors = [theme.palette.primary.main, theme.palette.warning.main, theme.palette.info.main];
+  const summary = chartSeries.map((item) => `${item.name}: último valor ${item.data.at(-1)}`).join('. ');
 
   const exportCsv = () => {
     const csv = tableRows.map((row) => row.join(';')).join('\n');
-    downloadTable(`sensores-${period}.csv`, csv, 'text/csv;charset=utf-8;');
+    downloadTable(`sensores-${period}.csv`, `\uFEFF${csv}`, 'text/csv;charset=utf-8;');
   };
 
   const exportExcel = () => {
@@ -171,7 +147,12 @@ export default function AppSensorAnalytics() {
           <Grid item xs={12} md={3}>
             <FormControl fullWidth>
               <InputLabel id="periodo-label">Período</InputLabel>
-              <Select labelId="periodo-label" label="Período" value={period} onChange={(event) => setPeriod(event.target.value)}>
+              <Select
+                labelId="periodo-label"
+                label="Período"
+                value={period}
+                onChange={(event) => setPeriod(event.target.value)}
+              >
                 {periodOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     {option.label}
@@ -257,13 +238,32 @@ export default function AppSensorAnalytics() {
           </Grid>
         </Grid>
 
-        <Box dir="ltr">
-          <ReactApexChart type="line" series={chartSeries} options={chartOptions} height={360} />
-        </Box>
+        <AccessibleChart label="Série histórica dos sensores selecionados" summary={summary} height={360}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartRows} accessibilityLayer margin={{ top: 12, right: 12, left: -12, bottom: 4 }}>
+              <CartesianGrid stroke={theme.palette.divider} strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={24} />
+              <YAxis tickLine={false} axisLine={false} />
+              <Tooltip content={<ChartTooltip />} />
+              <Legend />
+              {chartSeries.map((item, index) => (
+                <Line
+                  key={item.name}
+                  dataKey={item.name}
+                  stroke={colors[index % colors.length]}
+                  strokeWidth={3}
+                  dot={false}
+                  type="monotone"
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </AccessibleChart>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="space-between" sx={{ mt: 2 }}>
           <Typography variant="body2" color="text.secondary">
-            Filtros ativos: {horta} • {area || 'Todas as áreas'} • {activePeriod.label.toLowerCase()} • {chartSeries.length} sensor(es)
+            Filtros ativos: {horta} • {area || 'Todas as áreas'} • {activePeriod.label.toLowerCase()} •{' '}
+            {chartSeries.length} sensor(es)
           </Typography>
           <Stack direction="row" spacing={1}>
             <Button variant="outlined" onClick={exportCsv}>

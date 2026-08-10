@@ -69,7 +69,9 @@ export default function ProductsMarketplace() {
         const matchesCompatibility = !compatibility || product.compatibilidade.includes(compatibility);
         const matchesCultivo = !cultivo || product.tipoCultivo.includes(cultivo);
 
-        return matchesQuery && matchesCategory && matchesPrice && matchesBrand && matchesCompatibility && matchesCultivo;
+        return (
+          matchesQuery && matchesCategory && matchesPrice && matchesBrand && matchesCompatibility && matchesCultivo
+        );
       })
       .sort(sortMap[sortBy]);
   }, [query, selectedCategory, maxPrice, brand, compatibility, cultivo, sortBy]);
@@ -272,8 +274,36 @@ export default function ProductsMarketplace() {
   return (
     <Page title="Marketplace Hortelan">
       <Container ref={rootRef} sx={{ position: 'relative', overflow: 'hidden' }}>
-        <Box className="gsap-float-orb" sx={{ position: 'absolute', top: 120, right: -24, width: 120, height: 120, borderRadius: '50%', bgcolor: 'success.light', filter: 'blur(18px)', opacity: 0.28, pointerEvents: 'none' }} />
-        <Box className="gsap-float-orb" sx={{ position: 'absolute', top: 340, left: -34, width: 140, height: 140, borderRadius: '50%', bgcolor: 'primary.light', filter: 'blur(22px)', opacity: 0.24, pointerEvents: 'none' }} />
+        <Box
+          className="gsap-float-orb"
+          sx={{
+            position: 'absolute',
+            top: 120,
+            right: -24,
+            width: 120,
+            height: 120,
+            borderRadius: '50%',
+            bgcolor: 'success.light',
+            filter: 'blur(18px)',
+            opacity: 0.28,
+            pointerEvents: 'none',
+          }}
+        />
+        <Box
+          className="gsap-float-orb"
+          sx={{
+            position: 'absolute',
+            top: 340,
+            left: -34,
+            width: 140,
+            height: 140,
+            borderRadius: '50%',
+            bgcolor: 'primary.light',
+            filter: 'blur(22px)',
+            opacity: 0.24,
+            pointerEvents: 'none',
+          }}
+        />
         <Stack spacing={1} sx={{ mb: 3 }}>
           <Typography className="gsap-hero-title" variant="h4">
             Catálogo de produtos Hortelan
@@ -396,10 +426,19 @@ export default function ProductsMarketplace() {
                           <Typography variant="body2">R$ {product.preco.toFixed(2)}</Typography>
                         </Box>
                         <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
-                          <Button size="small" className="gsap-glow-button" onClick={() => setSelectedProductId(product.id)}>
+                          <Button
+                            size="small"
+                            className="gsap-glow-button"
+                            onClick={() => setSelectedProductId(product.id)}
+                          >
                             Detalhes
                           </Button>
-                          <Button size="small" variant="contained" className="gsap-glow-button" onClick={() => addToCart(product.id)}>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            className="gsap-glow-button"
+                            onClick={() => addToCart(product.id)}
+                          >
                             Adicionar
                           </Button>
                         </Stack>

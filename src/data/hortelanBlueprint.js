@@ -34,12 +34,7 @@ export const gamificationBlueprint = [
   {
     id: '15.3',
     title: 'Cupons',
-    items: [
-      'Cupom promocional',
-      'Cupom por pontuação',
-      'Cupom por campanha/evento',
-      'Validade e regras de uso',
-    ],
+    items: ['Cupom promocional', 'Cupom por pontuação', 'Cupom por campanha/evento', 'Validade e regras de uso'],
   },
   {
     id: '15.4',
@@ -82,7 +77,13 @@ export const releaseRoadmap = [
   {
     name: 'Release 3',
     focus: 'Crescimento de comunidade e monetização',
-    items: ['Comunidade', 'Gamificação', 'Marketplace básico', 'Modo institucional', 'Integrações com clima e notificações'],
+    items: [
+      'Comunidade',
+      'Gamificação',
+      'Marketplace básico',
+      'Modo institucional',
+      'Integrações com clima e notificações',
+    ],
   },
   {
     name: 'Release 4',

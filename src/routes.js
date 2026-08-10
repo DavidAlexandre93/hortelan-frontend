@@ -1,41 +1,50 @@
-import { Suspense, lazy } from 'react';
-import { Navigate, useRoutes } from 'react-router-dom';
-// layouts
+import { Suspense } from 'react';
+import PropTypes from 'prop-types';
+import { Navigate, useLocation, useRoutes } from 'react-router-dom';
 import DashboardLayout from './layouts/dashboard';
-import LogoOnlyLayout from './layouts/LogoOnlyLayout';
 import RequireAuth from './components/auth/RequireAuth';
 import RedirectIfAuth from './components/auth/RedirectIfAuth';
+import LazyRouteBoundary from './components/states/LazyRouteBoundary';
+import RoutePending from './components/states/RoutePending';
+import RouteMetadata from './routing/RouteMetadata';
+import { dashboardRoutes, legacyAliases, publicRoutes } from './routing/routeManifest';
 
-const CommunityPage = lazy(() => import('./pages/dashboard/CommunityPage'));
-const AdminPanelPage = lazy(() => import('./pages/dashboard/AdminPanelPage'));
-const NotFoundPage = lazy(() => import('./pages/errors/NotFoundPage'));
-const SpeciesCatalogPage = lazy(() => import('./pages/dashboard/SpeciesCatalogPage'));
-const MonitoringPage = lazy(() => import('./pages/dashboard/MonitoringPage'));
-const Hortelan360Page = lazy(() => import('./pages/dashboard/Hortelan360Page'));
-const OnboardingPage = lazy(() => import('./pages/dashboard/OnboardingPage'));
-const PlatformStatusPage = lazy(() => import('./pages/dashboard/PlatformStatusPage'));
-const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
-const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
-const SecurityCenterPage = lazy(() => import('./pages/dashboard/SecurityCenterPage'));
-const ProfileSettingsPage = lazy(() => import('./pages/dashboard/ProfileSettingsPage'));
-const AlertCenterPage = lazy(() => import('./pages/dashboard/AlertCenterPage'));
-const ReportsPage = lazy(() => import('./pages/dashboard/ReportsPage'));
-const SubscriptionsPage = lazy(() => import('./pages/dashboard/SubscriptionsPage'));
-const HelpCenter = lazy(() => import('./pages/HelpCenter'));
-const IntegrationsOperationsPage = lazy(() => import('./pages/dashboard/IntegrationsOperationsPage'));
-const IntegrationsPage = lazy(() => import('./pages/dashboard/IntegrationsPage'));
-const LoginForm = lazy(() => import('./sections/auth/login').then((module) => ({ default: module.LoginForm })));
+function LazyPage({ Component }) {
+  const location = useLocation();
 
-const renderLazy = (Component, fallback = null) => (
-  <Suspense fallback={fallback}>
-    <Component />
-  </Suspense>
-);
+  return (
+    <LazyRouteBoundary routeKey={location.pathname}>
+      <Suspense fallback={<RoutePending />}>
+        <Component />
+      </Suspense>
+    </LazyRouteBoundary>
+  );
+}
 
-// ----------------------------------------------------------------------
+LazyPage.propTypes = {
+  Component: PropTypes.elementType.isRequired,
+};
 
-export default function Router() {
-  return useRoutes([
+function ProtectedAlias({ destination }) {
+  const { search } = useLocation();
+  const safeSearch = new URLSearchParams(search);
+  const retained = new URLSearchParams();
+
+  ['tab', 'section'].forEach((key) => {
+    const value = safeSearch.get(key);
+    if (value && /^[a-z0-9-]{1,40}$/i.test(value)) retained.set(key, value);
+  });
+
+  const suffix = retained.toString();
+  return <Navigate to={`${destination}${suffix ? `?${suffix}` : ''}`} replace />;
+}
+
+ProtectedAlias.propTypes = {
+  destination: PropTypes.string.isRequired,
+};
+
+export default function Router({ ssr = false }) {
+  const routes = useRoutes([
     {
       path: '/dashboard',
       element: (
@@ -45,86 +54,41 @@ export default function Router() {
       ),
       children: [
         { index: true, element: <Navigate to="app" replace /> },
-        { path: 'app', element: renderLazy(MonitoringPage) },
-        { path: 'admin', element: renderLazy(AdminPanelPage) },
+        ...dashboardRoutes.map(({ path, Component }) => ({ path, element: <LazyPage Component={Component} /> })),
         { path: 'user', element: <Navigate to="/dashboard/admin" replace /> },
-        { path: 'products', element: renderLazy(SpeciesCatalogPage) },
-        { path: 'blog', element: renderLazy(CommunityPage) },
-        { path: 'hortelan-360', element: renderLazy(Hortelan360Page) },
-        { path: 'onboarding', element: renderLazy(OnboardingPage) },
-        { path: 'status', element: renderLazy(PlatformStatusPage) },
-        { path: 'security', element: renderLazy(SecurityCenterPage) },
-        { path: 'profile', element: renderLazy(ProfileSettingsPage) },
-        { path: 'alertas', element: renderLazy(AlertCenterPage) },
-        { path: 'relatorios', element: renderLazy(ReportsPage) },
-        { path: 'assinaturas', element: renderLazy(SubscriptionsPage) },
-        { path: 'integracoes', element: renderLazy(IntegrationsPage) },
-        { path: 'suporte', element: renderLazy(HelpCenter) },
-        { path: 'integracoes/ops', element: renderLazy(IntegrationsOperationsPage) },
       ],
     },
-    {
-      path: '/login',
+    ...publicRoutes.map(({ path, access, Component }) => ({
+      path,
+      element:
+        access === 'anonymous' ? (
+          <RedirectIfAuth>
+            <LazyPage Component={Component} />
+          </RedirectIfAuth>
+        ) : (
+          <LazyPage Component={Component} />
+        ),
+    })),
+    ...legacyAliases.map(({ path, destination }) => ({
+      path,
       element: (
-        <RedirectIfAuth>
-          {renderLazy(LoginForm, null)}
-        </RedirectIfAuth>
+        <RequireAuth>
+          <ProtectedAlias destination={destination} />
+        </RequireAuth>
       ),
-    },
-    {
-      path: '/register',
-      element: (
-        <RedirectIfAuth>
-          {renderLazy(LoginForm, null)}
-        </RedirectIfAuth>
-      ),
-    },
-    {
-      path: '/forgot-password',
-      element: renderLazy(ForgotPasswordPage),
-    },
-    {
-      path: '/reset-password',
-      element: renderLazy(ResetPasswordPage),
-    },
-    {
-      path: '/404',
-      element: renderLazy(NotFoundPage),
-    },
-    {
-      path: '/',
-      element: <Navigate to="/login" replace />,
-    },
-    {
-      path: '/auth',
-      element: <LogoOnlyLayout />,
-      children: [
-        { index: true, element: <Navigate to="/login" replace /> },
-      ],
-    },
-    {
-      path: '/onboarding/:legacyPath',
-      element: renderLazy(OnboardingPage),
-    },
-    {
-      path: '/hortelan-360',
-      element: <Navigate to="/dashboard/hortelan-360" replace />,
-    },
-    {
-      path: '/hortelan360',
-      element: <Navigate to="/dashboard/hortelan-360" replace />,
-    },
-    {
-      path: '/hortelan_360',
-      element: <Navigate to="/dashboard/hortelan-360" replace />,
-    },
-    {
-      path: '/hortelan 360',
-      element: <Navigate to="/dashboard/hortelan-360" replace />,
-    },
-    {
-      path: '*',
-      element: <Navigate to="/404" replace />,
-    },
+    })),
+    { path: '/', element: <Navigate to="/login" replace /> },
+    { path: '*', element: <Navigate to="/404" replace /> },
   ]);
+
+  return (
+    <>
+      {!ssr && <RouteMetadata />}
+      {routes}
+    </>
+  );
 }
+
+Router.propTypes = {
+  ssr: PropTypes.bool,
+};

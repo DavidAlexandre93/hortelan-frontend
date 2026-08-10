@@ -1,35 +1,8 @@
 import PropTypes from 'prop-types';
-import merge from 'lodash/merge';
-import ReactApexChart from 'react-apexcharts';
-// @mui
-import { styled } from '@mui/material/styles';
-import { Card, CardHeader } from '@mui/material';
-// components
-import { BaseOptionChart } from '../../../components/chart';
-
-// ----------------------------------------------------------------------
-
-const CHART_HEIGHT = 392;
-
-const LEGEND_HEIGHT = 72;
-
-const ChartWrapperStyle = styled('div')(({ theme }) => ({
-  height: CHART_HEIGHT,
-  marginTop: theme.spacing(2),
-  '& .apexcharts-canvas svg': {
-    height: CHART_HEIGHT,
-  },
-  '& .apexcharts-canvas svg,.apexcharts-canvas foreignObject': {
-    overflow: 'visible',
-  },
-  '& .apexcharts-legend': {
-    height: LEGEND_HEIGHT,
-    alignContent: 'center',
-    position: 'relative !important',
-    borderTop: `solid 1px ${theme.palette.divider}`,
-    top: `calc(${CHART_HEIGHT - LEGEND_HEIGHT}px) !important`,
-  },
-}));
+import { useTheme } from '@mui/material/styles';
+import { Legend, PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Box, Card, CardHeader } from '@mui/material';
+import { AccessibleChart, ChartTooltip, seriesToRows } from '../../../components/chart';
 
 // ----------------------------------------------------------------------
 
@@ -42,27 +15,48 @@ AppCurrentSubject.propTypes = {
 };
 
 export default function AppCurrentSubject({ title, subheader, chartData, chartColors, chartLabels, ...other }) {
-  const chartOptions = merge(BaseOptionChart(), {
-    stroke: { width: 2 },
-    fill: { opacity: 0.48 },
-    legend: { floating: true, horizontalAlign: 'center' },
-    xaxis: {
-      categories: chartLabels,
-      labels: {
-        style: {
-          colors: chartColors,
-        },
-      },
-    },
-  });
+  const theme = useTheme();
+  const rows = seriesToRows(chartLabels, chartData);
+  const colors = [theme.palette.primary.main, theme.palette.warning.main, theme.palette.info.main];
+  const summary = chartData
+    .map(
+      (series) =>
+        `${series.name}: média ${Math.round(series.data.reduce((sum, value) => sum + value, 0) / series.data.length)}`
+    )
+    .join('. ');
 
   return (
     <Card {...other}>
       <CardHeader title={title} subheader={subheader} />
 
-      <ChartWrapperStyle dir="ltr">
-        <ReactApexChart type="radar" series={chartData} options={chartOptions} height={340} />
-      </ChartWrapperStyle>
+      <Box sx={{ px: 1, pt: 2 }} dir="ltr">
+        <AccessibleChart label={`${title}: gráfico radar`} summary={summary} height={370}>
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart data={rows} accessibilityLayer outerRadius="68%">
+              <PolarGrid stroke={theme.palette.divider} />
+              <PolarAngleAxis
+                dataKey="label"
+                tick={{
+                  fill: chartColors[0] || theme.palette.text.secondary,
+                  fontSize: 11,
+                }}
+              />
+              <Tooltip content={<ChartTooltip />} />
+              <Legend />
+              {chartData.map((series, index) => (
+                <Radar
+                  key={series.name}
+                  dataKey={series.name}
+                  stroke={colors[index % colors.length]}
+                  fill={colors[index % colors.length]}
+                  fillOpacity={0.16}
+                  strokeWidth={2}
+                />
+              ))}
+            </RadarChart>
+          </ResponsiveContainer>
+        </AccessibleChart>
+      </Box>
     </Card>
   );
 }

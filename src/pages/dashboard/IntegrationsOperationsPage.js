@@ -61,13 +61,19 @@ export default function IntegrationsOps() {
                 25.1 Logs e auditoria
               </Typography>
               <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-                <Button size="small" variant="contained" onClick={() => applyState(logUserAction('Ajustou permissões da integração CRM'))}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => applyState(logUserAction('Ajustou permissões da integração CRM'))}
+                >
                   Log de ação
                 </Button>
                 <Button
                   size="small"
                   variant="outlined"
-                  onClick={() => applyState(logAutomationRun('Sincronização ERP', 'success', 'Pedido #8831 sincronizado'))}
+                  onClick={() =>
+                    applyState(logAutomationRun('Sincronização ERP', 'success', 'Pedido #8831 sincronizado'))
+                  }
                 >
                   Log automação
                 </Button>
@@ -76,7 +82,9 @@ export default function IntegrationsOps() {
                 size="small"
                 color="error"
                 variant="outlined"
-                onClick={() => applyState(logIntegrationFailure('WhatsApp API', 'critical', 'Token expirado durante envio'))}
+                onClick={() =>
+                  applyState(logIntegrationFailure('WhatsApp API', 'critical', 'Token expirado durante envio'))
+                }
               >
                 Falha integração
               </Button>
@@ -89,7 +97,10 @@ export default function IntegrationsOps() {
               <List dense>
                 {state.logs.userActions.slice(0, 3).map((entry) => (
                   <ListItem key={entry.id}>
-                    <ListItemText primary={`${entry.actor} · ${entry.action}`} secondary={formatDate(entry.timestamp)} />
+                    <ListItemText
+                      primary={`${entry.actor} · ${entry.action}`}
+                      secondary={formatDate(entry.timestamp)}
+                    />
                   </ListItem>
                 ))}
                 {state.logs.automations.slice(0, 2).map((entry) => (
@@ -102,7 +113,10 @@ export default function IntegrationsOps() {
                 ))}
                 {state.logs.integrationFailures.slice(0, 2).map((entry) => (
                   <ListItem key={entry.id}>
-                    <ListItemText primary={`Falha em ${entry.integration} (${entry.severity})`} secondary={`${entry.detail} · ${formatDate(entry.timestamp)}`} />
+                    <ListItemText
+                      primary={`Falha em ${entry.integration} (${entry.severity})`}
+                      secondary={`${entry.detail} · ${formatDate(entry.timestamp)}`}
+                    />
                   </ListItem>
                 ))}
               </List>
@@ -153,7 +167,11 @@ export default function IntegrationsOps() {
                   <TableCell>{service.latencyMs} ms</TableCell>
                   <TableCell>{service.uptime}%</TableCell>
                   <TableCell>
-                    <Chip label={service.status} color={service.status === 'operational' ? 'success' : 'warning'} size="small" />
+                    <Chip
+                      label={service.status}
+                      color={service.status === 'operational' ? 'success' : 'warning'}
+                      size="small"
+                    />
                   </TableCell>
                 </TableRow>
               ))}
@@ -182,7 +200,9 @@ export default function IntegrationsOps() {
                       checked={flag.enabled}
                       onChange={(event) => {
                         updateFeatureFlag(flag.key, { enabled: event.target.checked });
-                        logUserAction(`Alterou feature flag ${flag.key} para ${event.target.checked ? 'ativo' : 'inativo'}`);
+                        logUserAction(
+                          `Alterou feature flag ${flag.key} para ${event.target.checked ? 'ativo' : 'inativo'}`
+                        );
                         setState(getReliabilityState());
                       }}
                     />
@@ -212,7 +232,10 @@ export default function IntegrationsOps() {
           <List dense>
             {state.backupRecovery.backups.map((backup) => (
               <ListItem key={backup.id}>
-                <ListItemText primary={`${backup.scope} · ${backup.status}`} secondary={`Início ${formatDate(backup.startedAt)} · RPO ${backup.recoveryPoint}`} />
+                <ListItemText
+                  primary={`${backup.scope} · ${backup.status}`}
+                  secondary={`Início ${formatDate(backup.startedAt)} · RPO ${backup.recoveryPoint}`}
+                />
               </ListItem>
             ))}
           </List>
@@ -221,7 +244,10 @@ export default function IntegrationsOps() {
           <List dense>
             {state.backupRecovery.incidents.map((incident) => (
               <ListItem key={incident.id}>
-                <ListItemText primary={`${incident.title} (${incident.status})`} secondary={`Tempo de recuperação: ${incident.recoveryTimeMinutes} min`} />
+                <ListItemText
+                  primary={`${incident.title} (${incident.status})`}
+                  secondary={`Tempo de recuperação: ${incident.recoveryTimeMinutes} min`}
+                />
               </ListItem>
             ))}
           </List>
@@ -230,7 +256,10 @@ export default function IntegrationsOps() {
           <List dense>
             {state.backupRecovery.criticalConfigVersions.map((config) => (
               <ListItem key={config.name}>
-                <ListItemText primary={`${config.name} · ${config.version}`} secondary={`${config.changedBy} · ${formatDate(config.changedAt)}`} />
+                <ListItemText
+                  primary={`${config.name} · ${config.version}`}
+                  secondary={`${config.changedBy} · ${formatDate(config.changedAt)}`}
+                />
               </ListItem>
             ))}
           </List>

@@ -34,6 +34,12 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit
 
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: OpenSpec validation
+        run: npm run openspec:validate
+
       - name: Lint
         run: npm run lint
 
@@ -47,20 +53,30 @@ jobs:
         run: npm run test:coverage
 
       - name: Build validation
-        run: npm run build
+        run: npm run build:ssr
+
+      - name: Production asset security
+        run: npm run security:assets
+
+      - name: Bundle budgets
+        run: npm run bundle:check
 
       - name: Frontend architectural audit
         run: npm run audit:frontend
 
       - name: Dependency vulnerability analysis
-        continue-on-error: true
-        run: npm audit --audit-level=high
+        run: npm run security:dependencies
+
+      - name: Browser and accessibility journeys
+        run: npm run test:e2e
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
         with:
           name: frontend-build
-          path: build
+          path: |
+            build
+            build-ssr
 
   quality-control:
     name: Quality control (CodeQL + dependency review)

@@ -58,7 +58,6 @@ export default function Hortelan360() {
     [query]
   );
 
-
   useGSAP(
     ({ gsap, selector }) => {
       const floating = selector('.floating-orb');
@@ -149,7 +148,11 @@ export default function Hortelan360() {
             </Typography>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.15 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.15 }}
+          >
             <Typography color="text.secondary">
               <GSAPTypingText
                 texts={[
@@ -164,8 +167,14 @@ export default function Hortelan360() {
             </Typography>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.25 }}>
-            <Alert severity="success">Cobertura funcional: 30 módulos estratégicos + roteiro de releases + diferenciais WOW.</Alert>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+          >
+            <Alert severity="success">
+              Cobertura funcional: 30 módulos estratégicos + roteiro de releases + diferenciais WOW.
+            </Alert>
           </motion.div>
         </Stack>
 

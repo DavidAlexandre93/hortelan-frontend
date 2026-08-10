@@ -235,34 +235,28 @@ export default function StatusPage() {
     [alerts, selectedArea]
   );
   const totalEventPages = Math.max(1, Math.ceil(filteredEvents.length / STREAM_EVENTS_PER_PAGE));
+  const currentEventPage = Math.min(eventPage, totalEventPages);
   const paginatedEvents = useMemo(() => {
-    const start = (eventPage - 1) * STREAM_EVENTS_PER_PAGE;
+    const start = (currentEventPage - 1) * STREAM_EVENTS_PER_PAGE;
     return filteredEvents.slice(start, start + STREAM_EVENTS_PER_PAGE);
-  }, [filteredEvents, eventPage]);
-
-  useEffect(() => {
-    setEventPage(1);
-  }, [selectedArea]);
-
-  useEffect(() => {
-    if (eventPage > totalEventPages) {
-      setEventPage(totalEventPages);
-    }
-  }, [eventPage, totalEventPages]);
+  }, [currentEventPage, filteredEvents]);
 
   const activeAlerts = filteredAlerts.filter((alert) => !alert.acknowledgedAt);
   const ackedAlerts = filteredAlerts.filter((alert) => alert.acknowledgedAt);
   const filteredRuleExecutions = useMemo(
-    () => (selectedArea === 'all' ? ruleExecutions : ruleExecutions.filter((execution) => execution.areaId === selectedArea)),
+    () =>
+      selectedArea === 'all' ? ruleExecutions : ruleExecutions.filter((execution) => execution.areaId === selectedArea),
     [selectedArea]
   );
 
   const successfulExecutions = filteredRuleExecutions.filter((execution) => execution.status === 'success').length;
   const failedExecutions = filteredRuleExecutions.filter((execution) => execution.status === 'failed').length;
-  const filteredActuators = selectedArea === 'all' ? actuators : actuators.filter((actuator) => actuator.areaId === selectedArea);
-  const filteredInterventions = selectedArea === 'all'
-    ? interventions
-    : interventions.filter((entry) => entry.areaId === selectedArea || entry.areaId === 'global');
+  const filteredActuators =
+    selectedArea === 'all' ? actuators : actuators.filter((actuator) => actuator.areaId === selectedArea);
+  const filteredInterventions =
+    selectedArea === 'all'
+      ? interventions
+      : interventions.filter((entry) => entry.areaId === selectedArea || entry.areaId === 'global');
 
   const totalDevices = greenhouseAreas.reduce((acc, area) => acc + area.devices.length, 0);
   const offlineDevices = greenhouseAreas.reduce(
@@ -283,7 +277,13 @@ export default function StatusPage() {
     );
   };
 
-  const appendIntervention = ({ areaId = 'global', areaName = 'Todas as áreas', type, description, deviceName = '-' }) => {
+  const appendIntervention = ({
+    areaId = 'global',
+    areaName = 'Todas as áreas',
+    type,
+    description,
+    deviceName = '-',
+  }) => {
     const createdAt = new Date().toISOString();
 
     setInterventions((prev) => [
@@ -434,7 +434,10 @@ export default function StatusPage() {
                   labelId="status-area-filter-label"
                   value={selectedArea}
                   label="Filtrar área"
-                  onChange={(event) => setSelectedArea(event.target.value)}
+                  onChange={(event) => {
+                    setSelectedArea(event.target.value);
+                    setEventPage(1);
+                  }}
                 >
                   <MenuItem value="all">Todas as áreas</MenuItem>
                   {greenhouseAreas.map((area) => (
@@ -448,7 +451,12 @@ export default function StatusPage() {
             <Grid item xs={12} md={8}>
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                 {Object.entries(areaStatusConfig).map(([status, config]) => (
-                  <Chip key={status} color={config.color} icon={<config.icon fontSize="small" />} label={config.label} />
+                  <Chip
+                    key={status}
+                    color={config.color}
+                    icon={<config.icon fontSize="small" />}
+                    label={config.label}
+                  />
                 ))}
                 <Chip icon={<SensorsIcon fontSize="small" />} label="Sensores" variant="outlined" />
                 <Chip icon={<RouterIcon fontSize="small" />} label="Atuadores" variant="outlined" />
@@ -540,7 +548,11 @@ export default function StatusPage() {
                             <Box>
                               <Typography fontWeight={700}>{area.name}</Typography>
                             </Box>
-                            <Chip size="small" color={areaStatusConfig[area.status].color} label={areaStatusConfig[area.status].label} />
+                            <Chip
+                              size="small"
+                              color={areaStatusConfig[area.status].color}
+                              label={areaStatusConfig[area.status].label}
+                            />
                           </Stack>
                           <Stack spacing={0.5} sx={{ mt: 1 }}>
                             {area.devices.map((device) => (
@@ -559,7 +571,13 @@ export default function StatusPage() {
             <Grid item xs={12} lg={8}>
               <Card sx={dashboardCardSx}>
                 <CardContent sx={dashboardCardContentSx}>
-                  <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ mb: 2 }} spacing={1}>
+                  <Stack
+                    direction={{ xs: 'column', md: 'row' }}
+                    justifyContent="space-between"
+                    alignItems={{ xs: 'flex-start', md: 'center' }}
+                    sx={{ mb: 2 }}
+                    spacing={1}
+                  >
                     <Box>
                       <Typography variant="h6">Lista de eventos em streaming</Typography>
                       <Typography variant="body2" color="text.secondary">
@@ -574,8 +592,19 @@ export default function StatusPage() {
                   <Stack spacing={1.2}>
                     {filteredEvents.length === 0 && <Alert severity="info">Aguardando eventos...</Alert>}
                     {paginatedEvents.map((event) => (
-                      <Alert key={event.id} severity={event.severity === 'success' ? 'success' : event.severity === 'warning' ? 'warning' : 'info'}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+                      <Alert
+                        key={event.id}
+                        severity={
+                          event.severity === 'success' ? 'success' : event.severity === 'warning' ? 'warning' : 'info'
+                        }
+                      >
+                        <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          flexWrap="wrap"
+                          gap={1}
+                        >
                           <Typography variant="body2">
                             <strong>{event.areaName}</strong> • {event.deviceName} — {event.message}
                           </Typography>
@@ -590,7 +619,7 @@ export default function StatusPage() {
                         <Pagination
                           color="primary"
                           count={totalEventPages}
-                          page={eventPage}
+                          page={currentEventPage}
                           onChange={(_, page) => setEventPage(page)}
                           size="small"
                         />
@@ -604,7 +633,13 @@ export default function StatusPage() {
 
           <Card sx={dashboardCardSx}>
             <CardContent sx={dashboardCardContentSx}>
-              <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ mb: 2 }} spacing={1.5}>
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                justifyContent="space-between"
+                alignItems={{ xs: 'flex-start', md: 'center' }}
+                sx={{ mb: 2 }}
+                spacing={1.5}
+              >
                 <Box>
                   <Typography variant="h6">Histórico de execuções de regras</Typography>
                   <Typography variant="body2" color="text.secondary">

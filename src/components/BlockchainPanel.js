@@ -9,7 +9,7 @@ const TX_DEFAULT = {
 const toWeiHex = (amount) => {
   const [intPart, decimalPart = ''] = String(amount || '0').split('.');
   const normalizedInt = BigInt(intPart || '0') * 10n ** 18n;
-  const normalizedDecimal = BigInt((decimalPart.padEnd(18, '0').slice(0, 18) || '0'));
+  const normalizedDecimal = BigInt(decimalPart.padEnd(18, '0').slice(0, 18) || '0');
   return `0x${(normalizedInt + normalizedDecimal).toString(16)}`;
 };
 
@@ -19,7 +19,10 @@ export default function BlockchainPanel() {
   const [signature, setSignature] = useState('');
   const [txHash, setTxHash] = useState('');
   const [txPayload, setTxPayload] = useState(TX_DEFAULT);
-  const [status, setStatus] = useState({ type: 'info', message: 'Conecte sua carteira para registrar ações on-chain.' });
+  const [status, setStatus] = useState({
+    type: 'info',
+    message: 'Conecte sua carteira para registrar ações on-chain.',
+  });
 
   const hasWallet = typeof window !== 'undefined' && Boolean(window?.ethereum);
 
@@ -52,7 +55,9 @@ export default function BlockchainPanel() {
     }
 
     const message = `Hortelan checkpoint: irrigacao validada em ${new Date().toISOString()}`;
-    const hexMessage = `0x${Array.from(message).map((char) => char.charCodeAt(0).toString(16).padStart(2, '0')).join('')}`;
+    const hexMessage = `0x${Array.from(message)
+      .map((char) => char.charCodeAt(0).toString(16).padStart(2, '0'))
+      .join('')}`;
     const [account] = await window.ethereum.request({ method: 'eth_requestAccounts' });
     const signedMessage = await window.ethereum.request({
       method: 'personal_sign',
@@ -100,11 +105,19 @@ export default function BlockchainPanel() {
 
         <Stack spacing={2}>
           <Alert severity={status.type}>{status.message}</Alert>
-          {chainName && <Typography variant="body2" color="text.secondary">Rede conectada: {chainName}</Typography>}
+          {chainName && (
+            <Typography variant="body2" color="text.secondary">
+              Rede conectada: {chainName}
+            </Typography>
+          )}
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-            <Button variant="contained" onClick={connectWallet}>Conectar carteira</Button>
-            <Button variant="outlined" onClick={signGardenCheckpoint}>Assinar checkpoint</Button>
+            <Button variant="contained" onClick={connectWallet}>
+              Conectar carteira
+            </Button>
+            <Button variant="outlined" onClick={signGardenCheckpoint}>
+              Assinar checkpoint
+            </Button>
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
@@ -120,11 +133,21 @@ export default function BlockchainPanel() {
               onChange={(event) => setTxPayload((prev) => ({ ...prev, amount: event.target.value }))}
               sx={{ minWidth: { sm: 180 } }}
             />
-            <Button variant="outlined" onClick={sendTransaction}>Enviar</Button>
+            <Button variant="outlined" onClick={sendTransaction}>
+              Enviar
+            </Button>
           </Stack>
 
-          {signature && <Typography variant="caption" sx={{ wordBreak: 'break-all' }}>Assinatura: {signature}</Typography>}
-          {txHash && <Typography variant="caption" sx={{ wordBreak: 'break-all' }}>Tx hash: {txHash}</Typography>}
+          {signature && (
+            <Typography variant="caption" sx={{ wordBreak: 'break-all' }}>
+              Assinatura: {signature}
+            </Typography>
+          )}
+          {txHash && (
+            <Typography variant="caption" sx={{ wordBreak: 'break-all' }}>
+              Tx hash: {txHash}
+            </Typography>
+          )}
         </Stack>
       </CardContent>
     </Card>

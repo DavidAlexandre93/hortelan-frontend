@@ -50,9 +50,21 @@ const faqItems = [
   },
 ];
 
-const quickGuides = ['Primeiros 15 minutos na plataforma', 'Configuração de alertas críticos', 'Checklist semanal da horta'];
-const tutorials = ['Tour do painel de monitoramento', 'Como abrir e acompanhar chamados', 'Automação de irrigação por regras'];
-const knowledgeBase = ['Troubleshooting de sensores', 'Boas práticas de cultivo por espécie', 'Integração com clima e prevenção de riscos'];
+const quickGuides = [
+  'Primeiros 15 minutos na plataforma',
+  'Configuração de alertas críticos',
+  'Checklist semanal da horta',
+];
+const tutorials = [
+  'Tour do painel de monitoramento',
+  'Como abrir e acompanhar chamados',
+  'Automação de irrigação por regras',
+];
+const knowledgeBase = [
+  'Troubleshooting de sensores',
+  'Boas práticas de cultivo por espécie',
+  'Integração com clima e prevenção de riscos',
+];
 
 const ticketSeed = [
   {
@@ -138,7 +150,8 @@ export default function HelpCenter() {
               <Stack spacing={1.5}>
                 <Typography variant="h6">Canais oficiais Hortelan</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Para conteúdos técnicos, novidades e suporte comercial, acompanhe e fale com a Hortelan pelos canais abaixo.
+                  Para conteúdos técnicos, novidades e suporte comercial, acompanhe e fale com a Hortelan pelos canais
+                  abaixo.
                 </Typography>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} useFlexGap flexWrap="wrap">
                   {socialChannels.map((channel) => (
@@ -162,8 +175,18 @@ export default function HelpCenter() {
           <Card>
             <CardContent>
               <Tabs value={tab} onChange={(_, value) => setTab(value)} variant="scrollable" scrollButtons="auto">
-                <Tab value="central-ajuda" icon={<HelpOutlineRoundedIcon />} iconPosition="start" label="Central de ajuda" />
-                <Tab value="abrir-chamado" icon={<SupportAgentRoundedIcon />} iconPosition="start" label="Abertura de chamado" />
+                <Tab
+                  value="central-ajuda"
+                  icon={<HelpOutlineRoundedIcon />}
+                  iconPosition="start"
+                  label="Central de ajuda"
+                />
+                <Tab
+                  value="abrir-chamado"
+                  icon={<SupportAgentRoundedIcon />}
+                  iconPosition="start"
+                  label="Abertura de chamado"
+                />
                 <Tab value="acompanhamento" icon={<HistoryRoundedIcon />} iconPosition="start" label="Acompanhamento" />
                 <Tab value="contextual" icon={<SensorsRoundedIcon />} iconPosition="start" label="Suporte contextual" />
               </Tabs>
@@ -180,7 +203,12 @@ export default function HelpCenter() {
                       <Paper variant="outlined" sx={{ p: 1.5 }}>
                         <List disablePadding>
                           {faqItems.map((item, index) => (
-                            <ListItem key={item.question} disableGutters divider={index < faqItems.length - 1} sx={{ py: 1.25 }}>
+                            <ListItem
+                              key={item.question}
+                              disableGutters
+                              divider={index < faqItems.length - 1}
+                              sx={{ py: 1.25 }}
+                            >
                               <ListItemText
                                 primary={item.question}
                                 secondary={item.answer}
@@ -203,7 +231,12 @@ export default function HelpCenter() {
                       <Paper variant="outlined" sx={{ p: 1.5, flexGrow: 1 }}>
                         <List dense disablePadding>
                           {quickGuides.map((guide, index) => (
-                            <ListItem key={guide} disableGutters divider={index < quickGuides.length - 1} sx={{ py: 1 }}>
+                            <ListItem
+                              key={guide}
+                              disableGutters
+                              divider={index < quickGuides.length - 1}
+                              sx={{ py: 1 }}
+                            >
                               <ListItemText primary={guide} />
                             </ListItem>
                           ))}
@@ -221,7 +254,12 @@ export default function HelpCenter() {
                       <Paper variant="outlined" sx={{ p: 1.5 }}>
                         <List dense disablePadding>
                           {tutorials.map((tutorial, index) => (
-                            <ListItem key={tutorial} disableGutters divider={index < tutorials.length - 1} sx={{ py: 1 }}>
+                            <ListItem
+                              key={tutorial}
+                              disableGutters
+                              divider={index < tutorials.length - 1}
+                              sx={{ py: 1 }}
+                            >
                               <ListItemText primary={tutorial} />
                             </ListItem>
                           ))}
@@ -232,7 +270,12 @@ export default function HelpCenter() {
                       <Paper variant="outlined" sx={{ p: 1.5, flexGrow: 1 }}>
                         <List dense disablePadding>
                           {knowledgeBase.map((article, index) => (
-                            <ListItem key={article} disableGutters divider={index < knowledgeBase.length - 1} sx={{ py: 1 }}>
+                            <ListItem
+                              key={article}
+                              disableGutters
+                              divider={index < knowledgeBase.length - 1}
+                              sx={{ py: 1 }}
+                            >
                               <ListItemText primary={article} />
                             </ListItem>
                           ))}
@@ -254,7 +297,11 @@ export default function HelpCenter() {
                     <Grid item xs={12} md={4}>
                       <FormControl fullWidth size="small">
                         <InputLabel>Categoria do problema</InputLabel>
-                        <Select value={category} label="Categoria do problema" onChange={(event) => setCategory(event.target.value)}>
+                        <Select
+                          value={category}
+                          label="Categoria do problema"
+                          onChange={(event) => setCategory(event.target.value)}
+                        >
                           {categories.map((item) => (
                             <MenuItem key={item} value={item}>
                               {item}
@@ -266,7 +313,11 @@ export default function HelpCenter() {
                     <Grid item xs={12} md={4}>
                       <FormControl fullWidth size="small">
                         <InputLabel>Prioridade</InputLabel>
-                        <Select value={priority} label="Prioridade" onChange={(event) => setPriority(event.target.value)}>
+                        <Select
+                          value={priority}
+                          label="Prioridade"
+                          onChange={(event) => setPriority(event.target.value)}
+                        >
                           {priorities.map((item) => (
                             <MenuItem key={item} value={item}>
                               {item}
@@ -281,7 +332,13 @@ export default function HelpCenter() {
                       </Button>
                     </Grid>
                     <Grid item xs={12}>
-                      <TextField fullWidth multiline minRows={4} label="Descreva o problema" placeholder="Informe sintomas, horário e ações já realizadas." />
+                      <TextField
+                        fullWidth
+                        multiline
+                        minRows={4}
+                        label="Descreva o problema"
+                        placeholder="Informe sintomas, horário e ações já realizadas."
+                      />
                     </Grid>
                   </Grid>
                   <Stack direction="row" justifyContent="flex-end">
@@ -345,7 +402,9 @@ export default function HelpCenter() {
                 <Stack spacing={2.5}>
                   <Typography variant="h6">Suporte contextual (fase avançada)</Typography>
                   <FormControlLabel
-                    control={<Switch checked={withContext} onChange={(event) => setWithContext(event.target.checked)} />}
+                    control={
+                      <Switch checked={withContext} onChange={(event) => setWithContext(event.target.checked)} />
+                    }
                     label="Abrir chamado com dados da horta e dispositivo anexados automaticamente"
                   />
                   <Alert severity={withContext ? 'success' : 'warning'}>
@@ -354,11 +413,14 @@ export default function HelpCenter() {
                       : 'Contexto desativado: o chamado será aberto sem dados técnicos automáticos.'}
                   </Alert>
                   <FormControlLabel
-                    control={<Switch checked={remoteConsent} onChange={(event) => setRemoteConsent(event.target.checked)} />}
+                    control={
+                      <Switch checked={remoteConsent} onChange={(event) => setRemoteConsent(event.target.checked)} />
+                    }
                     label="Consentimento para diagnóstico remoto assistido"
                   />
                   <Typography variant="body2" color="text.secondary">
-                    O diagnóstico remoto acessa somente telemetria e logs técnicos durante a sessão de suporte. Você pode revogar o consentimento a qualquer momento.
+                    O diagnóstico remoto acessa somente telemetria e logs técnicos durante a sessão de suporte. Você
+                    pode revogar o consentimento a qualquer momento.
                   </Typography>
                 </Stack>
               </CardContent>
