@@ -22,7 +22,7 @@ export function getNextRotationFamily(rotationByFamily, currentFamily) {
   return rotationByFamily[currentFamily] || ['Folhosas'];
 }
 
-export function formatDateInput(date) {
+function formatDateInput(date) {
   return date.toISOString().slice(0, 10);
 }
 

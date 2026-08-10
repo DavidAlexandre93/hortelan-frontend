@@ -14,8 +14,9 @@ import {
 import { buildDemoUser } from './demoFixtures';
 
 export function createDemoIdentityAdapter({
-  email = import.meta.env.VITE_DEMO_EMAIL || 'demo@hortelan.local',
-  password = import.meta.env.VITE_DEMO_PASSWORD || '',
+  email = import.meta.env.VITE_DEMO_EMAIL ||
+    (import.meta.env.DEV ? 'davidfernandes@hortelanagtech.com' : 'demo@hortelan.local'),
+  password = import.meta.env.VITE_DEMO_PASSWORD || (import.meta.env.DEV ? 'admin' : ''),
   persist = persistBackendIdentity,
   now = () => Date.now(),
 } = {}) {

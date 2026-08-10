@@ -14,6 +14,8 @@ The frontend passes its current build gate, but it is not yet production-grade: 
 - Strengthen API boundaries with runtime response validation, canonical errors, cancellation, retry limits, and user-facing recovery behavior.
 - Replace the shallow lint/audit baseline with meaningful React, accessibility, component, integration, and end-to-end checks; fix the import-graph audit so lazy modules are not reported as orphans.
 - Refine the visual system and dense operational shell while preserving the Hortelan brand, routes, backend contracts, and supported product capabilities.
+- Remove obsolete configuration, unused dependencies and exports, and simulated controls without real behavior; keep modules focused and avoid speculative abstractions.
+- Temporarily provide the requested fixed local-development login through the isolated demo adapter while proving that its email and password are absent from production assets.
 - Non-goals: replacing the backend, changing API endpoint contracts, migrating the whole codebase to TypeScript in one change, redesigning the Hortelan brand, or inventing backend data for unfinished integrations.
 
 ## Capabilities

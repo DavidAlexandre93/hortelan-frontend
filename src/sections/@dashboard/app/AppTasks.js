@@ -1,14 +1,6 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
-// form
-import { useForm, Controller } from 'react-hook-form';
-// @mui
-import { Card, Stack, Divider, Checkbox, MenuItem, IconButton, CardHeader, FormControlLabel } from '@mui/material';
-// components
-import Iconify from '../../../components/Iconify';
-import MenuPopover from '../../../components/MenuPopover';
-
-// ----------------------------------------------------------------------
+import { Card, Stack, Checkbox, CardHeader, FormControlLabel } from '@mui/material';
+import { Controller, useForm } from 'react-hook-form';
 
 AppTasks.propTypes = {
   title: PropTypes.string,
@@ -30,72 +22,37 @@ export default function AppTasks({ title, subheader, list, ...other }) {
         name="taskCompleted"
         control={control}
         render={({ field }) => {
-          const onSelected = (task) =>
-            field.value.includes(task) ? field.value.filter((value) => value !== task) : [...field.value, task];
+          const toggleTask = (taskId) =>
+            field.value.includes(taskId)
+              ? field.value.filter((currentId) => currentId !== taskId)
+              : [...field.value, taskId];
 
-          return (
-            <>
-              {list.map((task) => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  checked={field.value.includes(task.id)}
-                  onChange={() => field.onChange(onSelected(task.id))}
-                />
-              ))}
-            </>
-          );
+          return list.map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              checked={field.value.includes(task.id)}
+              onChange={() => field.onChange(toggleTask(task.id))}
+            />
+          ));
         }}
       />
     </Card>
   );
 }
 
-// ----------------------------------------------------------------------
-
 TaskItem.propTypes = {
   checked: PropTypes.bool,
-  onChange: PropTypes.func,
+  onChange: PropTypes.func.isRequired,
   task: PropTypes.shape({
-    id: PropTypes.string,
-    label: PropTypes.string,
-  }),
+    id: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+  }).isRequired,
 };
 
 function TaskItem({ task, checked, onChange }) {
-  const [open, setOpen] = useState(null);
-
-  const handleOpenMenu = (event) => {
-    setOpen(event.currentTarget);
-  };
-
-  const handleCloseMenu = () => {
-    setOpen(null);
-  };
-
-  const handleMarkComplete = () => {
-    handleCloseMenu();
-    console.log('MARK COMPLETE', task.id);
-  };
-
-  const handleShare = () => {
-    handleCloseMenu();
-    console.log('SHARE', task.id);
-  };
-
-  const handleEdit = () => {
-    handleCloseMenu();
-    console.log('EDIT', task.id);
-  };
-
-  const handleDelete = () => {
-    handleCloseMenu();
-    console.log('DELETE', task.id);
-  };
-
   return (
     <Stack
-      direction={{ xs: 'column', sm: 'row' }}
       sx={{
         px: 2,
         py: 0.75,
@@ -105,84 +62,7 @@ function TaskItem({ task, checked, onChange }) {
         }),
       }}
     >
-      <FormControlLabel
-        control={<Checkbox checked={checked} onChange={onChange} />}
-        label={task.label}
-        sx={{ flexGrow: 1, m: 0, mr: { sm: 1 } }}
-      />
-
-      <MoreMenuButton
-        label={`Mais acoes para ${task.label}`}
-        open={open}
-        onClose={handleCloseMenu}
-        onOpen={handleOpenMenu}
-        actions={
-          <>
-            <MenuItem onClick={handleMarkComplete}>
-              <Iconify icon={'eva:checkmark-circle-2-fill'} />
-              Mark Complete
-            </MenuItem>
-
-            <MenuItem onClick={handleEdit}>
-              <Iconify icon={'eva:edit-fill'} />
-              Edit
-            </MenuItem>
-
-            <MenuItem onClick={handleShare}>
-              <Iconify icon={'eva:share-fill'} />
-              Share
-            </MenuItem>
-
-            <Divider sx={{ borderStyle: 'dashed' }} />
-
-            <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
-              <Iconify icon={'eva:trash-2-outline'} />
-              Delete
-            </MenuItem>
-          </>
-        }
-      />
+      <FormControlLabel control={<Checkbox checked={checked} onChange={onChange} />} label={task.label} sx={{ m: 0 }} />
     </Stack>
-  );
-}
-
-// ----------------------------------------------------------------------
-
-MoreMenuButton.propTypes = {
-  actions: PropTypes.node.isRequired,
-  label: PropTypes.string.isRequired,
-  onClose: PropTypes.func,
-  onOpen: PropTypes.func,
-  open: PropTypes.bool,
-};
-
-function MoreMenuButton({ actions, label, open, onOpen, onClose }) {
-  return (
-    <>
-      <IconButton aria-label={label} size="large" color="inherit" sx={{ opacity: 0.48 }} onClick={onOpen}>
-        <Iconify icon={'eva:more-vertical-fill'} width={20} height={20} />
-      </IconButton>
-
-      <MenuPopover
-        open={Boolean(open)}
-        anchorEl={open}
-        onClose={onClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        arrow="right-top"
-        sx={{
-          mt: -0.5,
-          width: 'auto',
-          '& .MuiMenuItem-root': {
-            px: 1,
-            typography: 'body2',
-            borderRadius: 0.75,
-            '& svg': { mr: 2, width: 20, height: 20 },
-          },
-        }}
-      >
-        {actions}
-      </MenuPopover>
-    </>
   );
 }

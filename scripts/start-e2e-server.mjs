@@ -8,8 +8,6 @@ const child = spawn(process.execPath, [npmExecPath, 'run', 'dev', '--', '--host'
   env: {
     ...process.env,
     VITE_ENABLE_DEMO_AUTH: 'true',
-    VITE_DEMO_EMAIL: 'demo@hortelan.local',
-    VITE_DEMO_PASSWORD: 'DemoE2E!123',
     VITE_ENABLE_LIVE_DATA: 'false',
   },
 });

@@ -138,6 +138,14 @@ One `sdd:check` command will combine root diagnosis with strict, non-interactive
 
 Alternatives considered: relying on a globally installed CLI makes validation depend on developer state; documenting the process without executable scripts allows drift; creating a custom schema now would add maintenance without a project-specific artifact requirement that the standard `spec-driven` graph cannot express.
 
+### 13. Keep the production surface minimal and isolate temporary local access
+
+Static reachability, lint, dependency, and export analysis will be combined instead of treating one tool as authoritative. Confirmed obsolete configuration, unused package roots, unconsumed exports, dead helpers, and controls with fabricated behavior will be removed. Internally used symbols remain private instead of being exported, and existing direct composition remains preferable to adding generic layers without multiple real consumers.
+
+The requested fixed login will live only in the dynamically loaded demo identity adapter and will be selected automatically only by the Vite development environment. Production and preview builds continue to use backend-first identity unless an explicit demo deployment is configured, and build-time security scanning must prove that the unique local email and credential-bearing development branch do not appear in generated HTML, JavaScript, source maps, or static assets.
+
+Alternatives considered: embedding the credential in the login page exposes it through presentation code and production risk; storing it in `.env.example` still requires local setup; weakening the production asset scanner would hide an actual regression. A development-only compile-time branch preserves local convenience without making the fixed credential a production authentication source.
+
 ## Risks / Trade-offs
 
 - [Broad scope creates long-lived divergence] -> Land ordered, independently verifiable slices and keep compatibility exports until each consumer migrates.
@@ -151,6 +159,7 @@ Alternatives considered: relying on a globally installed CLI makes validation de
 - [New test tooling increases install and CI time] -> Split fast unit/component checks from browser checks while retaining one aggregate gate and cached browser dependencies.
 - [Selective SSR differs from hosted SPA rewrites] -> Validate both static-host and SSR modes; keep SPA deployment as rollback while SSR remains optional per environment.
 - [SDD artifacts drift from implementation] -> Use stable capability ownership, strict local validation, pull request traceability, canonical sync before archive, and one CI command shared with local development.
+- [Temporary local credential leaks into production] -> Keep it behind the Vite development constant, dynamically load the demo adapter, and retain an exact production-asset scanner assertion for both values.
 
 ## Migration Plan
 

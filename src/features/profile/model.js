@@ -79,7 +79,7 @@ export const FINE_PERMISSION_OPTIONS = [
   { key: 'community', label: 'Comunidade' },
 ];
 
-export const ROLE_DEFAULT_PERMISSIONS = {
+const ROLE_DEFAULT_PERMISSIONS = {
   owner: { automation: true, purchases: true, reports: true, community: true },
   admin: { automation: true, purchases: true, reports: true, community: true },
   operator: {

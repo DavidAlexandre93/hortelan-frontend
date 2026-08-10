@@ -28,7 +28,7 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PaidIcon from '@mui/icons-material/Paid';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import Page from '../../components/Page';
-import useGSAP from '../../hooks/useGSAP';
+import useScopedAnimation from '../../hooks/useScopedAnimation';
 import productCatalog, { categories } from '../../data/productCatalog';
 
 const sortMap = {
@@ -125,137 +125,134 @@ export default function ProductsMarketplace() {
     { id: 'PED-1013', status: 'Entregue', rastreio: 'BR987654321', itens: 'Substrato + Fertilizante Foliar' },
   ];
 
-  useGSAP(
-    ({ selector, root }) => {
-      const heroTitle = selector('.gsap-hero-title')[0];
-      const heroSubtitle = selector('.gsap-hero-subtitle')[0];
-      const heroBanner = selector('.gsap-hero-banner')[0];
-      const heroWrapper = selector('.gsap-hero-banner-wrapper')[0];
-      const chips = selector('.gsap-category-chip');
-      const storyCards = selector('.gsap-story-card');
-      const storyRows = selector('.gsap-product-row');
-      const glowButtons = selector('.gsap-glow-button');
-      const revealSections = selector('.gsap-reveal-section');
-      const cleanupCallbacks = [];
-      const animations = [];
+  useScopedAnimation(({ selector, root }) => {
+    const heroTitle = selector('.gsap-hero-title')[0];
+    const heroSubtitle = selector('.gsap-hero-subtitle')[0];
+    const heroBanner = selector('.gsap-hero-banner')[0];
+    const heroWrapper = selector('.gsap-hero-banner-wrapper')[0];
+    const chips = selector('.gsap-category-chip');
+    const storyCards = selector('.gsap-story-card');
+    const storyRows = selector('.gsap-product-row');
+    const glowButtons = selector('.gsap-glow-button');
+    const revealSections = selector('.gsap-reveal-section');
+    const cleanupCallbacks = [];
+    const animations = [];
 
-      const animateIn = (element, delay, offset = 24, duration = 700) => {
-        if (!element) return;
-        animations.push(
-          element.animate(
-            [
-              { opacity: 0, transform: `translateY(${offset}px)` },
-              { opacity: 1, transform: 'translateY(0px)' },
-            ],
-            { duration, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', delay, fill: 'forwards' }
+    const animateIn = (element, delay, offset = 24, duration = 700) => {
+      if (!element) return;
+      animations.push(
+        element.animate(
+          [
+            { opacity: 0, transform: `translateY(${offset}px)` },
+            { opacity: 1, transform: 'translateY(0px)' },
+          ],
+          { duration, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', delay, fill: 'forwards' }
+        )
+      );
+    };
+
+    const addMagneticHover = (element, strength = 8) => {
+      if (!element) return;
+      const onMove = (event) => {
+        const rect = element.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width - 0.5) * strength;
+        const y = ((event.clientY - rect.top) / rect.height - 0.5) * strength;
+        element.style.transform = `translate(${x}px, ${y}px)`;
+      };
+
+      const onLeave = () => {
+        element.style.transform = 'translate(0px, 0px)';
+      };
+
+      element.addEventListener('pointermove', onMove);
+      element.addEventListener('pointerleave', onLeave);
+      cleanupCallbacks.push(() => {
+        element.removeEventListener('pointermove', onMove);
+        element.removeEventListener('pointerleave', onLeave);
+        element.style.transform = '';
+      });
+    };
+
+    animateIn(heroTitle, 0, 34);
+    animateIn(heroSubtitle, 140, 24);
+    animateIn(heroBanner, 260, 22);
+    chips.forEach((chip, index) => {
+      animateIn(chip, 310 + index * 35, 12);
+      addMagneticHover(chip, 6);
+    });
+    storyCards.forEach((card, index) => animateIn(card, 520 + index * 120, 32, 800));
+
+    glowButtons.forEach((button, index) => {
+      animations.push(
+        button.animate(
+          [
+            { boxShadow: '0 0 0 rgba(34, 197, 94, 0)', transform: 'translateY(0px)' },
+            { boxShadow: '0 12px 28px rgba(34, 197, 94, 0.35)', transform: 'translateY(-1px)' },
+            { boxShadow: '0 0 0 rgba(34, 197, 94, 0)', transform: 'translateY(0px)' },
+          ],
+          { duration: 2100 + index * 220, easing: 'ease-in-out', iterations: Infinity }
+        )
+      );
+    });
+
+    storyRows.forEach((row) => addMagneticHover(row, 12));
+
+    if (heroWrapper) {
+      const onHeroMove = (event) => {
+        const rect = heroWrapper.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width - 0.5) * 10;
+        const y = ((event.clientY - rect.top) / rect.height - 0.5) * 8;
+        heroWrapper.style.transform = `perspective(1400px) rotateX(${-y}deg) rotateY(${x}deg)`;
+      };
+
+      const onHeroLeave = () => {
+        heroWrapper.style.transform = 'perspective(1400px) rotateX(0deg) rotateY(0deg)';
+      };
+
+      heroWrapper.addEventListener('pointermove', onHeroMove);
+      heroWrapper.addEventListener('pointerleave', onHeroLeave);
+      cleanupCallbacks.push(() => {
+        heroWrapper.removeEventListener('pointermove', onHeroMove);
+        heroWrapper.removeEventListener('pointerleave', onHeroLeave);
+        heroWrapper.style.transform = '';
+      });
+    }
+
+    const observer =
+      typeof IntersectionObserver !== 'undefined'
+        ? new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                animations.push(
+                  entry.target.animate(
+                    [
+                      { opacity: 0, transform: 'translateY(24px) scale(0.98)' },
+                      { opacity: 1, transform: 'translateY(0px) scale(1)' },
+                    ],
+                    { duration: 700, fill: 'forwards', easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' }
+                  )
+                );
+                observer.unobserve(entry.target);
+              });
+            },
+            { threshold: 0.22 }
           )
-        );
-      };
+        : null;
 
-      const addMagneticHover = (element, strength = 8) => {
-        if (!element) return;
-        const onMove = (event) => {
-          const rect = element.getBoundingClientRect();
-          const x = ((event.clientX - rect.left) / rect.width - 0.5) * strength;
-          const y = ((event.clientY - rect.top) / rect.height - 0.5) * strength;
-          element.style.transform = `translate(${x}px, ${y}px)`;
-        };
+    revealSections.forEach((section) => {
+      if (!observer) return;
+      section.style.opacity = '0';
+      observer.observe(section);
+    });
 
-        const onLeave = () => {
-          element.style.transform = 'translate(0px, 0px)';
-        };
-
-        element.addEventListener('pointermove', onMove);
-        element.addEventListener('pointerleave', onLeave);
-        cleanupCallbacks.push(() => {
-          element.removeEventListener('pointermove', onMove);
-          element.removeEventListener('pointerleave', onLeave);
-          element.style.transform = '';
-        });
-      };
-
-      animateIn(heroTitle, 0, 34);
-      animateIn(heroSubtitle, 140, 24);
-      animateIn(heroBanner, 260, 22);
-      chips.forEach((chip, index) => {
-        animateIn(chip, 310 + index * 35, 12);
-        addMagneticHover(chip, 6);
-      });
-      storyCards.forEach((card, index) => animateIn(card, 520 + index * 120, 32, 800));
-
-      glowButtons.forEach((button, index) => {
-        animations.push(
-          button.animate(
-            [
-              { boxShadow: '0 0 0 rgba(34, 197, 94, 0)', transform: 'translateY(0px)' },
-              { boxShadow: '0 12px 28px rgba(34, 197, 94, 0.35)', transform: 'translateY(-1px)' },
-              { boxShadow: '0 0 0 rgba(34, 197, 94, 0)', transform: 'translateY(0px)' },
-            ],
-            { duration: 2100 + index * 220, easing: 'ease-in-out', iterations: Infinity }
-          )
-        );
-      });
-
-      storyRows.forEach((row) => addMagneticHover(row, 12));
-
-      if (heroWrapper) {
-        const onHeroMove = (event) => {
-          const rect = heroWrapper.getBoundingClientRect();
-          const x = ((event.clientX - rect.left) / rect.width - 0.5) * 10;
-          const y = ((event.clientY - rect.top) / rect.height - 0.5) * 8;
-          heroWrapper.style.transform = `perspective(1400px) rotateX(${-y}deg) rotateY(${x}deg)`;
-        };
-
-        const onHeroLeave = () => {
-          heroWrapper.style.transform = 'perspective(1400px) rotateX(0deg) rotateY(0deg)';
-        };
-
-        heroWrapper.addEventListener('pointermove', onHeroMove);
-        heroWrapper.addEventListener('pointerleave', onHeroLeave);
-        cleanupCallbacks.push(() => {
-          heroWrapper.removeEventListener('pointermove', onHeroMove);
-          heroWrapper.removeEventListener('pointerleave', onHeroLeave);
-          heroWrapper.style.transform = '';
-        });
-      }
-
-      const observer =
-        typeof IntersectionObserver !== 'undefined'
-          ? new IntersectionObserver(
-              (entries) => {
-                entries.forEach((entry) => {
-                  if (!entry.isIntersecting) return;
-                  animations.push(
-                    entry.target.animate(
-                      [
-                        { opacity: 0, transform: 'translateY(24px) scale(0.98)' },
-                        { opacity: 1, transform: 'translateY(0px) scale(1)' },
-                      ],
-                      { duration: 700, fill: 'forwards', easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' }
-                    )
-                  );
-                  observer.unobserve(entry.target);
-                });
-              },
-              { threshold: 0.22 }
-            )
-          : null;
-
-      revealSections.forEach((section) => {
-        if (!observer) return;
-        section.style.opacity = '0';
-        observer.observe(section);
-      });
-
-      return () => {
-        cleanupCallbacks.forEach((cleanup) => cleanup());
-        animations.forEach((animation) => animation.cancel());
-        if (observer) observer.disconnect();
-        if (!root) return;
-      };
-    },
-    { scope: rootRef }
-  );
+    return () => {
+      cleanupCallbacks.forEach((cleanup) => cleanup());
+      animations.forEach((animation) => animation.cancel());
+      if (observer) observer.disconnect();
+      if (!root) return;
+    };
+  }, rootRef);
 
   return (
     <Page title="Marketplace Hortelan">

@@ -19,7 +19,8 @@ Vitest com cobertura, build cliente/SSR, scanner de assets, orçamento de bundle
 ### Arquitetura e confiabilidade
 
 - Manifesto central de rotas com acesso, metadata, aliases seguros, lazy loading e seleção SSR.
-- Adaptadores explícitos para identidade backend e demo; demo desabilitado por padrão.
+- Adaptadores explícitos para identidade backend e demo; acesso fixo temporário limitado ao Vite local e removido do
+  bundle de produção.
 - Sessão, perfil, MFA e dispositivos confiáveis separados em domínios testáveis e sem persistência de segredos.
 - Cliente HTTP com timeout, cancelamento, retry idempotente, erros canônicos e contratos Zod para os domínios críticos.
 - Boundary de rota dedicado a falhas de chunk e boundary global dedicado a falhas inesperadas, ambos recuperáveis.
@@ -66,8 +67,8 @@ React, formulários, utilitários e Sentry.
 
 ## Testes
 
-- 87 testes Vitest/Testing Library e 8 testes Node aprovados.
-- Cobertura Vitest: 82,91% de statements, 74,43% de branches, 75% de funções e 86,33% de linhas.
+- 86 testes Vitest/Testing Library focados no comportamento existente e 8 testes Node aprovados.
+- Cobertura Vitest: 85,06% de statements, 75,57% de branches, 85,71% de funções e 88,88% de linhas.
 - 20 jornadas Playwright executadas nos projetos desktop e mobile, totalizando 40 execuções por gate.
 - Autenticação, cadastro, recuperação, redirects seguros, logout, perfil, exclusão nominal, offline, navegação,
   aliases, falha de chunk, erro global, acessibilidade, alvos de toque e overflow cobertos no navegador.
@@ -77,7 +78,8 @@ React, formulários, utilitários e Sentry.
 
 - Os endpoints backend de monitoramento, relatórios, assinaturas e integrações precisam manter os contratos Zod
   publicados; payloads incompatíveis são rejeitados com estado recuperável em vez de renderização insegura.
-- O modo demo continua intencionalmente local e explícito. Produção depende da autoridade do backend para identidade,
-  MFA, dispositivos, consentimento e ações de conta.
+- O modo demo continua isolado. A credencial fixa temporária existe somente no Vite local e deve ser removida ao fim do
+  acesso assistido; produção depende da autoridade do backend para identidade, MFA, dispositivos, consentimento e ações
+  de conta.
 - O baseline mede o bundle e as jornadas locais determinísticas; métricas reais de rede e dispositivo devem continuar
   sendo acompanhadas por observabilidade de produção com consentimento.

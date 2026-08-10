@@ -218,7 +218,7 @@ export const legacyAliases = [
   { path: '/hortelan_360', destination: '/dashboard/hortelan-360' },
 ];
 
-export const routeManifest = [...publicRoutes, ...dashboardRoutes];
+const routeManifest = [...publicRoutes, ...dashboardRoutes];
 
 export function findRouteMetadata(pathname) {
   const normalizedPath = pathname.split('?')[0].replace(/\/$/, '') || '/';

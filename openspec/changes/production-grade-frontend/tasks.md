@@ -105,3 +105,11 @@
 - [x] 11.3 Add strict non-interactive OpenSpec validation and an aggregate SDD health command, then run the same command from the unified quality gate and CI.
 - [x] 11.4 Document the complete lifecycle, artifact contract, capability map, readiness, completion, traceability, synchronization, and archive policy; add the corresponding pull request checklist.
 - [x] 11.5 Verify every delta requirement against its canonical counterpart, run strict OpenSpec validation, and pass the complete quality gate under Node 24.x.
+
+## 12. Minimal Production Surface and Temporary Local Access
+
+- [x] 12.1 Audit source reachability, lint, package usage, exports, duplicate content, suppressions, and placeholder actions; distinguish true findings from test/tool entry-point false positives.
+- [x] 12.2 Remove confirmed obsolete configuration, unused dependencies, dead helpers, unnecessary public exports, and controls that expose unimplemented actions.
+- [x] 12.3 Add the temporary `davidfernandes@hortelanagtech.com` / `admin` login to the isolated Vite development demo path without requiring local environment variables.
+- [x] 12.4 Add focused tests and retain an exact production-asset assertion proving that the unique local identity and credential-bearing development branch are absent from generated artifacts.
+- [x] 12.5 Run strict OpenSpec validation, lint, format, tests, builds, security scanners, dependency audit, bundle and reachability audits, and browser journeys.

@@ -2,6 +2,21 @@ import { describe, expect, it, vi } from 'vitest';
 import { createDemoIdentityAdapter } from './demoIdentityAdapter';
 
 describe('demo identity adapter', () => {
+  it('accepts the temporary fixed credential only through Vite development defaults', async () => {
+    const persist = vi.fn((payload) => payload);
+    const adapter = createDemoIdentityAdapter({ persist });
+
+    const result = await adapter.login({
+      email: 'davidfernandes@hortelanagtech.com',
+      password: 'admin',
+      remember: true,
+    });
+
+    expect(result.user).toMatchObject({ email: 'davidfernandes@hortelanagtech.com' });
+    expect(result.user).not.toHaveProperty('password');
+    expect(persist).toHaveBeenCalledOnce();
+  });
+
   it('refuses demo login when no password was explicitly configured', async () => {
     const adapter = createDemoIdentityAdapter({ password: '', persist: vi.fn() });
     await expect(adapter.login({ email: 'demo@hortelan.local', password: '' })).resolves.toMatchObject({

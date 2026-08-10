@@ -27,15 +27,17 @@ As opções suportadas estão documentadas em `.env.example`.
 | ---------------------------------------- | ---------------------------------- | ----------------------- |
 | `VITE_API_BASE_URL`                      | Origem da API                      | Backend local explícito |
 | `VITE_API_TIMEOUT_MS`                    | Timeout das requisições            | `12000`                 |
-| `VITE_ENABLE_DEMO_AUTH`                  | Habilita adaptador local           | `false`                 |
+| `VITE_ENABLE_DEMO_AUTH`                  | Habilita demo fora do Vite local   | `false`                 |
 | `VITE_DEMO_EMAIL` / `VITE_DEMO_PASSWORD` | Identidade demo local              | vazio                   |
 | `VITE_SENTRY_DSN`                        | Telemetria Sentry                  | vazio                   |
 | `VITE_ENABLE_ANALYTICS`                  | Métricas Vercel com consentimento  | `false`                 |
 | `VITE_ENABLE_METICULOUS`                 | Gravação apenas em desenvolvimento | `false`                 |
 
-O modo demo só é carregado quando `VITE_ENABLE_DEMO_AUTH=true`. Falhas ou configuração ausente do backend não ativam
-fallback local. Senhas, tokens de recuperação, histórico de senhas e segredos MFA não são persistidos na jornada de
-produção.
+Durante `npm run dev`, o adapter local temporário aceita `davidfernandes@hortelanagtech.com` com a senha `admin`, sem
+configuração adicional. Fora do Vite local, o modo demo só é carregado com `VITE_ENABLE_DEMO_AUTH=true`; produção
+continua backend-first. O scanner garante que o e-mail e o branch credencial local não entrem nos assets de produção.
+Essa exceção deve ser removida assim que o acesso temporário deixar de ser necessário. Senhas, tokens de recuperação,
+histórico de senhas e segredos MFA não são persistidos.
 
 ## Comandos
 

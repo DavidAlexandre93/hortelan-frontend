@@ -42,7 +42,6 @@ export default defineConfig(({ isSsrBuild }) => ({
               react: ['react', 'react-dom', 'react-router-dom'],
               mui: ['@mui/material', '@emotion/react', '@emotion/styled'],
               charts: ['recharts'],
-              motion: ['framer-motion'],
               sentry: ['@sentry/react'],
               forms: ['react-hook-form', '@hookform/resolvers', 'yup', 'zod'],
               utilities: ['change-case', 'date-fns', 'numeral'],

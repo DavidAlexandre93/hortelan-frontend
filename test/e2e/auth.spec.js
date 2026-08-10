@@ -74,10 +74,10 @@ test('rota protegida redireciona visitante para login', async ({ page }) => {
   await expect(page).toHaveURL(/\/login$/);
 });
 
-test('modo demo explicito autentica apenas a credencial configurada', async ({ page }) => {
+test('login temporario local autentica pela credencial fixa de desenvolvimento', async ({ page }) => {
   await page.goto('/login');
-  await page.getByLabel('E-mail').fill('demo@hortelan.local');
-  await page.locator('input[name="password"]').fill('DemoE2E!123');
+  await page.getByLabel('E-mail').fill('davidfernandes@hortelanagtech.com');
+  await page.locator('input[name="password"]').fill('admin');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await expect(page).toHaveURL(/\/dashboard\/app$/);
 });

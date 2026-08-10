@@ -130,3 +130,22 @@ The project SHALL track oversized production modules and MUST require decomposit
 
 - **WHEN** a production module above the configured line or complexity threshold changes
 - **THEN** the quality report identifies it and the change either decomposes it or records a scoped follow-up rationale
+
+### Requirement: Minimal production surface
+
+The project MUST remove confirmed unreachable modules, obsolete configuration, unused direct dependencies, dead helpers, unnecessary public exports, and controls that imply behavior they do not implement. Modules SHALL keep one clear responsibility, reuse established boundaries, and introduce abstractions only for demonstrated complexity or repetition.
+
+#### Scenario: Static analysis reports an unused item
+
+- **WHEN** reachability, lint, dependency, or export analysis reports an item without a consumer
+- **THEN** the item is verified against build, test, script, dynamic-import, and configuration entry points before it is removed or retained with a concrete reason
+
+#### Scenario: A control has no implemented action
+
+- **WHEN** an interactive production control only logs, fabricates success, or exposes a planned action without a domain contract
+- **THEN** the control is removed, disabled with an honest state, or connected to implemented behavior instead of remaining misleading
+
+#### Scenario: A new abstraction is considered
+
+- **WHEN** code can remain direct and focused without meaningful duplication or dependency inversion
+- **THEN** the simpler composition is retained rather than adding a speculative abstraction

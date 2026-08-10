@@ -1,6 +1,6 @@
 import { backendIdentityAdapter } from './backendIdentityAdapter';
 
-export const demoModeEnabled = import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true';
+export const demoModeEnabled = import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true';
 
 async function resolveConfiguredDemoAdapter() {
   if (!demoModeEnabled) return null;

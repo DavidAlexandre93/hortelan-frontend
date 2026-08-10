@@ -205,7 +205,7 @@ export function updateFeatureFlag(key, patch) {
   return state;
 }
 
-export function registerJsTelemetry(message, page) {
+function registerJsTelemetry(message, page) {
   const state = readState();
   const resolvedPage = page || (typeof window !== 'undefined' ? window.location.pathname : 'unknown');
   state.observability.jsErrors.unshift({

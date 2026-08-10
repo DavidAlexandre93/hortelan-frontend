@@ -16,17 +16,22 @@ The frontend SHALL treat configured backend authentication as authoritative and 
 
 ### Requirement: Bounded demo authentication fallback
 
-Demo authentication MUST be available only when `VITE_ENABLE_DEMO_AUTH=true` is explicitly configured for the deployment and SHALL remain visibly identified as demo behavior.
+Demo authentication MUST be limited to explicitly configured demo deployments or the temporary Vite local-development credential. It SHALL remain visibly identified as demo behavior and MUST NOT place the built-in local credential in production assets.
 
 #### Scenario: Backend login fails outside fallback conditions
 
-- **WHEN** the backend authentication request fails and explicit demo mode is disabled
+- **WHEN** the backend authentication request fails outside Vite development and explicit demo mode is disabled
 - **THEN** the frontend returns an authentication service error instead of signing the user in locally
 
-#### Scenario: Local development has not enabled demo mode
+#### Scenario: Temporary local-development login succeeds
 
-- **WHEN** the application runs on localhost without `VITE_ENABLE_DEMO_AUTH=true`
-- **THEN** local seeded credentials and browser-only identity flows remain unavailable
+- **WHEN** the application runs through the Vite development environment and the fixed temporary local credential is submitted
+- **THEN** the application establishes an isolated, visibly identified demo session without requiring local environment configuration
+
+#### Scenario: Production assets are generated
+
+- **WHEN** the production client build completes
+- **THEN** the unique local email and credential-bearing development branch are absent from generated HTML, JavaScript, source maps, and static assets, so the fixed credential cannot authenticate a production client
 
 #### Scenario: Explicit demo login succeeds
 

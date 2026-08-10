@@ -18,11 +18,7 @@ function listFiles(directory) {
 
 function isTestFile(file) {
   const normalized = file.replaceAll(path.sep, '/');
-  return (
-    /\.(?:test|spec)\.[jt]sx?$/.test(normalized) ||
-    normalized.includes('/src/test/') ||
-    normalized.endsWith('/src/setupTests.js')
-  );
+  return /\.(?:test|spec)\.[jt]sx?$/.test(normalized) || normalized.includes('/src/test/');
 }
 
 function resolveFile(basePath) {

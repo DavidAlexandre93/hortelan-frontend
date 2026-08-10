@@ -19,6 +19,7 @@ context: |
     - Treat the backend as authoritative for production identity and permit demo authentication only behind VITE_ENABLE_DEMO_AUTH=true with visible disclosure.
     - Never persist plaintext credentials, MFA secrets, reset secrets, private tokens, or privileged vendor credentials in browser storage or production assets.
     - Compose new UI from the shared theme and primitives, with keyboard access, reduced-motion support, responsive integrity from 320px upward, and complete asynchronous states.
+    - Apply KISS, YAGNI, DRY, and SOLID pragmatically: remove unused surface, keep one clear responsibility per module, reuse established boundaries, and add abstractions only for demonstrated complexity or repetition.
     - Record changes to observable behavior, security, performance, reliability, routes, SSR, browser persistence, dependencies, or delivery gates in the owning OpenSpec capability before implementation.
   Source of truth:
     - openspec/specs contains canonical current behavior.

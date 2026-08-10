@@ -1,6 +1,5 @@
 import { compromiseTrustedDevice, rotateTrustedDevice } from './identity/mfaDomain';
 import { normalizeGardenAccessControl } from './profileDomain';
-import { evaluatePasswordPolicy } from './securityPolicy';
 
 const AUTH_STORAGE_KEY = 'hortelan-auth';
 const SESSION_STORAGE_KEY = 'hortelan-auth-session-id';
@@ -615,10 +614,6 @@ export const revokeCompromisedDevice = (trustedDeviceId, reason = 'Comprometimen
   saveTrustedDevicesStore(result.devices);
   return { success: true };
 };
-
-export const getPasswordPolicy = () => evaluatePasswordPolicy('');
-
-export const isAuthenticated = () => Boolean(getAuthenticatedUser());
 
 export const logoutCurrentSession = () => {
   const currentSessionId = getCurrentSessionId();

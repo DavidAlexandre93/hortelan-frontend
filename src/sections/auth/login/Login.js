@@ -264,7 +264,7 @@ function LoginFields() {
     <>
       {demoMode && (
         <Alert severity="info" sx={{ mb: 3 }}>
-          Modo de demonstracao ativo. Use as credenciais configuradas somente no ambiente local.
+          Modo de demonstracao ativo. O acesso local temporario esta disponivel apenas neste ambiente.
         </Alert>
       )}
       <AuthSocial />
@@ -362,5 +362,3 @@ export function RegisterPage() {
     </AuthLayout>
   );
 }
-
-export default LoginPage;

@@ -7,7 +7,10 @@ const forbiddenPatterns = [
   { name: 'New Relic embutido', pattern: /NREUM|browser\.newrelic|nr-data\.net/i },
   { name: 'Meticulous em producao', pattern: /alwaysmeticulous|recorder-loader/i },
   { name: 'Faker em producao', pattern: /@faker-js\/faker|faker\.string\.uuid/i },
-  { name: 'credencial demo historica', pattern: /davidfernandes@hortelanagtech\.com|password\s*[:=]\s*["']admin["']/i },
+  {
+    name: 'credencial local temporaria',
+    pattern: /davidfernandes@hortelanagtech\.com|password\s*[:=]\s*["']admin["']/i,
+  },
   {
     name: 'token privado embutido',
     pattern: /(?:api[_-]?key|secret|private[_-]?token)\s*[:=]\s*["'][A-Za-z0-9_-]{20,}["']/i,

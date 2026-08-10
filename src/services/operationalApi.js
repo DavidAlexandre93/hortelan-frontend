@@ -81,7 +81,7 @@ const integrationsSchema = z
   })
   .passthrough();
 
-export const operationalResponseSchemas = Object.freeze({
+const operationalResponseSchemas = Object.freeze({
   monitoring: monitoringSchema,
   alerts: alertsSchema,
   reports: reportsSchema,
