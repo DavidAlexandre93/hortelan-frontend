@@ -130,6 +130,14 @@ React Router, Vite, Lodash, and affected transitive dependencies will first move
 
 This separates vulnerability remediation from framework migration. Blind `npm audit fix --force` was rejected because it can introduce unreviewed major-version behavior.
 
+### 12. Treat SDD governance as executable delivery architecture
+
+OpenSpec will remain pinned as a repository dependency and the `spec-driven` schema will carry product context, capability domains, artifact rules, and apply/archive guidance. Canonical capabilities use the stable `<domain>/<capability>` hierarchy, and modified requirements retain their canonical names so synchronization is deterministic.
+
+One `sdd:check` command will combine root diagnosis with strict, non-interactive validation of every canonical spec and active change. The unified quality gate and CI will call that same command before implementation checks. The architecture guide and pull request template will define readiness, completion, traceability, sync, and archive evidence so the workflow remains understandable outside an agent session.
+
+Alternatives considered: relying on a globally installed CLI makes validation depend on developer state; documenting the process without executable scripts allows drift; creating a custom schema now would add maintenance without a project-specific artifact requirement that the standard `spec-driven` graph cannot express.
+
 ## Risks / Trade-offs
 
 - [Broad scope creates long-lived divergence] -> Land ordered, independently verifiable slices and keep compatibility exports until each consumer migrates.
@@ -142,6 +150,7 @@ This separates vulnerability remediation from framework migration. Blind `npm au
 - [Bundle budgets become flaky] -> Measure deterministic production output, compare gzip bytes with small explicit tolerances, and pin the build environment.
 - [New test tooling increases install and CI time] -> Split fast unit/component checks from browser checks while retaining one aggregate gate and cached browser dependencies.
 - [Selective SSR differs from hosted SPA rewrites] -> Validate both static-host and SSR modes; keep SPA deployment as rollback while SSR remains optional per environment.
+- [SDD artifacts drift from implementation] -> Use stable capability ownership, strict local validation, pull request traceability, canonical sync before archive, and one CI command shared with local development.
 
 ## Migration Plan
 
@@ -153,6 +162,7 @@ This separates vulnerability remediation from framework migration. Blind `npm au
 6. Decompose monitoring, profile, and platform-status routes while applying honest data labels and complete operational states.
 7. Remove production Faker reachability, tune lazy/vendor boundaries, commit budgets, and update the performance baseline.
 8. Enable component, accessibility, browser, source-graph, dependency, and bundle gates in CI; run the complete quality gate in Node 24.
-9. Deploy to staging with demo mode disabled, exercise CSP/telemetry/API/auth journeys, then promote through existing approval rules.
+9. Synchronize completed delta specs, harden OpenSpec configuration and local workflows, and enforce the same strict SDD check in CI.
+10. Deploy to staging with demo mode disabled, exercise CSP/telemetry/API/auth journeys, then promote through existing approval rules.
 
 Rollback uses the previous immutable build artifact and environment configuration. The browser-storage migration is one-way only for prohibited demo secrets: rollback may require users of the old demo mode to reinitialize local demo data, but production backend sessions remain governed by the backend and public route URLs do not change.

@@ -22,18 +22,20 @@
     "bundle:check": "node scripts/bundle-budget.mjs",
     "security:assets": "node scripts/asset-security.mjs",
     "security:dependencies": "npm audit --omit=dev --audit-level=high",
+    "openspec:status": "openspec list",
     "openspec:list": "openspec list --specs",
     "openspec:doctor": "openspec doctor",
-    "openspec:validate": "openspec validate --all",
+    "openspec:validate": "openspec validate --all --strict --no-interactive",
     "openspec:update": "openspec update --force",
-    "format": "prettier --write \"src/**/*.{js,jsx}\" \"server/**/*.mjs\" \"scripts/**/*.mjs\" \"test/**/*.{js,mjs}\" \"*.{js,cjs,mjs,json,md}\" \".github/workflows/*.yml\" \"docs/**/*.md\" \"openspec/**/*.md\"",
-    "format:check": "prettier --check \"src/**/*.{js,jsx}\" \"server/**/*.mjs\" \"scripts/**/*.mjs\" \"test/**/*.{js,mjs}\" \"*.{js,cjs,mjs,json,md}\" \".github/workflows/*.yml\" \"docs/**/*.md\" \"openspec/**/*.md\"",
+    "sdd:check": "npm run openspec:doctor && npm run openspec:validate",
+    "format": "prettier --write \"src/**/*.{js,jsx}\" \"server/**/*.mjs\" \"scripts/**/*.mjs\" \"test/**/*.{js,mjs}\" \"*.{js,cjs,mjs,json,md}\" \".github/**/*.{md,yml,yaml}\" \"docs/**/*.md\" \"openspec/**/*.{md,yml,yaml}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx}\" \"server/**/*.mjs\" \"scripts/**/*.mjs\" \"test/**/*.{js,mjs}\" \"*.{js,cjs,mjs,json,md}\" \".github/**/*.{md,yml,yaml}\" \"docs/**/*.md\" \"openspec/**/*.{md,yml,yaml}\"",
     "test:unit": "node scripts/run-node-tests.mjs",
     "test:components": "vitest run",
     "test:coverage": "vitest run --coverage && node scripts/run-node-tests.mjs --coverage",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test --grep @a11y",
-    "quality:gate": "npm run openspec:validate && npm run lint && npm run format:check && npm run test:coverage && npm run build:ssr && npm run security:assets && npm run bundle:check && npm run audit:frontend && npm run security:dependencies && npm run test:e2e"
+    "quality:gate": "npm run sdd:check && npm run lint && npm run format:check && npm run test:coverage && npm run build:ssr && npm run security:assets && npm run bundle:check && npm run audit:frontend && npm run security:dependencies && npm run test:e2e"
   },
   "browserslist": {
     "production": [

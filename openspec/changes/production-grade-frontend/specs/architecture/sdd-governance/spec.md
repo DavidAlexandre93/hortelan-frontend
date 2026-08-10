@@ -1,8 +1,4 @@
-## Purpose
-
-Defines how Hortelan uses OpenSpec as the durable source of truth for spec-driven development across product, architecture, experience, platform, identity, and delivery changes.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Source-of-truth specs
 
@@ -12,15 +8,6 @@ Project behavior, architectural constraints, and delivery rules that affect futu
 
 - **WHEN** a change affects security, routing, API behavior, build behavior, deployment, user experience, or multiple product areas
 - **THEN** the team records the intended observable behavior in OpenSpec before implementation starts
-
-### Requirement: Domain capability taxonomy
-
-Every capability MUST use the stable `<domain>/<capability>` hierarchy and SHALL extend an existing capability when ownership already exists instead of creating a synonymous specification.
-
-#### Scenario: A proposal classifies affected behavior
-
-- **WHEN** a contributor lists new or modified capabilities
-- **THEN** each capability uses an established domain, has one clear responsibility, and maps to exactly one delta-spec path
 
 ### Requirement: Change artifacts before implementation
 
@@ -36,33 +23,6 @@ Feature and architecture work MUST use an OpenSpec change with proposal, delta s
 - **WHEN** work changes only documentation, formatting, generated output, or internal structure without changing observable behavior or an architectural contract
 - **THEN** the change may omit delta specs only when that decision is explicitly recorded by the selected workflow
 
-### Requirement: Requirement-to-verification traceability
-
-Every behavior-changing OpenSpec change MUST preserve traceability from affected capabilities and requirements to implementation tasks and objective verification evidence.
-
-#### Scenario: A change is reviewed
-
-- **WHEN** a reviewer inspects a proposed or completed change
-- **THEN** the proposal, delta specs, design, tasks, and validation evidence form a coherent chain without contradictory scope or unchecked acceptance criteria
-
-### Requirement: Brownfield incremental adoption
-
-The project SHALL document capabilities incrementally around real changes instead of requiring a complete upfront rewrite of all existing behavior.
-
-#### Scenario: A legacy area has no spec yet
-
-- **WHEN** a change touches an undocumented legacy area
-- **THEN** the change adds or updates only the affected capability specs and leaves unrelated areas for later changes
-
-### Requirement: Deterministic local OpenSpec toolchain
-
-The repository MUST pin the OpenSpec CLI and SHALL expose repository-local commands for discovery, health diagnosis, strict validation, integration refresh, and the complete SDD check.
-
-#### Scenario: A contributor validates SDD health
-
-- **WHEN** the documented npm SDD command runs locally or in CI
-- **THEN** it uses the project-pinned CLI, diagnoses the OpenSpec root, and validates all canonical specs and active changes in strict non-interactive mode
-
 ### Requirement: Validation gate
 
 The repository MUST validate OpenSpec artifacts as part of the same quality flow used for lint, tests, builds, security checks, bundle budgets, frontend audits, accessibility checks, and browser journeys.
@@ -71,20 +31,6 @@ The repository MUST validate OpenSpec artifacts as part of the same quality flow
 
 - **WHEN** the local or CI quality gate is executed
 - **THEN** the complete SDD check runs first and fails the gate if configuration, canonical specs, or active changes contain structural errors
-
-### Requirement: Explicit readiness and completion criteria
-
-An OpenSpec change SHALL be ready for implementation only after every required planning artifact is complete and SHALL be considered complete only after every task and affected verification gate has passed.
-
-#### Scenario: Apply workflow is requested
-
-- **WHEN** required planning artifacts are missing or blocked
-- **THEN** implementation remains blocked until the proposal, required specs, design decisions, and tasks are coherent and available
-
-#### Scenario: Completion is reported
-
-- **WHEN** all planned implementation work is believed to be finished
-- **THEN** every task is checked only after its objective evidence exists and the affected quality commands pass
 
 ### Requirement: Archive completed decisions
 
@@ -99,3 +45,46 @@ Completed OpenSpec changes SHALL synchronize their delta requirements into the c
 
 - **WHEN** an archive operation is requested
 - **THEN** the team confirms task completion, strict validation, delta synchronization, and the absence of unresolved implementation gaps before archiving
+
+## ADDED Requirements
+
+### Requirement: Domain capability taxonomy
+
+Every capability MUST use the stable `<domain>/<capability>` hierarchy and SHALL extend an existing capability when ownership already exists instead of creating a synonymous specification.
+
+#### Scenario: A proposal classifies affected behavior
+
+- **WHEN** a contributor lists new or modified capabilities
+- **THEN** each capability uses an established domain, has one clear responsibility, and maps to exactly one delta-spec path
+
+### Requirement: Requirement-to-verification traceability
+
+Every behavior-changing OpenSpec change MUST preserve traceability from affected capabilities and requirements to implementation tasks and objective verification evidence.
+
+#### Scenario: A change is reviewed
+
+- **WHEN** a reviewer inspects a proposed or completed change
+- **THEN** the proposal, delta specs, design, tasks, and validation evidence form a coherent chain without contradictory scope or unchecked acceptance criteria
+
+### Requirement: Deterministic local OpenSpec toolchain
+
+The repository MUST pin the OpenSpec CLI and SHALL expose repository-local commands for discovery, health diagnosis, strict validation, integration refresh, and the complete SDD check.
+
+#### Scenario: A contributor validates SDD health
+
+- **WHEN** the documented npm SDD command runs locally or in CI
+- **THEN** it uses the project-pinned CLI, diagnoses the OpenSpec root, and validates all canonical specs and active changes in strict non-interactive mode
+
+### Requirement: Explicit readiness and completion criteria
+
+An OpenSpec change SHALL be ready for implementation only after every required planning artifact is complete and SHALL be considered complete only after every task and affected verification gate has passed.
+
+#### Scenario: Apply workflow is requested
+
+- **WHEN** required planning artifacts are missing or blocked
+- **THEN** implementation remains blocked until the proposal, required specs, design decisions, and tasks are coherent and available
+
+#### Scenario: Completion is reported
+
+- **WHEN** all planned implementation work is believed to be finished
+- **THEN** every task is checked only after its objective evidence exists and the affected quality commands pass

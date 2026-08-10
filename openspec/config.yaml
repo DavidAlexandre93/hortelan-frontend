@@ -1,40 +1,61 @@
 schema: spec-driven
 
 context: |
-  Product: Hortelan smart garden frontend.
-  Stack: React 19, Vite 7, Material UI 7, React Router 7, Node-based selective SSR.
-  Runtime: project targets Node 24.x; OpenSpec requires Node >=20.19.0.
-  Delivery: CI/CD runs lint, format checks, node:test coverage, production build, frontend audit, and OpenSpec validation.
-  Domains: dashboard monitoring, species catalog, account/profile, auth/session, integrations, reports, alerts, platform reliability, subscriptions, community, and support.
+  Product: Hortelan, a Brazilian smart-garden operational frontend.
+  Audience: growers and operators who monitor crops, sensors, alerts, irrigation, tasks, reports, subscriptions, integrations, community, support, and account security.
+  Language: user-facing copy defaults to Brazilian Portuguese (pt-BR); OpenSpec artifacts remain in clear technical English for stable requirement matching.
+  Stack: React 19, Vite 7, Material UI 7, React Router 7, Zod contracts, and Node-based selective SSR.
+  Runtime: Node.js 24.x is the only supported delivery runtime; OpenSpec itself requires Node >=20.19.0.
+  Delivery: the unified quality gate covers strict OpenSpec validation, ESLint, Prettier, Node and Vitest coverage, client and SSR builds, asset and dependency security, bundle budgets, source reachability, accessibility, and Playwright mobile/desktop journeys.
+  Capability domains:
+    - architecture: application shell, routing, SSR, and SDD governance.
+    - experience: accessibility, responsive behavior, visual consistency, and operational workflows.
+    - identity: authentication, sessions, MFA, privacy, and account lifecycle.
+    - platform: API reliability, telemetry, persistence, browser security, and external resources.
+    - delivery: runtime, testing, performance, maintainability, CI, and deployment controls.
   Architecture constraints:
-    - Preserve route-level lazy loading and authenticated dashboard boundaries.
-    - Keep API calls behind services and avoid direct fetch usage in pages.
-    - Treat localStorage auth as demo-mode state, not production-grade identity storage.
-    - Record security, performance, reliability, or route behavior changes as OpenSpec capabilities before implementation.
+    - Preserve route-level lazy loading, the shared route manifest, authenticated dashboard boundaries, and selective SSR behavior.
+    - Keep API calls behind feature services; pages and presentation components do not call fetch directly.
+    - Treat the backend as authoritative for production identity and permit demo authentication only behind VITE_ENABLE_DEMO_AUTH=true with visible disclosure.
+    - Never persist plaintext credentials, MFA secrets, reset secrets, private tokens, or privileged vendor credentials in browser storage or production assets.
+    - Compose new UI from the shared theme and primitives, with keyboard access, reduced-motion support, responsive integrity from 320px upward, and complete asynchronous states.
+    - Record changes to observable behavior, security, performance, reliability, routes, SSR, browser persistence, dependencies, or delivery gates in the owning OpenSpec capability before implementation.
+  Source of truth:
+    - openspec/specs contains canonical current behavior.
+    - openspec/changes contains active proposals, delta specs, design decisions, tasks, and verification notes.
+    - openspec/changes/archive contains the retained decision history after canonical synchronization.
 
 rules:
   proposal:
-    - Keep the Why section concise and explicitly state user or operational impact.
-    - Include Non-goals inside What Changes when scope could otherwise expand.
-    - List capabilities using the existing domain folders before creating new ones.
+    - Keep Why concise and state the user, security, reliability, performance, or operational impact.
+    - Separate observable behavior changes from implementation details and include explicit non-goals when scope could expand.
+    - Classify each affected capability as new or modified using the existing domain hierarchy before creating a new path.
+    - Mark breaking behavior or required deployment migration prominently and describe compatibility impact.
   specs:
-    - Specs describe externally observable behavior, constraints, and acceptance scenarios, not file names or React component internals.
-    - Use SHALL or MUST in each requirement body.
-    - Every requirement must include at least one scenario with WHEN and THEN bullets.
+    - Describe externally observable behavior and enforceable constraints, not file names, React component internals, or task lists.
+    - Use SHALL or MUST in every requirement body.
+    - Give every requirement at least one uniquely named scenario with WHEN and THEN bullets.
+    - A MODIFIED requirement must include the complete resulting requirement and preserve its canonical requirement name.
+    - New capabilities must include a concise Purpose and one responsibility; avoid overlapping or synonymous capability paths.
   design:
-    - Include design.md for cross-cutting work, security-sensitive work, route behavior, API behavior, build/CI behavior, or new dependencies.
-    - Capture alternatives considered when changing auth, SSR, bundling, telemetry, or deployment behavior.
+    - Include design.md for cross-cutting, security-sensitive, route, API, SSR, persistence, build, CI, deployment, or dependency work.
+    - Link every material design decision to the capability contract it satisfies and document alternatives considered.
+    - Describe compatibility, migration, rollback, security, performance, accessibility, observability, and test strategy when applicable.
   tasks:
-    - Keep each checkbox independently verifiable.
-    - Include validation tasks for affected tests, build, lint, OpenSpec validation, or frontend audit.
+    - Keep each checkbox independently executable and objectively verifiable.
+    - Order tasks by dependency and risk, and connect implementation work to affected requirements or design decisions.
+    - Include focused tests plus strict OpenSpec validation and every affected quality gate.
+    - Check a task only after implementation and its stated evidence are complete.
 
 operations:
   apply:
     guidance:
-      - Read the active change artifacts before editing code.
-      - Mark tasks complete as implementation and verification actually finish.
-      - Keep changes scoped to the capabilities named in the proposal.
+      - Read proposal, delta specs, design, and tasks from the selected change before editing implementation files.
+      - Implement only behavior covered by the selected change and update artifacts first when implementation reveals a contract mismatch.
+      - Mark tasks complete incrementally only after their implementation and verification actually finish.
+      - Keep API, auth, route, visual-system, accessibility, performance, security, and delivery boundaries consistent with canonical specs.
   archive:
     guidance:
-      - Run openspec validate --all before archiving.
-      - Summarize which specs changed and which validation commands passed.
+      - Confirm every task is complete and run npm run sdd:check plus all affected project checks before archiving.
+      - Synchronize delta specs into canonical specs before archive and preserve stable requirement names to avoid duplicate requirements.
+      - Summarize changed capabilities, migrations, verification commands, residual risks, and follow-up work in the retained change notes.

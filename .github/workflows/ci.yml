@@ -37,8 +37,8 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: OpenSpec validation
-        run: npm run openspec:validate
+      - name: OpenSpec SDD health and strict validation
+        run: npm run sdd:check
 
       - name: Lint
         run: npm run lint

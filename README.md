@@ -73,13 +73,16 @@ servidor. Rotas `/dashboard/*` recebem o shell cliente e continuam protegidas pe
 
 Mudanças relevantes seguem este fluxo:
 
-1. Explorar o problema e os requisitos observáveis.
-2. Criar uma change em `openspec/changes/<change>/` com proposta, design, deltas e tarefas.
-3. Validar com `npm run openspec:validate`.
-4. Implementar e atualizar os checkboxes conforme evidência real.
-5. Sincronizar as specs e arquivar somente após todos os gates passarem.
+1. Explorar o problema, o impacto e os requisitos observáveis.
+2. Criar uma change em `openspec/changes/<change>/` com proposta, delta specs, design e tarefas verificáveis.
+3. Confirmar que todos os artefatos requeridos estão prontos antes de alterar a implementação.
+4. Implementar pelo change ativo e marcar tarefas somente após produzir a evidência prevista.
+5. Executar `npm run sdd:check` e os gates afetados; `npm run quality:gate` cobre a validação integral.
+6. Sincronizar os deltas nas specs canônicas e arquivar somente quando tarefas e validações estiverem concluídas.
 
-O guia completo está em `docs/sdd-openspec-architecture.md`.
+O CLI OpenSpec está fixado no projeto e deve ser usado pelos scripts npm, sem dependência de instalação global. O guia
+completo, mapa de capacidades, critérios de pronto/concluído e política de rastreabilidade estão em
+`docs/sdd-openspec-architecture.md`.
 
 ## Segurança e privacidade
 

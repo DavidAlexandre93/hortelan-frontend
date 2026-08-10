@@ -97,3 +97,11 @@
 - [x] 10.4 Update README and architecture, security, testing, demo-mode, performance, environment, and deployment documentation to match the implemented system.
 - [x] 10.5 Re-run `openspec validate --all`, record final before-and-after metrics in the change notes, and leave all implementation tasks checked for archive review.
 - [x] 10.6 Align package, CI, Vercel, documentation, and test tooling on Node 24.x; remove deprecated install chains and verify a clean Vercel-compatible install and complete quality gate.
+
+## 11. OpenSpec SDD Governance
+
+- [x] 11.1 Synchronize all completed capability deltas into canonical specs while preserving requirement names and unaffected requirements.
+- [x] 11.2 Expand `openspec/config.yaml` with current product context, capability ownership, architecture constraints, artifact rules, and apply/archive guidance.
+- [x] 11.3 Add strict non-interactive OpenSpec validation and an aggregate SDD health command, then run the same command from the unified quality gate and CI.
+- [x] 11.4 Document the complete lifecycle, artifact contract, capability map, readiness, completion, traceability, synchronization, and archive policy; add the corresponding pull request checklist.
+- [x] 11.5 Verify every delta requirement against its canonical counterpart, run strict OpenSpec validation, and pass the complete quality gate under Node 24.x.

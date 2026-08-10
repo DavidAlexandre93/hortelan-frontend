@@ -19,7 +19,7 @@ Final verification date: 2026-08-10. Runtime: Node v24.14.0.
 
 ## Final Evidence
 
-- `npm run openspec:validate`: 6 artifacts passed, 0 failed.
+- `npm run sdd:check`: OpenSpec root healthy; 8 canonical specs and the active change passed strict validation (9/9).
 - `npm run lint` and `npm run format:check`: zero warnings or formatting drift.
 - `npm run test:coverage`: 82.91% statements and 86.33% lines for the enforced Vitest scope.
 - `npm run build:ssr`: client and selective SSR bundles generated under Node 24.
@@ -29,6 +29,11 @@ Final verification date: 2026-08-10. Runtime: Node v24.14.0.
 - Playwright covers authentication, profile save, destructive confirmation, navigation, offline recovery, safe aliases,
   route-chunk recovery, global-error recovery, axe, keyboard, reduced motion, and every public/private route at desktop
   and 320 px.
+
+The SDD synchronization audit compared every requirement block in the completed capability deltas with its canonical
+counterpart and found no missing, renamed, or divergent requirement. The OpenSpec CLI remains pinned in the project,
+CI and local development execute the same non-interactive SDD gate, and the pull request template captures capability,
+requirement, task, and verification traceability.
 
 Static fixture routes use the explicit `Dados ilustrativos` success state, shared route loading, protected permissions,
 and the global offline state. Backend-backed status and identity workflows additionally expose loading, canonical error,

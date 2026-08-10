@@ -26,6 +26,7 @@ The frontend passes its current build gate, but it is not yet production-grade: 
 
 ### Modified Capabilities
 
+- `architecture/sdd-governance`: Make capability ownership, requirement traceability, readiness/completion criteria, strict local validation, synchronization, and archive evidence explicit and executable.
 - `architecture/frontend-app-shell`: Correct route ownership, registration behavior, protected legacy entry points, recoverable lazy loading, metadata, and route error handling.
 - `identity/auth-session`: Make backend identity authoritative, explicitly gate demo mode, remove persisted plaintext credentials, and keep session/security flows modular and testable.
 - `platform/api-reliability`: Add runtime contract validation, cancellation semantics, canonical recovery behavior, and resilient user-visible states.
