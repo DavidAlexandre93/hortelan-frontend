@@ -25,8 +25,7 @@ LazyPage.propTypes = {
   Component: PropTypes.elementType.isRequired,
 };
 
-function ProtectedAlias({ destination }) {
-  const { search } = useLocation();
+export function getSafeAliasDestination(destination, search = '') {
   const safeSearch = new URLSearchParams(search);
   const retained = new URLSearchParams();
 
@@ -36,7 +35,12 @@ function ProtectedAlias({ destination }) {
   });
 
   const suffix = retained.toString();
-  return <Navigate to={`${destination}${suffix ? `?${suffix}` : ''}`} replace />;
+  return `${destination}${suffix ? `?${suffix}` : ''}`;
+}
+
+function ProtectedAlias({ destination }) {
+  const { search } = useLocation();
+  return <Navigate to={getSafeAliasDestination(destination, search)} replace />;
 }
 
 ProtectedAlias.propTypes = {

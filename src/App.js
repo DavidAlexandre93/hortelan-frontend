@@ -5,20 +5,28 @@ import BrandSplash from './components/BrandSplash';
 import Router from './routes';
 import CookieConsentBanner from './components/privacy/CookieConsentBanner';
 
-const SPLASH_STORAGE_KEY = 'hortelan:intro-seen';
+export const SPLASH_STORAGE_KEY = 'hortelan:intro-seen';
 
-function shouldShowIntro(ssr) {
-  if (ssr || typeof window === 'undefined') return false;
+export function shouldShowIntro(ssr, browser = typeof window === 'undefined' ? null : window) {
+  if (ssr || !browser) return false;
 
-  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  return !reducedMotion && window.sessionStorage.getItem(SPLASH_STORAGE_KEY) !== 'true';
+  try {
+    const reducedMotion = browser.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    return !reducedMotion && browser.sessionStorage.getItem(SPLASH_STORAGE_KEY) !== 'true';
+  } catch {
+    return false;
+  }
 }
 
 export default function App({ ssr = false }) {
   const [showSplash, setShowSplash] = useState(() => shouldShowIntro(ssr));
 
   const finishSplash = useCallback(() => {
-    window.sessionStorage.setItem(SPLASH_STORAGE_KEY, 'true');
+    try {
+      window.sessionStorage.setItem(SPLASH_STORAGE_KEY, 'true');
+    } catch {
+      // Storage can be unavailable in hardened/private browser contexts.
+    }
     setShowSplash(false);
   }, []);
 

@@ -3,7 +3,7 @@ import {
   Box,
   Card,
   Chip,
-  Grid,
+  GridLegacy as Grid,
   List,
   ListItem,
   ListItemText,

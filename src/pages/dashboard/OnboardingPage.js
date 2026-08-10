@@ -13,7 +13,7 @@ import {
   FormControlLabel,
   FormGroup,
   FormHelperText,
-  Grid,
+  GridLegacy as Grid,
   IconButton,
   InputLabel,
   LinearProgress,

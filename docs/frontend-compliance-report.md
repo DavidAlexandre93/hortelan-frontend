@@ -12,67 +12,72 @@ Data de revisão: 10 de agosto de 2026
 
 ## Resultado
 
-O frontend possui agora um gate reproduzível em Node 24 com OpenSpec, ESLint sem warnings, Prettier, testes Node,
+O frontend possui um gate reproduzível em Node 24 com OpenSpec, ESLint sem warnings, Prettier, testes Node,
 Vitest com cobertura, build cliente/SSR, scanner de assets, orçamento de bundle, auditoria de alcançabilidade,
-`npm audit` e Playwright desktop/mobile.
+`npm audit` e Playwright em desktop e mobile.
 
 ### Arquitetura e confiabilidade
 
-- Manifesto central de rotas com acesso, metadata, aliases, lazy loading e seleção SSR.
-- Providers compartilhados entre cliente e servidor.
+- Manifesto central de rotas com acesso, metadata, aliases seguros, lazy loading e seleção SSR.
 - Adaptadores explícitos para identidade backend e demo; demo desabilitado por padrão.
-- Cliente HTTP com timeout, cancelamento, retry somente idempotente, erros canônicos e validação Zod.
-- Estados reutilizáveis de loading, vazio, erro, offline, permissão, status e confirmação.
-- Auditoria por AST cobrindo imports estáticos, dinâmicos, reexports, aliases e entradas cliente/SSR.
+- Sessão, perfil, MFA e dispositivos confiáveis separados em domínios testáveis e sem persistência de segredos.
+- Cliente HTTP com timeout, cancelamento, retry idempotente, erros canônicos e contratos Zod para os domínios críticos.
+- Boundary de rota dedicado a falhas de chunk e boundary global dedicado a falhas inesperadas, ambos recuperáveis.
+- Estados reutilizáveis de loading, vazio, erro, offline, permissão, status, feedback e confirmação nominal.
+- Auditoria de grafo cobrindo imports estáticos, dinâmicos, reexports, aliases e entradas cliente/SSR.
 
 ### Segurança e privacidade
 
 - `npm audit` sem vulnerabilidades conhecidas no lockfile revisado.
-- CSP de scripts limitada a `'self'`, sem script inline/eval; headers SSR e Vercel cobertos por contrato.
+- CSP limitada a fontes declaradas, sem script inline/eval; headers SSR e Vercel cobertos por contrato.
 - New Relic embutido, credenciais antigas, Faker de produção e fallbacks implícitos removidos.
 - Sentry, Analytics e Meticulous centralizados e condicionados a configuração/consentimento.
-- Limpeza unidirecional de senha, histórico, reset token, desafio MFA e rate-limit legados do navegador.
-- Scanner falha para credenciais demo, tokens privados, loaders de gravação indevidos ou módulos proibidos.
+- Limpeza unidirecional de senha, histórico, reset token, desafios MFA e rate limits legados do navegador.
+- Scanner falha para credenciais demo, tokens privados, loaders indevidos ou módulos proibidos no bundle.
 
 ### Experiência e acessibilidade
 
-- Autenticação redesenhada com imagem local de estufa, hierarquia responsiva e fluxos separados de cadastro/recuperação.
-- Shell operacional mais compacto, contexto por rota, navegação semântica e estados online/offline explícitos.
-- Gráficos Recharts acessíveis com resumo textual; ApexCharts e runtime Faker removidos.
-- Skip link, foco global, alvos mínimos de 44 px, labels, alt text e política de movimento reduzido.
-- Axe sem violações críticas/sérias nas telas representativas de login e dashboard em 1440 e 320 px.
-- Consentimento de cookies corrigido para não cortar texto nem provocar overflow no primeiro acesso mobile.
+- Autenticação com imagem local de estufa, hierarquia responsiva e fluxos separados de cadastro e recuperação.
+- Shell operacional compacto, contexto por rota, navegação semântica e estado online/offline explícito.
+- Páginas de monitoramento, perfil, segurança e status decompostas em componentes e modelos focados.
+- Confirmação nominal e bloqueio de submissão duplicada nas ações sensíveis.
+- Gráficos com resumo textual, skip link, foco global, alvos mínimos de 44 px, labels e movimento reduzido.
+- Axe sem violações críticas ou sérias nas telas representativas de login e dashboard em 1440 e 320 px.
+- Revisão automatizada e visual de 15 rotas privadas e 5 públicas em desktop e 320 px sem overflow.
 
 ## Métricas
 
-Baseline anterior: 6 de março de 2026. Baseline final: `docs/performance-baseline.json`, Node `v24.14.0`.
+Baseline OpenSpec inicial e baseline final em Node `v24.14.0`:
 
-| Métrica               |          Antes |                 Depois |       Variação |
-| --------------------- | -------------: | ---------------------: | -------------: |
-| JS/CSS bruto total    |    4.607,85 kB |            1.608,45 kB |         -65,1% |
-| Entrada principal     |    2.992,25 kB |              483,75 kB |         -83,8% |
-| Vendor de gráficos    |      528,70 kB |              414,48 kB |         -21,6% |
-| Rota de monitoramento |      159,36 kB |               84,59 kB |         -46,9% |
-| Tempo de build        |        26,71 s |                16,27 s |         -39,1% |
-| HTML                  | não registrado | 1,72 kB / 0,69 kB gzip | baseline atual |
-| JS/CSS gzip total     | não registrado |              482,60 kB | baseline atual |
+| Métrica                         |                            Antes |     Depois | Variação |
+| ------------------------------- | -------------------------------: | ---------: | -------: |
+| Entrada principal minificada    |                        825,19 kB |  334,15 kB |   -59,5% |
+| Entrada principal gzip          |                        274,61 kB |  106,76 kB |   -61,1% |
+| Vendor de gráficos minificado   |                        516,28 kB |  414,48 kB |   -19,7% |
+| HTML de produção                |            aproximadamente 55 kB |    1,87 kB |   -96,6% |
+| Tempo de build                  |                          26,71 s |    18,53 s |   -30,6% |
+| Vulnerabilidades conhecidas     |                               15 |          0 |    -100% |
+| Módulos acima de 800 linhas     |                                3 |          0 |    -100% |
+| Módulos de produção alcançáveis | auditoria anterior não confiável | 142 de 142 | completo |
 
-Todos os chunks JavaScript minificados permanecem abaixo do limite bruto de 500 kB. O grafo final contém 111 módulos
-de produção, todos alcançáveis a partir das entradas configuradas, sem imports quebrados ou órfãos detectados.
+O bundle final contém 27 arquivos JS/CSS, 1.628,47 kB brutos e 488,01 kB gzip. O maior chunk JavaScript tem
+414,48 kB; todos permanecem abaixo do teto de 500 kB. A entrada inicial importa limites separados para MUI,
+React, formulários, utilitários e Sentry.
 
 ## Testes
 
-- Vitest/Testing Library/MSW: autenticação, guards, rotas, contratos HTTP, cancelamento/stale requests e domínio.
-- Node test runner: regras de promoção, composição SSR e contrato dos headers.
-- Playwright: login, cadastro, retorno protegido, falha do backend, storage sem senha, rota protegida, axe, teclado,
-  movimento reduzido, alvos de toque, overflow e dashboard operacional.
-- SSR de produção: conteúdo público, um único `<title>`, fallback SPA privado, asset local e headers verificados.
+- 87 testes Vitest/Testing Library e 8 testes Node aprovados.
+- Cobertura Vitest: 82,91% de statements, 74,43% de branches, 75% de funções e 86,33% de linhas.
+- 20 jornadas Playwright executadas nos projetos desktop e mobile, totalizando 40 execuções por gate.
+- Autenticação, cadastro, recuperação, redirects seguros, logout, perfil, exclusão nominal, offline, navegação,
+  aliases, falha de chunk, erro global, acessibilidade, alvos de toque e overflow cobertos no navegador.
+- SSR de produção: conteúdo público, metadata, fallback SPA privado, assets locais e headers verificados.
 
 ## Riscos residuais
 
-- `MonitoringPage`, `ProfileSettingsPage` e `session.js` continuam acima de 800 linhas e devem ser decompostos em
-  mudanças OpenSpec próprias, preservando os testes já criados.
-- Contratos Zod completos ainda devem ser estendidos aos domínios de monitoramento, relatórios, assinaturas e
-  integrações quando os respectivos endpoints backend forem estabilizados.
-- MFA, dispositivos confiáveis e operações de privacidade possuem implementação local histórica; a autoridade final
-  deve migrar para APIs backend antes de uso regulado em produção.
+- Os endpoints backend de monitoramento, relatórios, assinaturas e integrações precisam manter os contratos Zod
+  publicados; payloads incompatíveis são rejeitados com estado recuperável em vez de renderização insegura.
+- O modo demo continua intencionalmente local e explícito. Produção depende da autoridade do backend para identidade,
+  MFA, dispositivos, consentimento e ações de conta.
+- O baseline mede o bundle e as jornadas locais determinísticas; métricas reais de rede e dispositivo devem continuar
+  sendo acompanhadas por observabilidade de produção com consentimento.

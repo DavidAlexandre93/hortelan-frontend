@@ -44,6 +44,8 @@ export default defineConfig(({ isSsrBuild }) => ({
               charts: ['recharts'],
               motion: ['framer-motion'],
               sentry: ['@sentry/react'],
+              forms: ['react-hook-form', '@hookform/resolvers', 'yup', 'zod'],
+              utilities: ['change-case', 'date-fns', 'numeral'],
             },
       },
     },

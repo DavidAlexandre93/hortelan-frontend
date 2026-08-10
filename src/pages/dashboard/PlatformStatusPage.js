@@ -1,174 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import SensorsIcon from '@mui/icons-material/Sensors';
-import RouterIcon from '@mui/icons-material/Router';
-import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import ErrorRoundedIcon from '@mui/icons-material/ErrorRounded';
-import NotificationsActiveRoundedIcon from '@mui/icons-material/NotificationsActiveRounded';
-import TaskAltRoundedIcon from '@mui/icons-material/TaskAltRounded';
-import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
-import PauseCircleFilledRoundedIcon from '@mui/icons-material/PauseCircleFilledRounded';
-import PlayCircleFilledRoundedIcon from '@mui/icons-material/PlayCircleFilledRounded';
-import PowerSettingsNewRoundedIcon from '@mui/icons-material/PowerSettingsNewRounded';
-import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  Container,
-  Divider,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Pagination,
-  Select,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TableContainer,
-  Typography,
-} from '@mui/material';
+import { Box, Container, GridLegacy as Grid, Stack, Typography } from '@mui/material';
 import Page from '../../components/Page';
+import StatusSummary from '../../features/status/StatusSummary';
+import AutomationControls from '../../features/status/AutomationControls';
+import AreaServiceMap from '../../features/status/AreaServiceMap';
+import TelemetryStream from '../../features/status/TelemetryStream';
+import OperationsHistory from '../../features/status/OperationsHistory';
+import useOperationalMonitoring from '../../features/status/useOperationalMonitoring';
+import { ErrorState, LoadingState } from '../../components/states/OperationalState';
 
-const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
-  dateStyle: 'short',
-  timeStyle: 'short',
-});
-
-const areaStatusConfig = {
-  normal: { label: 'Normal', color: 'success', icon: CheckCircleRoundedIcon },
-  warning: { label: 'Atenção', color: 'warning', icon: WarningAmberRoundedIcon },
-  critical: { label: 'Crítico', color: 'error', icon: ErrorRoundedIcon },
-};
-
-const greenhouseAreas = [
-  {
-    id: 'A1',
-    name: 'Estufa Norte',
-    status: 'normal',
-    devices: [
-      { id: 'S-101', type: 'sensor', name: 'Sensor Solo A', connectionStatus: 'online' },
-      { id: 'S-102', type: 'sensor', name: 'Sensor Clima A', connectionStatus: 'online' },
-      { id: 'D-014', type: 'device', name: 'Bomba de Irrigação', connectionStatus: 'online' },
-    ],
-    alerts: [],
-  },
-  {
-    id: 'A2',
-    name: 'Estufa Sul',
-    status: 'warning',
-    devices: [
-      { id: 'S-205', type: 'sensor', name: 'Sensor Umidade B', connectionStatus: 'offline' },
-      { id: 'D-118', type: 'device', name: 'Válvula Setor 2', connectionStatus: 'online' },
-    ],
-    alerts: ['Umidade do solo abaixo de 32% nas últimas 2h'],
-  },
-  {
-    id: 'B1',
-    name: 'Viveiro de Mudas',
-    status: 'critical',
-    devices: [
-      { id: 'S-307', type: 'sensor', name: 'Sensor Temperatura C', connectionStatus: 'online' },
-      { id: 'D-219', type: 'device', name: 'Exaustor Principal', connectionStatus: 'offline' },
-    ],
-    alerts: ['Temperatura acima de 38°C', 'Falha intermitente no exaustor principal'],
-  },
-];
-
-const streamTemplates = [
-  { type: 'telemetry', severity: 'info', text: 'Medição recebida' },
-  { type: 'alert', severity: 'warning', text: 'Alerta ativo detectado' },
-  { type: 'connectivity', severity: 'info', text: 'Heartbeat de conectividade' },
-  { type: 'actuator', severity: 'success', text: 'Ação de atuador confirmada' },
-];
-
-const ruleExecutions = [
-  {
-    id: 'RE-001',
-    areaId: 'A1',
-    areaName: 'Estufa Norte',
-    ruleName: 'Irrigação automática por umidade',
-    status: 'success',
-    reason: 'Umidade do solo ficou abaixo de 35% por 10 minutos',
-    createdBy: 'Camila Souza',
-    editedBy: 'Rodrigo Lima',
-    executedAt: '2026-02-24T08:34:00.000Z',
-  },
-  {
-    id: 'RE-002',
-    areaId: 'A2',
-    areaName: 'Estufa Sul',
-    ruleName: 'Exaustor por alta temperatura',
-    status: 'failed',
-    reason: 'Falha de comunicação com o atuador D-118',
-    createdBy: 'Fernanda Alves',
-    editedBy: 'Fernanda Alves',
-    executedAt: '2026-02-24T09:02:00.000Z',
-  },
-  {
-    id: 'RE-003',
-    areaId: 'B1',
-    areaName: 'Viveiro de Mudas',
-    ruleName: 'Nebulização preventiva por calor',
-    status: 'success',
-    reason: 'Temperatura acima de 34°C e umidade do ar abaixo de 48%',
-    createdBy: 'Juliana Prado',
-    editedBy: 'Marcos Teixeira',
-    executedAt: '2026-02-24T10:11:00.000Z',
-  },
-  {
-    id: 'RE-004',
-    areaId: 'A2',
-    areaName: 'Estufa Sul',
-    ruleName: 'Irrigação de segurança no fim do dia',
-    status: 'failed',
-    reason: 'Limite diário de irrigações já atingido',
-    createdBy: 'Camila Souza',
-    editedBy: 'Camila Souza',
-    executedAt: '2026-02-24T17:45:00.000Z',
-  },
-];
-
-function randomItem(items) {
-  return items[Math.floor(Math.random() * items.length)];
-}
-
-function buildInitialAlerts() {
-  return greenhouseAreas.flatMap((area) =>
-    area.alerts.map((message, index) => ({
-      id: `${area.id}-alert-${index}`,
-      areaId: area.id,
-      areaName: area.name,
-      deviceName: area.devices[0]?.name || 'Dispositivo',
-      message,
-      severity: area.status === 'critical' ? 'error' : 'warning',
-      acknowledgedAt: null,
-    }))
-  );
-}
-
-function buildInitialActuators() {
-  return greenhouseAreas.reduce((acc, area) => {
-    const areaActuators = area.devices
-      .filter((device) => device.type === 'device')
-      .map((device) => ({
-        ...device,
-        areaId: area.id,
-        areaName: area.name,
-        isOn: false,
-      }));
-
-    return [...acc, ...areaActuators];
-  }, []);
-}
+import {
+  buildInitialActuators,
+  buildInitialAlerts,
+  greenhouseAreas,
+  randomItem,
+  ruleExecutions,
+  streamTemplates,
+} from '../../features/status/model';
 
 export default function StatusPage() {
   const MAX_STREAM_EVENTS = 100;
@@ -181,6 +29,7 @@ export default function StatusPage() {
   const [actuators, setActuators] = useState(() => buildInitialActuators());
   const [automationSuspendedAt, setAutomationSuspendedAt] = useState(null);
   const [interventions, setInterventions] = useState([]);
+  const operational = useOperationalMonitoring();
 
   const automationSuspended = Boolean(automationSuspendedAt);
 
@@ -349,24 +198,25 @@ export default function StatusPage() {
     });
   };
 
-  const dashboardCardSx = {
-    height: '100%',
-    borderRadius: 2,
-  };
+  if (operational.status === 'loading') {
+    return (
+      <Page title="Status operacional">
+        <Container maxWidth="xl">
+          <LoadingState label="Conectando ao monitoramento" />
+        </Container>
+      </Page>
+    );
+  }
 
-  const dashboardCardContentSx = {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 1.5,
-  };
-
-  const sectionPaperSx = {
-    p: 2,
-    borderRadius: 2,
-    border: (theme) => `1px solid ${theme.palette.divider}`,
-    bgcolor: 'background.default',
-  };
+  if (operational.status === 'error') {
+    return (
+      <Page title="Status operacional">
+        <Container maxWidth="xl">
+          <ErrorState description={operational.error?.message} onRetry={() => operational.retry()} />
+        </Container>
+      </Page>
+    );
+  }
 
   return (
     <Page title="Status operacional">
@@ -381,396 +231,46 @@ export default function StatusPage() {
             </Typography>
           </Box>
 
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={3}>
-              <Card sx={dashboardCardSx}>
-                <CardContent sx={dashboardCardContentSx}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Áreas monitoradas
-                  </Typography>
-                  <Typography variant="h4">{greenhouseAreas.length}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Card sx={dashboardCardSx}>
-                <CardContent sx={dashboardCardContentSx}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Dispositivos totais
-                  </Typography>
-                  <Typography variant="h4">{totalDevices}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Card sx={dashboardCardSx}>
-                <CardContent sx={dashboardCardContentSx}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Dispositivos offline
-                  </Typography>
-                  <Typography variant="h4" color={offlineDevices > 0 ? 'error.main' : 'success.main'}>
-                    {offlineDevices}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Card sx={dashboardCardSx}>
-                <CardContent sx={dashboardCardContentSx}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Alertas pendentes
-                  </Typography>
-                  <Typography variant="h4">{activeAlerts.length}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <InputLabel id="status-area-filter-label">Filtrar área</InputLabel>
-                <Select
-                  labelId="status-area-filter-label"
-                  value={selectedArea}
-                  label="Filtrar área"
-                  onChange={(event) => {
-                    setSelectedArea(event.target.value);
-                    setEventPage(1);
-                  }}
-                >
-                  <MenuItem value="all">Todas as áreas</MenuItem>
-                  {greenhouseAreas.map((area) => (
-                    <MenuItem key={area.id} value={area.id}>
-                      {area.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={8}>
-              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                {Object.entries(areaStatusConfig).map(([status, config]) => (
-                  <Chip
-                    key={status}
-                    color={config.color}
-                    icon={<config.icon fontSize="small" />}
-                    label={config.label}
-                  />
-                ))}
-                <Chip icon={<SensorsIcon fontSize="small" />} label="Sensores" variant="outlined" />
-                <Chip icon={<RouterIcon fontSize="small" />} label="Atuadores" variant="outlined" />
-              </Stack>
-            </Grid>
-          </Grid>
-
+          <StatusSummary
+            controller={{ totalDevices, offlineDevices, activeAlerts, selectedArea, setSelectedArea, setEventPage }}
+          />
           <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Card sx={dashboardCardSx}>
-                <CardContent sx={dashboardCardContentSx}>
-                  <Typography variant="h6" sx={{ mb: 1 }}>
-                    Controles manuais e automação
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Ligue/desligue atuadores manualmente e suspenda ou retome a automação quando necessário.
-                  </Typography>
-
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mb: 2 }}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      color="warning"
-                      startIcon={<PauseCircleFilledRoundedIcon />}
-                      onClick={handleSuspendAutomation}
-                      disabled={automationSuspended}
-                    >
-                      Suspender automação
-                    </Button>
-                    <Button
-                      fullWidth
-                      variant="outlined"
-                      color="success"
-                      startIcon={<PlayCircleFilledRoundedIcon />}
-                      onClick={handleResumeAutomation}
-                      disabled={!automationSuspended}
-                    >
-                      Retomar automação
-                    </Button>
-                  </Stack>
-
-                  <Alert severity={automationSuspended ? 'warning' : 'success'} sx={{ mb: 2 }}>
-                    {automationSuspended
-                      ? `Automação pausada desde ${dateTimeFormatter.format(new Date(automationSuspendedAt))}`
-                      : 'Automação ativa e monitorando atuadores automaticamente.'}
-                  </Alert>
-
-                  <Stack spacing={1.2}>
-                    {filteredActuators.map((actuator) => (
-                      <Paper key={actuator.id} variant="outlined" sx={sectionPaperSx}>
-                        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                          <Box>
-                            <Typography variant="body2" fontWeight={700}>
-                              {actuator.name}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {actuator.areaName} • {actuator.id}
-                            </Typography>
-                          </Box>
-                          <Button
-                            size="small"
-                            variant={actuator.isOn ? 'contained' : 'outlined'}
-                            color={actuator.isOn ? 'error' : 'primary'}
-                            startIcon={<PowerSettingsNewRoundedIcon fontSize="small" />}
-                            onClick={() => handleActuatorToggle(actuator.id)}
-                          >
-                            {actuator.isOn ? 'Desligar' : 'Ligar'}
-                          </Button>
-                        </Stack>
-                      </Paper>
-                    ))}
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} lg={4}>
-              <Card sx={dashboardCardSx}>
-                <CardContent sx={dashboardCardContentSx}>
-                  <Typography variant="h6" sx={{ mb: 2 }}>
-                    Mapa de hortas e dispositivos
-                  </Typography>
-                  <Stack spacing={1.2}>
-                    {greenhouseAreas
-                      .filter((area) => selectedArea === 'all' || area.id === selectedArea)
-                      .map((area) => (
-                        <Paper key={area.id} variant="outlined" sx={sectionPaperSx}>
-                          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                            <Box>
-                              <Typography fontWeight={700}>{area.name}</Typography>
-                            </Box>
-                            <Chip
-                              size="small"
-                              color={areaStatusConfig[area.status].color}
-                              label={areaStatusConfig[area.status].label}
-                            />
-                          </Stack>
-                          <Stack spacing={0.5} sx={{ mt: 1 }}>
-                            {area.devices.map((device) => (
-                              <Typography key={device.id} variant="body2" color="text.secondary">
-                                • {device.name} ({device.id}) — {device.connectionStatus}
-                              </Typography>
-                            ))}
-                          </Stack>
-                        </Paper>
-                      ))}
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} lg={8}>
-              <Card sx={dashboardCardSx}>
-                <CardContent sx={dashboardCardContentSx}>
-                  <Stack
-                    direction={{ xs: 'column', md: 'row' }}
-                    justifyContent="space-between"
-                    alignItems={{ xs: 'flex-start', md: 'center' }}
-                    sx={{ mb: 2 }}
-                    spacing={1}
-                  >
-                    <Box>
-                      <Typography variant="h6">Lista de eventos em streaming</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Atualização automática a cada ~2.2s
-                      </Typography>
-                    </Box>
-                    <Chip
-                      icon={<AccessTimeRoundedIcon />}
-                      label={`Último: ${events[0] ? dateTimeFormatter.format(new Date(events[0].createdAt)) : '-'} • ${filteredEvents.length}/${MAX_STREAM_EVENTS}`}
-                    />
-                  </Stack>
-                  <Stack spacing={1.2}>
-                    {filteredEvents.length === 0 && <Alert severity="info">Aguardando eventos...</Alert>}
-                    {paginatedEvents.map((event) => (
-                      <Alert
-                        key={event.id}
-                        severity={
-                          event.severity === 'success' ? 'success' : event.severity === 'warning' ? 'warning' : 'info'
-                        }
-                      >
-                        <Stack
-                          direction="row"
-                          justifyContent="space-between"
-                          alignItems="center"
-                          flexWrap="wrap"
-                          gap={1}
-                        >
-                          <Typography variant="body2">
-                            <strong>{event.areaName}</strong> • {event.deviceName} — {event.message}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {dateTimeFormatter.format(new Date(event.createdAt))}
-                          </Typography>
-                        </Stack>
-                      </Alert>
-                    ))}
-                    {filteredEvents.length > STREAM_EVENTS_PER_PAGE && (
-                      <Stack alignItems="center" sx={{ pt: 1 }}>
-                        <Pagination
-                          color="primary"
-                          count={totalEventPages}
-                          page={currentEventPage}
-                          onChange={(_, page) => setEventPage(page)}
-                          size="small"
-                        />
-                      </Stack>
-                    )}
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
+            <AutomationControls
+              controller={{
+                automationSuspended,
+                automationSuspendedAt,
+                filteredActuators,
+                handleSuspendAutomation,
+                handleResumeAutomation,
+                handleActuatorToggle,
+              }}
+            />
+            <AreaServiceMap controller={{ selectedArea }} />
+            <TelemetryStream
+              controller={{
+                events,
+                filteredEvents,
+                paginatedEvents,
+                totalEventPages,
+                currentEventPage,
+                setEventPage,
+                MAX_STREAM_EVENTS,
+                STREAM_EVENTS_PER_PAGE,
+              }}
+            />
           </Grid>
 
-          <Card sx={dashboardCardSx}>
-            <CardContent sx={dashboardCardContentSx}>
-              <Stack
-                direction={{ xs: 'column', md: 'row' }}
-                justifyContent="space-between"
-                alignItems={{ xs: 'flex-start', md: 'center' }}
-                sx={{ mb: 2 }}
-                spacing={1.5}
-              >
-                <Box>
-                  <Typography variant="h6">Histórico de execuções de regras</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Execuções com sucesso/falha, motivo da execução e responsáveis pela criação/edição da regra.
-                  </Typography>
-                </Box>
-                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                  <Chip color="success" label={`Sucesso: ${successfulExecutions}`} />
-                  <Chip color="error" label={`Falha: ${failedExecutions}`} />
-                </Stack>
-              </Stack>
-
-              <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Data</TableCell>
-                      <TableCell>Regra</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Motivo da execução</TableCell>
-                      <TableCell>Criada por</TableCell>
-                      <TableCell>Editada por</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredRuleExecutions.map((execution) => (
-                      <TableRow key={execution.id} hover>
-                        <TableCell>{dateTimeFormatter.format(new Date(execution.executedAt))}</TableCell>
-                        <TableCell>
-                          <Typography variant="body2" fontWeight={600}>
-                            {execution.ruleName}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {execution.areaName}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            size="small"
-                            color={execution.status === 'success' ? 'success' : 'error'}
-                            label={execution.status === 'success' ? 'Bem-sucedida' : 'Falha'}
-                          />
-                        </TableCell>
-                        <TableCell>{execution.reason}</TableCell>
-                        <TableCell>{execution.createdBy}</TableCell>
-                        <TableCell>{execution.editedBy}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                <HistoryRoundedIcon color="action" />
-                <Typography variant="h6">Registro de intervenções manuais</Typography>
-              </Stack>
-
-              <Stack spacing={1.2}>
-                {filteredInterventions.length === 0 && (
-                  <Typography variant="body2" color="text.secondary">
-                    Nenhuma intervenção manual registrada no filtro atual.
-                  </Typography>
-                )}
-                {filteredInterventions.map((entry) => (
-                  <Alert key={entry.id} severity="info">
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1} flexWrap="wrap">
-                      <Typography variant="body2">
-                        <strong>{entry.type}</strong> • {entry.areaName} • {entry.deviceName} — {entry.description}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {dateTimeFormatter.format(new Date(entry.createdAt))}
-                      </Typography>
-                    </Stack>
-                  </Alert>
-                ))}
-              </Stack>
-            </CardContent>
-          </Card>
-
-          <Card sx={dashboardCardSx}>
-            <CardContent sx={dashboardCardContentSx}>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                Ack de alertas
-              </Typography>
-
-              {activeAlerts.length === 0 ? (
-                <Alert icon={<TaskAltRoundedIcon />} severity="success" sx={{ mb: 2 }}>
-                  Nenhum alerta pendente para ack no filtro atual.
-                </Alert>
-              ) : (
-                <Stack spacing={1.2} sx={{ mb: 2 }}>
-                  {activeAlerts.map((alert) => (
-                    <Alert
-                      key={alert.id}
-                      severity={alert.severity === 'error' ? 'error' : 'warning'}
-                      icon={<NotificationsActiveRoundedIcon />}
-                      action={
-                        <Button color="inherit" size="small" onClick={() => handleAck(alert.id)}>
-                          ACK
-                        </Button>
-                      }
-                    >
-                      <Typography variant="body2">
-                        <strong>{alert.areaName}</strong> • {alert.deviceName} — {alert.message}
-                      </Typography>
-                    </Alert>
-                  ))}
-                </Stack>
-              )}
-
-              <Divider sx={{ my: 2 }} />
-
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Histórico de alertas com ack ({ackedAlerts.length})
-              </Typography>
-              <Stack spacing={1}>
-                {ackedAlerts.length === 0 && (
-                  <Typography variant="body2" color="text.secondary">
-                    Ainda não há alertas reconhecidos.
-                  </Typography>
-                )}
-                {ackedAlerts.map((alert) => (
-                  <Alert key={alert.id} severity="success" icon={<TaskAltRoundedIcon />}>
-                    <Typography variant="body2">
-                      {alert.areaName} • {alert.deviceName} reconhecido em{' '}
-                      {dateTimeFormatter.format(new Date(alert.acknowledgedAt))}
-                    </Typography>
-                  </Alert>
-                ))}
-              </Stack>
-            </CardContent>
-          </Card>
+          <OperationsHistory
+            controller={{
+              successfulExecutions,
+              failedExecutions,
+              filteredRuleExecutions,
+              filteredInterventions,
+              activeAlerts,
+              ackedAlerts,
+              handleAck,
+            }}
+          />
         </Stack>
       </Container>
     </Page>

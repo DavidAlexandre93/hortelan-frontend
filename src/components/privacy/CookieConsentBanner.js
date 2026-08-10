@@ -7,6 +7,8 @@ const ANON_COOKIE_KEY = 'hortelan-cookie-consent-anon';
 export default function CookieConsentBanner() {
   const { authenticated, consents, updateConsents } = useAuth();
   const [dismissed, setDismissed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const hasDecision =
     typeof window === 'undefined' ||
     (authenticated ? typeof consents?.cookies === 'boolean' : window.localStorage.getItem(ANON_COOKIE_KEY) !== null);
@@ -15,9 +17,19 @@ export default function CookieConsentBanner() {
     return null;
   }
 
-  const handleChoice = (accepted) => {
+  const handleChoice = async (accepted) => {
+    if (submitting) return;
+    setSubmitting(true);
     if (authenticated) {
-      updateConsents({ cookies: accepted, analytics: accepted ? (consents?.analytics ?? true) : false });
+      const result = await updateConsents({
+        cookies: accepted,
+        analytics: accepted ? (consents?.analytics ?? true) : false,
+      });
+      if (result?.error) {
+        setError(result.error);
+        setSubmitting(false);
+        return;
+      }
     } else {
       localStorage.setItem(
         ANON_COOKIE_KEY,
@@ -25,6 +37,8 @@ export default function CookieConsentBanner() {
       );
     }
 
+    setError('');
+    setSubmitting(false);
     setDismissed(true);
   };
 
@@ -50,14 +64,25 @@ export default function CookieConsentBanner() {
         <Typography variant="body2" sx={{ flex: 1, lineHeight: 1.55 }}>
           Utilizamos cookies para segurança e medição analítica. Escolha seu consentimento.
         </Typography>
+        {error && (
+          <Typography role="alert" variant="caption" color="error.main">
+            {error}
+          </Typography>
+        )}
         <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
-          <Button color="inherit" onClick={() => handleChoice(false)} sx={{ flex: { xs: 1, sm: 'initial' } }}>
+          <Button
+            color="inherit"
+            onClick={() => handleChoice(false)}
+            disabled={submitting}
+            sx={{ flex: { xs: 1, sm: 'initial' } }}
+          >
             Recusar
           </Button>
           <Button
             variant="contained"
             color="info"
             onClick={() => handleChoice(true)}
+            loading={submitting}
             sx={{ flex: { xs: 1, sm: 'initial' } }}
           >
             Aceitar

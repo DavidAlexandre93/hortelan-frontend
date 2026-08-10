@@ -9,7 +9,7 @@ import {
   Container,
   Divider,
   FormControl,
-  Grid,
+  GridLegacy as Grid,
   InputLabel,
   LinearProgress,
   MenuItem,
@@ -24,6 +24,7 @@ import {
   Typography,
 } from '@mui/material';
 import Page from '../../components/Page';
+import ConfirmationDialog from '../../components/states/ConfirmationDialog';
 import useAuth from '../../auth/useAuth';
 
 const PLAN_CATALOG = {
@@ -107,6 +108,8 @@ export default function Subscriptions() {
   const [selectedPlan, setSelectedPlan] = useState(subscription.plan);
   const [billingCycle, setBillingCycle] = useState(subscription.billingCycle || 'monthly');
   const [feedback, setFeedback] = useState(null);
+  const [savingAction, setSavingAction] = useState('');
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   const activePlan = PLAN_CATALOG[selectedPlan] || PLAN_CATALOG.free;
 
@@ -132,8 +135,11 @@ export default function Subscriptions() {
     subscription: nextSubscription,
   });
 
-  const saveSubscription = (nextSubscription, successMessage) => {
-    const result = updateProfile(buildProfilePayload(nextSubscription));
+  const saveSubscription = async (action, nextSubscription, successMessage) => {
+    if (savingAction) return;
+    setSavingAction(action);
+    const result = await updateProfile(buildProfilePayload(nextSubscription));
+    setSavingAction('');
 
     if (result?.error) {
       setFeedback({ type: 'error', message: result.error });
@@ -143,7 +149,7 @@ export default function Subscriptions() {
     setFeedback({ type: 'success', message: successMessage });
   };
 
-  const handlePlanChange = () => {
+  const handlePlanChange = async () => {
     const now = new Date();
     const renewalDate =
       billingCycle === 'yearly'
@@ -173,21 +179,24 @@ export default function Subscriptions() {
       },
     };
 
-    saveSubscription(nextSubscription, 'Assinatura atualizada com sucesso.');
+    await saveSubscription('plan', nextSubscription, 'Assinatura atualizada com sucesso.');
   };
 
-  const handleCancel = () => {
-    saveSubscription(
+  const handleCancel = async () => {
+    await saveSubscription(
+      'cancel',
       {
         ...subscription,
         status: 'canceled',
       },
       'Assinatura cancelada. Você mantém acesso até o fim do ciclo atual.'
     );
+    setCancelOpen(false);
   };
 
-  const handleRenew = () => {
-    saveSubscription(
+  const handleRenew = async () => {
+    await saveSubscription(
+      'renew',
       {
         ...subscription,
         status: 'active',
@@ -262,7 +271,12 @@ export default function Subscriptions() {
                         / {billingCycle === 'yearly' ? 'ano' : 'mês'}
                       </Typography>
                     </Typography>
-                    <Button variant="contained" onClick={handlePlanChange}>
+                    <Button
+                      variant="contained"
+                      onClick={handlePlanChange}
+                      loading={savingAction === 'plan'}
+                      disabled={Boolean(savingAction) && savingAction !== 'plan'}
+                    >
                       Confirmar upgrade/downgrade
                     </Button>
                   </Stack>
@@ -310,10 +324,21 @@ export default function Subscriptions() {
 
                     <Grid item xs={12} md={4}>
                       <Stack direction="row" spacing={1} justifyContent={{ xs: 'flex-start', md: 'flex-end' }}>
-                        <Button variant="outlined" color="error" onClick={handleCancel}>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          onClick={() => setCancelOpen(true)}
+                          loading={savingAction === 'cancel'}
+                          disabled={Boolean(savingAction) && savingAction !== 'cancel'}
+                        >
                           Cancelar
                         </Button>
-                        <Button variant="outlined" onClick={handleRenew}>
+                        <Button
+                          variant="outlined"
+                          onClick={handleRenew}
+                          loading={savingAction === 'renew'}
+                          disabled={Boolean(savingAction) && savingAction !== 'renew'}
+                        >
                           Renovar
                         </Button>
                       </Stack>
@@ -401,6 +426,15 @@ export default function Subscriptions() {
           </Card>
         </Stack>
       </Container>
+      <ConfirmationDialog
+        open={cancelOpen}
+        title="Cancelar assinatura"
+        description="O acesso permanecera ativo ate o fim do ciclo atual. Digite CANCELAR para confirmar."
+        confirmationName="CANCELAR"
+        busy={savingAction === 'cancel'}
+        onCancel={() => setCancelOpen(false)}
+        onConfirm={handleCancel}
+      />
     </Page>
   );
 }

@@ -10,7 +10,7 @@ import {
   Container,
   Divider,
   FormControl,
-  Grid,
+  GridLegacy as Grid,
   InputLabel,
   List,
   ListItem,
@@ -135,7 +135,6 @@ export default function ProductsMarketplace() {
       const storyCards = selector('.gsap-story-card');
       const storyRows = selector('.gsap-product-row');
       const glowButtons = selector('.gsap-glow-button');
-      const kineticOrbs = selector('.gsap-float-orb');
       const revealSections = selector('.gsap-reveal-section');
       const cleanupCallbacks = [];
       const animations = [];
@@ -183,19 +182,6 @@ export default function ProductsMarketplace() {
         addMagneticHover(chip, 6);
       });
       storyCards.forEach((card, index) => animateIn(card, 520 + index * 120, 32, 800));
-
-      kineticOrbs.forEach((orb, index) => {
-        animations.push(
-          orb.animate(
-            [
-              { transform: 'translate3d(0px, 0px, 0px) scale(1)', opacity: 0.3 },
-              { transform: `translate3d(${index % 2 === 0 ? 16 : -16}px, -20px, 0px) scale(1.16)`, opacity: 0.65 },
-              { transform: 'translate3d(0px, 0px, 0px) scale(1)', opacity: 0.3 },
-            ],
-            { duration: 2800 + index * 700, easing: 'ease-in-out', iterations: Infinity }
-          )
-        );
-      });
 
       glowButtons.forEach((button, index) => {
         animations.push(
@@ -274,36 +260,6 @@ export default function ProductsMarketplace() {
   return (
     <Page title="Marketplace Hortelan">
       <Container ref={rootRef} sx={{ position: 'relative', overflow: 'hidden' }}>
-        <Box
-          className="gsap-float-orb"
-          sx={{
-            position: 'absolute',
-            top: 120,
-            right: -24,
-            width: 120,
-            height: 120,
-            borderRadius: '50%',
-            bgcolor: 'success.light',
-            filter: 'blur(18px)',
-            opacity: 0.28,
-            pointerEvents: 'none',
-          }}
-        />
-        <Box
-          className="gsap-float-orb"
-          sx={{
-            position: 'absolute',
-            top: 340,
-            left: -34,
-            width: 140,
-            height: 140,
-            borderRadius: '50%',
-            bgcolor: 'primary.light',
-            filter: 'blur(22px)',
-            opacity: 0.24,
-            pointerEvents: 'none',
-          }}
-        />
         <Stack spacing={1} sx={{ mb: 3 }}>
           <Typography className="gsap-hero-title" variant="h4">
             Catálogo de produtos Hortelan

@@ -7,7 +7,7 @@ import {
   CardContent,
   CardHeader,
   FormControl,
-  Grid,
+  GridLegacy as Grid,
   InputLabel,
   MenuItem,
   Select,

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Accordion,
   AccordionDetails,
@@ -9,7 +9,7 @@ import {
   CardContent,
   Chip,
   Container,
-  Grid,
+  GridLegacy as Grid,
   List,
   ListItem,
   ListItemText,
@@ -19,10 +19,8 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { motion } from '../../lib/motionReact';
-import useGSAP from '../../hooks/useGSAP';
 import Page from '../../components/Page';
 import { gamificationBlueprint, hortelanModules, releaseRoadmap, wowFeatures } from '../../data/hortelanBlueprint';
-import GSAPTypingText from '../../components/GSAPTypingText';
 
 const MotionCard = motion(Card);
 const MotionAccordion = motion(Accordion);
@@ -47,7 +45,6 @@ const sectionCardContentSx = {
 
 export default function Hortelan360() {
   const [query, setQuery] = useState('');
-  const sceneRef = useRef(null);
 
   const filteredModules = useMemo(
     () =>
@@ -58,114 +55,14 @@ export default function Hortelan360() {
     [query]
   );
 
-  useGSAP(
-    ({ gsap, selector }) => {
-      const floating = selector('.floating-orb');
-      floating.forEach((item, index) => {
-        gsap.to(item, {
-          y: index % 2 === 0 ? -20 : 24,
-          x: index % 2 === 0 ? 18 : -16,
-          duration: 4 + index,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut',
-        });
-      });
-
-      gsap.fromTo(
-        selector('.wow-chip'),
-        { scale: 0.95, opacity: 0.7 },
-        {
-          scale: 1.04,
-          opacity: 1,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut',
-          duration: 1.6,
-          stagger: 0.08,
-        }
-      );
-
-      gsap.fromTo(
-        selector('.release-card'),
-        { y: 24, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          stagger: 0.09,
-          ease: 'power3.out',
-        }
-      );
-
-      gsap.fromTo(
-        selector('.module-accordion'),
-        { y: 18, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.6,
-          stagger: 0.03,
-          ease: 'power2.out',
-        }
-      );
-    },
-    { dependencies: [filteredModules.length], scope: sceneRef }
-  );
-
   return (
     <Page title="Hortelan 360">
-      <Container maxWidth="xl" ref={sceneRef} sx={{ position: 'relative', overflow: 'hidden', pb: 3 }}>
-        {[1, 2, 3].map((orb) => (
-          <Box
-            key={orb}
-            className="floating-orb"
-            sx={{
-              position: 'absolute',
-              width: 180 + orb * 60,
-              height: 180 + orb * 60,
-              borderRadius: '50%',
-              filter: 'blur(48px)',
-              opacity: 0.24,
-              top: `${8 + orb * 14}%`,
-              left: orb % 2 === 0 ? '75%' : '-6%',
-              zIndex: 0,
-              background: orb % 2 === 0 ? 'primary.main' : 'success.main',
-            }}
-          />
-        ))}
-
+      <Container maxWidth="xl" sx={{ position: 'relative', overflow: 'hidden', pb: 3 }}>
         <Stack spacing={3} sx={{ mb: 4, position: 'relative', zIndex: 2 }}>
-          <motion.div initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-            <Typography variant="h4">
-              <GSAPTypingText
-                texts={[
-                  'Hortelan — Blueprint completo da plataforma',
-                  'Arquitetura 360 para evolução contínua do produto',
-                  'Planejamento estratégico com foco em entregas por releases',
-                ]}
-              />
-            </Typography>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.15 }}
-          >
-            <Typography color="text.secondary">
-              <GSAPTypingText
-                texts={[
-                  'Esta tela consolida 30 frentes de produto em uma arquitetura de entrega por releases.',
-                  'Navegue por módulos, roadmap e funcionalidades WOW com visão executiva e operacional.',
-                ]}
-                speed={30}
-                eraseSpeed={18}
-                holdDuration={1100}
-                startDelay={200}
-              />
-            </Typography>
-          </motion.div>
+          <Typography variant="h4">Blueprint completo da plataforma</Typography>
+          <Typography color="text.secondary">
+            Explore módulos, roadmap e diferenciais em uma visão executiva e operacional da evolução do produto.
+          </Typography>
 
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
@@ -182,7 +79,6 @@ export default function Hortelan360() {
           {releaseRoadmap.map((release) => (
             <Grid item xs={12} md={6} lg={3} key={release.name}>
               <MotionCard
-                className="release-card"
                 whileHover={{ y: -10, rotateX: 2.5, rotateY: -1.5 }}
                 transition={{ type: 'spring', stiffness: 180, damping: 18 }}
                 sx={sectionCardSx}
@@ -220,7 +116,7 @@ export default function Hortelan360() {
             </Typography>
             <Stack direction="row" flexWrap="wrap" gap={1}>
               {wowFeatures.map((feature) => (
-                <Chip key={feature} className="wow-chip" label={feature} color="primary" variant="outlined" />
+                <Chip key={feature} label={feature} color="primary" variant="outlined" />
               ))}
             </Stack>
           </CardContent>
@@ -278,7 +174,6 @@ export default function Hortelan360() {
         <Box sx={{ position: 'relative', zIndex: 2 }}>
           {filteredModules.map((module, index) => (
             <MotionAccordion
-              className="module-accordion"
               key={module.id}
               defaultExpanded={module.id <= 3}
               initial={{ opacity: 0, y: 10 }}

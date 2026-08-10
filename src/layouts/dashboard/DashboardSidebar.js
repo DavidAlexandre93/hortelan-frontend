@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
-import { useEffect } from 'react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { alpha } from '@mui/material/styles';
 import { Avatar, Box, Divider, Drawer, Link, Stack, Typography } from '@mui/material';
 import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
@@ -14,13 +13,8 @@ import useAuth from '../../auth/useAuth';
 const DRAWER_WIDTH = 264;
 
 export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
-  const { pathname } = useLocation();
   const isDesktop = useResponsive('up', 'lg');
   const { user } = useAuth();
-
-  useEffect(() => {
-    if (!isDesktop && isOpenSidebar) onCloseSidebar();
-  }, [isDesktop, isOpenSidebar, onCloseSidebar, pathname]);
 
   const content = (
     <Scrollbar sx={{ height: 1, '& .simplebar-content': { minHeight: 1, display: 'flex', flexDirection: 'column' } }}>
@@ -36,7 +30,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
         </Box>
       </Stack>
       <Divider />
-      <Box sx={{ px: 1.25, pt: 1.5 }}>
+      <Box sx={{ px: 1.25, pt: 1.5 }} onClick={onCloseSidebar}>
         <NavSection navConfig={navConfig} />
       </Box>
       <Box sx={{ flexGrow: 1, minHeight: 24 }} />
@@ -44,6 +38,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
         <Link
           component={RouterLink}
           to="/dashboard/suporte"
+          onClick={onCloseSidebar}
           underline="none"
           sx={(theme) => ({
             minHeight: 48,

@@ -8,7 +8,7 @@ import {
   Chip,
   Container,
   Divider,
-  Grid,
+  GridLegacy as Grid,
   List,
   ListItem,
   ListItemText,

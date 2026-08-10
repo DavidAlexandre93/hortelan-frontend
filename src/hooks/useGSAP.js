@@ -5,6 +5,24 @@ function toDurationMs(seconds) {
   return seconds * 1000;
 }
 
+const EASING_ALIASES = {
+  none: 'linear',
+  'sine.in': 'cubic-bezier(0.47, 0, 0.745, 0.715)',
+  'sine.out': 'cubic-bezier(0.39, 0.575, 0.565, 1)',
+  'sine.inOut': 'cubic-bezier(0.445, 0.05, 0.55, 0.95)',
+  'power1.out': 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+  'power2.out': 'cubic-bezier(0.215, 0.61, 0.355, 1)',
+  'power3.out': 'cubic-bezier(0.165, 0.84, 0.44, 1)',
+  'power4.out': 'cubic-bezier(0.23, 1, 0.32, 1)',
+};
+
+export function normalizeAnimationEasing(easing) {
+  if (!easing) return 'ease-out';
+  if (EASING_ALIASES[easing]) return EASING_ALIASES[easing];
+  if (/^(linear|ease|ease-in|ease-out|ease-in-out|cubic-bezier\(.+\)|steps\(.+\))$/.test(easing)) return easing;
+  return 'ease-out';
+}
+
 function buildKeyframes(fromVars = {}, toVars = {}) {
   const from = {};
   const to = {};
@@ -45,7 +63,7 @@ export default function useGSAP(callback, options = {}) {
         duration: toDurationMs(vars.duration),
         iterations: vars.repeat === -1 ? Infinity : 1,
         direction: vars.yoyo ? 'alternate' : 'normal',
-        easing: vars.ease || 'ease-out',
+        easing: normalizeAnimationEasing(vars.ease),
         fill: 'forwards',
         delay: typeof vars.delay === 'number' ? vars.delay * 1000 : 0,
       });

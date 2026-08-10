@@ -9,20 +9,12 @@ import {
   getUserSessions,
   getConsentAuditLogs,
   getDataRetentionPolicy,
-  rotateTrustedDeviceCredential,
-  revokeCompromisedDevice,
   logoutAllSessions,
   logoutCurrentSession,
   logoutOtherSessions,
-  deactivateCurrentAccount,
-  exportCurrentUserData,
-  requestAccountDeletion,
-  revokeTrustedDevice,
-  updateUserConsents,
-  updateAuthenticatedUserProfile,
-  updateTwoFactorSettings,
   cleanupLegacyIdentityStorage,
   persistBackendIdentity,
+  persistBackendUserProfile,
 } from './session';
 import { demoModeEnabled, identityFacade } from './identity/identityFacade';
 
@@ -82,6 +74,15 @@ function getAuthResultFromBackendError(error) {
   }
 
   return null;
+}
+
+async function runIdentityOperation(method, payload) {
+  try {
+    const result = await identityFacade[method](payload);
+    return result && typeof result === 'object' ? result : { success: true };
+  } catch (error) {
+    return { error: error?.message || 'Nao foi possivel concluir a operacao. Tente novamente.' };
+  }
 }
 
 export function AuthProvider({ children }) {
@@ -247,11 +248,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   const update2FASettings = useCallback(
-    ({ enabled, method }) => {
-      const result = updateTwoFactorSettings({ enabled, method });
+    async ({ enabled, method }) => {
+      const result = await runIdentityOperation('updateTwoFactor', { enabled, method });
 
       if (!result.error) {
-        refreshAuthState();
+        if (result.settings) setTwoFactor(result.settings);
+        else refreshAuthState();
       }
 
       return result;
@@ -260,19 +262,24 @@ export function AuthProvider({ children }) {
   );
 
   const removeTrustedDevice = useCallback(
-    (trustedDeviceId) => {
-      revokeTrustedDevice(trustedDeviceId);
-      refreshAuthState();
+    async (trustedDeviceId) => {
+      const result = await runIdentityOperation('revokeTrustedDevice', { trustedDeviceId });
+      if (!result.error) {
+        if (result.devices) setTrustedDevices(result.devices);
+        else refreshAuthState();
+      }
+      return result;
     },
     [refreshAuthState]
   );
 
   const updateConsents = useCallback(
-    (nextConsents) => {
-      const result = updateUserConsents(nextConsents);
+    async (nextConsents) => {
+      const result = await runIdentityOperation('updateConsents', nextConsents);
 
       if (!result.error) {
-        refreshAuthState();
+        if (result.consents) setConsents(result.consents);
+        else refreshAuthState();
       }
 
       return result;
@@ -281,11 +288,16 @@ export function AuthProvider({ children }) {
   );
 
   const updateProfile = useCallback(
-    (payload) => {
-      const result = updateAuthenticatedUserProfile(payload);
+    async (payload) => {
+      const result = await runIdentityOperation('updateProfile', payload);
 
       if (!result.error) {
-        refreshAuthState();
+        if (result.user) {
+          const safeUser = persistBackendUserProfile(result.user) || result.user;
+          setUser(safeUser);
+        } else {
+          refreshAuthState();
+        }
       }
 
       return result;
@@ -294,11 +306,12 @@ export function AuthProvider({ children }) {
   );
 
   const requestDeletion = useCallback(
-    (payload) => {
-      const result = requestAccountDeletion(payload);
+    async (payload) => {
+      const result = await runIdentityOperation('requestDeletion', payload);
 
       if (!result.error) {
-        refreshAuthState();
+        if (result.request) setDeletionRequest(result.request);
+        else refreshAuthState();
       }
 
       return result;
@@ -307,23 +320,26 @@ export function AuthProvider({ children }) {
   );
 
   const deactivateAccount = useCallback(
-    (payload) => {
-      const result = deactivateCurrentAccount(payload);
-
-      refreshAuthState();
+    async (payload) => {
+      const result = await runIdentityOperation('deactivateAccount', payload);
+      if (!result.error) {
+        logoutAllSessions();
+        refreshAuthState();
+      }
       return result;
     },
     [refreshAuthState]
   );
 
-  const exportPersonalData = useCallback(() => exportCurrentUserData(), []);
+  const exportPersonalData = useCallback(() => runIdentityOperation('exportPersonalData'), []);
 
   const rotateDeviceCredential = useCallback(
-    (trustedDeviceId) => {
-      const result = rotateTrustedDeviceCredential(trustedDeviceId);
+    async (trustedDeviceId) => {
+      const result = await runIdentityOperation('rotateTrustedDevice', { trustedDeviceId });
 
       if (!result.error) {
-        refreshAuthState();
+        if (result.devices) setTrustedDevices(result.devices);
+        else refreshAuthState();
       }
 
       return result;
@@ -332,11 +348,12 @@ export function AuthProvider({ children }) {
   );
 
   const revokeCompromised = useCallback(
-    (trustedDeviceId, reason) => {
-      const result = revokeCompromisedDevice(trustedDeviceId, reason);
+    async (trustedDeviceId, reason) => {
+      const result = await runIdentityOperation('compromiseTrustedDevice', { trustedDeviceId, reason });
 
       if (!result.error) {
-        refreshAuthState();
+        if (result.devices) setTrustedDevices(result.devices);
+        else refreshAuthState();
       }
 
       return result;

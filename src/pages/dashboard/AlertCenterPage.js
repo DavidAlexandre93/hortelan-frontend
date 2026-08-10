@@ -9,7 +9,7 @@ import {
   Container,
   Divider,
   FormControl,
-  Grid,
+  GridLegacy as Grid,
   InputLabel,
   List,
   ListItem,

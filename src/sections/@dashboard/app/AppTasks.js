@@ -100,7 +100,7 @@ function TaskItem({ task, checked, onChange }) {
         px: 2,
         py: 0.75,
         ...(checked && {
-          color: 'text.disabled',
+          color: 'text.secondary',
           textDecoration: 'line-through',
         }),
       }}
@@ -112,6 +112,7 @@ function TaskItem({ task, checked, onChange }) {
       />
 
       <MoreMenuButton
+        label={`Mais acoes para ${task.label}`}
         open={open}
         onClose={handleCloseMenu}
         onOpen={handleOpenMenu}
@@ -149,15 +150,16 @@ function TaskItem({ task, checked, onChange }) {
 
 MoreMenuButton.propTypes = {
   actions: PropTypes.node.isRequired,
+  label: PropTypes.string.isRequired,
   onClose: PropTypes.func,
   onOpen: PropTypes.func,
   open: PropTypes.bool,
 };
 
-function MoreMenuButton({ actions, open, onOpen, onClose }) {
+function MoreMenuButton({ actions, label, open, onOpen, onClose }) {
   return (
     <>
-      <IconButton size="large" color="inherit" sx={{ opacity: 0.48 }} onClick={onOpen}>
+      <IconButton aria-label={label} size="large" color="inherit" sx={{ opacity: 0.48 }} onClick={onOpen}>
         <Iconify icon={'eva:more-vertical-fill'} width={20} height={20} />
       </IconButton>
 

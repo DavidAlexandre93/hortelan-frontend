@@ -10,7 +10,7 @@ import {
   Divider,
   FormControl,
   FormControlLabel,
-  Grid,
+  GridLegacy as Grid,
   InputLabel,
   Link,
   List,

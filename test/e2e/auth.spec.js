@@ -59,17 +59,79 @@ test('cadastro valida consentimento e confirma resposta do servico', async ({ pa
   await expect(page.getByRole('link', { name: /Ir para login/i })).toBeVisible();
 });
 
-test('falha do backend permanece recuperavel e sanitizada', async ({ page }) => {
+test('falha do backend permanece recuperavel no modo de demonstracao', async ({ page }) => {
   await page.route('http://localhost:3001/auth/login', (route) => route.abort('failed'));
   await page.goto('/login');
   await page.getByLabel('E-mail').fill(backendUser.email);
   await page.locator('input[name="password"]').fill('Senha!123');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText(/indispon.vel|conectar/i);
+  await expect(page.getByRole('alert').filter({ hasText: /Credenciais de demonstracao invalidas/i })).toBeVisible();
   await expect(page).toHaveURL(/\/login$/);
 });
 
 test('rota protegida redireciona visitante para login', async ({ page }) => {
   await page.goto('/dashboard/app');
+  await expect(page).toHaveURL(/\/login$/);
+});
+
+test('modo demo explicito autentica apenas a credencial configurada', async ({ page }) => {
+  await page.goto('/login');
+  await page.getByLabel('E-mail').fill('demo@hortelan.local');
+  await page.locator('input[name="password"]').fill('DemoE2E!123');
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard\/app$/);
+});
+
+test('retorno externo malicioso e descartado apos o login', async ({ page }) => {
+  await page.route('http://localhost:3001/auth/login', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ user: backendUser, session: { id: 'safe-return-session' } }),
+    })
+  );
+  await page.goto('/login?returnTo=https%3A%2F%2Fevil.example%2Froubo');
+  await page.getByLabel('E-mail').fill(backendUser.email);
+  await page.locator('input[name="password"]').fill('Senha!123');
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard\/app$/);
+});
+
+test('recuperacao preserva resposta generica e conclui redefinicao valida', async ({ page }) => {
+  await page.route('http://localhost:3001/auth/forgot-password', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true }) })
+  );
+  await page.goto('/forgot-password');
+  await page.getByLabel('E-mail').fill('pessoa@hortelan.local');
+  await page.getByRole('button', { name: 'Enviar instrucoes' }).click();
+  await expect(page.getByText(/Se houver uma conta/)).toBeVisible();
+
+  await page.route(/http:\/\/localhost:3001\/auth\/validate-reset-token.*/, (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ valid: true }) })
+  );
+  await page.route('http://localhost:3001/auth/reset-password', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true }) })
+  );
+  await page.goto('/reset-password?token=token-valido');
+  await page.getByLabel('Nova senha', { exact: true }).fill('NovaSenha!123');
+  await page.getByLabel('Confirmar nova senha').fill('NovaSenha!123');
+  await page.getByRole('button', { name: 'Salvar nova senha' }).click();
+  await expect(page.getByText(/Senha atualizada/)).toBeVisible();
+});
+
+test('logout seguro encerra a sessao e retorna ao login', async ({ page }) => {
+  await page.route('http://localhost:3001/auth/login', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ user: backendUser, session: { id: 'logout-session' } }),
+    })
+  );
+  await page.goto('/login');
+  await page.getByLabel('E-mail').fill(backendUser.email);
+  await page.locator('input[name="password"]').fill('Senha!123');
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await page.getByRole('button', { name: 'Abrir menu da conta' }).click();
+  await page.getByRole('menuitem', { name: 'Logout seguro' }).click();
   await expect(page).toHaveURL(/\/login$/);
 });

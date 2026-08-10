@@ -8,7 +8,7 @@ import {
   Chip,
   Container,
   Divider,
-  Grid,
+  GridLegacy as Grid,
   Paper,
   Stack,
   Switch,
@@ -95,6 +95,7 @@ const buildProfilePayload = (user, integrationSettings) => ({
 export default function Integrations() {
   const { user, updateProfile } = useAuth();
   const [feedback, setFeedback] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const initialStates = useMemo(() => {
     const saved = user?.preferences?.integrationSettings || {};
@@ -113,8 +114,11 @@ export default function Integrations() {
     setEnabledById((prev) => ({ ...prev, [integrationId]: !prev[integrationId] }));
   };
 
-  const handleSave = () => {
-    const result = updateProfile(buildProfilePayload(user, enabledById));
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    const result = await updateProfile(buildProfilePayload(user, enabledById));
+    setSaving(false);
 
     if (result?.error) {
       setFeedback({ type: 'error', message: result.error });
@@ -214,10 +218,10 @@ export default function Integrations() {
           </Grid>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="flex-end">
-            <Button variant="outlined" onClick={() => setEnabledById(initialStates)}>
+            <Button variant="outlined" onClick={() => setEnabledById(initialStates)} disabled={saving}>
               Restaurar padrão
             </Button>
-            <Button variant="contained" onClick={handleSave}>
+            <Button variant="contained" onClick={handleSave} loading={saving}>
               Salvar integrações
             </Button>
           </Stack>

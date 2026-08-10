@@ -20,7 +20,7 @@ module.exports = defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 4175',
+    command: 'node scripts/start-e2e-server.mjs',
     url: 'http://127.0.0.1:4175/login',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

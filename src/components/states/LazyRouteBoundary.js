@@ -3,6 +3,13 @@ import { Component } from 'react';
 import { Alert, Box, Button, Stack, Typography } from '@mui/material';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 
+const CHUNK_ERROR_PATTERN =
+  /ChunkLoadError|Loading chunk|dynamically imported module|Importing a module script failed|module script.*failed/i;
+
+export function isChunkLoadError(error) {
+  return CHUNK_ERROR_PATTERN.test(error?.name || '') || CHUNK_ERROR_PATTERN.test(error?.message || '');
+}
+
 export default class LazyRouteBoundary extends Component {
   constructor(props) {
     super(props);
@@ -22,6 +29,10 @@ export default class LazyRouteBoundary extends Component {
   render() {
     if (!this.state.error) {
       return this.props.children;
+    }
+
+    if (!isChunkLoadError(this.state.error)) {
+      throw this.state.error;
     }
 
     return (

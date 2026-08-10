@@ -1,158 +1,20 @@
+import { compromiseTrustedDevice, rotateTrustedDevice } from './identity/mfaDomain';
+import { normalizeGardenAccessControl } from './profileDomain';
 import { evaluatePasswordPolicy } from './securityPolicy';
 
 const AUTH_STORAGE_KEY = 'hortelan-auth';
 const SESSION_STORAGE_KEY = 'hortelan-auth-session-id';
 const ACTIVE_SESSIONS_KEY = 'hortelan-active-sessions';
 const USERS_STORAGE_KEY = 'hortelan-users';
-const RESET_TOKENS_KEY = 'hortelan-reset-tokens';
 const PASSWORD_HISTORY_KEY = 'hortelan-password-history';
 const MFA_SETTINGS_KEY = 'hortelan-mfa-settings';
-const MFA_CHALLENGES_KEY = 'hortelan-mfa-challenges';
 const TRUSTED_DEVICES_KEY = 'hortelan-trusted-devices';
 const CONSENTS_KEY = 'hortelan-consents';
 const ACCOUNT_DELETION_REQUESTS_KEY = 'hortelan-account-deletion-requests';
 const CONSENT_LOGS_KEY = 'hortelan-consent-logs';
-const LOGIN_RATE_LIMIT_KEY = 'hortelan-login-rate-limit';
-const DEVICE_STORAGE_KEY = 'hortelan-device-id';
-const RESET_TOKEN_EXPIRY_MINUTES = 30;
-const MFA_CODE_EXPIRY_MINUTES = 5;
-const TRUSTED_DEVICE_EXPIRY_DAYS = 30;
 const SESSION_IDLE_TIMEOUT_MINUTES = 30;
-const LOGIN_RATE_LIMIT_WINDOW_MINUTES = 10;
-const LOGIN_RATE_LIMIT_MAX_ATTEMPTS = 5;
 const DATA_RETENTION_DAYS = 365;
-const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL || 'demo@hortelan.local';
-const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD || '';
-const DEMO_ENABLED = import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true';
-
-const GARDEN_ROLE_DEFAULT_PERMISSIONS = {
-  owner: { automation: true, purchases: true, reports: true, community: true },
-  admin: { automation: true, purchases: true, reports: true, community: true },
-  operator: { automation: true, purchases: false, reports: true, community: false },
-  viewer: { automation: false, purchases: false, reports: true, community: true },
-};
-
-const normalizeGardenAccessControl = (accessControl = {}) => ({
-  ownerId: accessControl.ownerId || 'self',
-  inviteDraftEmail: accessControl.inviteDraftEmail || '',
-  inviteDraftRole: accessControl.inviteDraftRole || 'viewer',
-  pendingInvites: (accessControl.pendingInvites || []).map((invite, inviteIndex) => ({
-    id: invite.id || `invite-${Date.now()}-${inviteIndex}`,
-    email: invite.email || '',
-    role: invite.role || 'viewer',
-    status: invite.status || 'pending',
-    invitedBy: invite.invitedBy || 'Você',
-    createdAt: invite.createdAt || new Date().toISOString(),
-  })),
-  collaborators: (accessControl.collaborators || []).map((member, memberIndex) => {
-    const role = member.role || 'viewer';
-    return {
-      id: member.id || `collaborator-${Date.now()}-${memberIndex}`,
-      name: member.name || `Membro ${memberIndex + 1}`,
-      email: member.email || '',
-      role,
-      status: member.status || 'active',
-      invitedAt: member.invitedAt || new Date().toISOString(),
-      finePermissions: {
-        ...(GARDEN_ROLE_DEFAULT_PERMISSIONS[role] || GARDEN_ROLE_DEFAULT_PERMISSIONS.viewer),
-        ...(member.finePermissions || {}),
-      },
-    };
-  }),
-  auditLogs: (accessControl.auditLogs || []).map((entry, entryIndex) => ({
-    id: entry.id || `audit-${Date.now()}-${entryIndex}`,
-    action: entry.action || 'Ação registrada',
-    actor: entry.actor || 'Sistema',
-    target: entry.target || 'Horta',
-    createdAt: entry.createdAt || new Date().toISOString(),
-  })),
-});
-
-const USERS = DEMO_ENABLED
-  ? [
-      {
-        id: 'admin-1',
-        email: DEMO_EMAIL,
-        password: DEMO_PASSWORD,
-        name: 'Administrador Hortelan',
-        role: 'administrator',
-        photoURL: '',
-        bio: 'Cultivando alimentos e tecnologia para uma horta mais inteligente.',
-        preferences: {
-          language: 'pt-BR',
-          measurementUnit: 'métrico',
-          timezone: 'America/Sao_Paulo',
-        },
-        notifications: {
-          irrigationAlerts: true,
-          pestAlerts: true,
-          weatherAlerts: true,
-          communityUpdates: false,
-          marketing: false,
-        },
-        savedAddresses: [
-          {
-            id: 'address-admin-1',
-            label: 'Casa',
-            addressLine: 'Rua das Hortas, 123 - São Paulo/SP',
-          },
-        ],
-        cultivationLevel: 'intermediario',
-        gardens: [
-          {
-            id: 'garden-admin-1',
-            name: 'Horta da varanda',
-            gardenType: 'vaso',
-            location: 'São Paulo/SP - Vila Mariana',
-            photoURL: '',
-            sectors: [
-              {
-                id: 'sector-admin-1',
-                name: 'Canteiro 1',
-                dimensions: '2m x 1m',
-                sectorType: 'sol_pleno',
-              },
-              {
-                id: 'sector-admin-2',
-                name: 'Bancada A',
-                dimensions: '',
-                sectorType: 'meia_sombra',
-              },
-            ],
-          },
-        ],
-        subscription: {
-          plan: 'free',
-          status: 'active',
-          billingCycle: 'monthly',
-          renewalDate: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString(),
-          seats: 1,
-          limits: {
-            gardens: 1,
-            devices: 2,
-            dataHistoryDays: 30,
-            aiPhotoDiagnostics: 10,
-            advancedExports: 1,
-          },
-          usage: {
-            gardens: 1,
-            devices: 1,
-            aiPhotoDiagnostics: 3,
-            advancedExports: 0,
-          },
-          billingHistory: [
-            {
-              id: 'invoice-admin-1-001',
-              date: new Date().toISOString(),
-              description: 'Plano gratuito',
-              amount: 0,
-              status: 'paid',
-            },
-          ],
-        },
-      },
-    ]
-  : [];
+const USERS = [];
 
 const buildSafeUser = (user) => ({
   id: user.id,
@@ -222,44 +84,48 @@ const buildSafeUser = (user) => ({
   },
 });
 
-const INITIAL_PASSWORD_HISTORY = DEMO_ENABLED
-  ? [
-      {
-        id: `pwd-history-${Date.now()}`,
-        userId: 'admin-1',
-        userEmail: DEMO_EMAIL,
-        changedAt: new Date().toISOString(),
-        method: 'seed',
-        changedBy: 'system',
-      },
-    ]
-  : [];
+const INITIAL_PASSWORD_HISTORY = [];
+const INITIAL_MFA_SETTINGS = {};
+const INITIAL_CONSENTS = {};
 
-const INITIAL_MFA_SETTINGS = DEMO_ENABLED
-  ? {
-      'admin-1': {
-        enabled: true,
-        method: 'email',
-      },
-    }
-  : {};
+const getBrowserStorage = (storageName) => {
+  if (typeof window === 'undefined') return null;
 
-const INITIAL_CONSENTS = DEMO_ENABLED
-  ? {
-      'admin-1': {
-        cookies: true,
-        marketing: false,
-        analytics: true,
-        communications: true,
-        notifications: false,
-        privacyMode: 'balanced',
-        updatedAt: new Date().toISOString(),
-      },
-    }
-  : {};
+  try {
+    return window[storageName];
+  } catch {
+    return null;
+  }
+};
+
+const readStorage = (storageName, key) => {
+  try {
+    return getBrowserStorage(storageName)?.getItem(key) ?? null;
+  } catch {
+    return null;
+  }
+};
+
+const writeStorage = (storageName, key, value) => {
+  try {
+    getBrowserStorage(storageName)?.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const removeStorage = (storageName, key) => {
+  try {
+    getBrowserStorage(storageName)?.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 const getLocalJson = (key, fallback) => {
-  const value = localStorage.getItem(key);
+  const value = readStorage('localStorage', key);
 
   if (!value) {
     return fallback;
@@ -274,23 +140,23 @@ const getLocalJson = (key, fallback) => {
 
 const setCurrentSessionId = (sessionId, persistent) => {
   if (persistent) {
-    localStorage.setItem(SESSION_STORAGE_KEY, sessionId);
-    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    writeStorage('localStorage', SESSION_STORAGE_KEY, sessionId);
+    removeStorage('sessionStorage', SESSION_STORAGE_KEY);
     return;
   }
 
-  sessionStorage.setItem(SESSION_STORAGE_KEY, sessionId);
-  localStorage.removeItem(SESSION_STORAGE_KEY);
+  writeStorage('sessionStorage', SESSION_STORAGE_KEY, sessionId);
+  removeStorage('localStorage', SESSION_STORAGE_KEY);
 };
 
 const getCurrentSessionId = () =>
-  sessionStorage.getItem(SESSION_STORAGE_KEY) || localStorage.getItem(SESSION_STORAGE_KEY);
+  readStorage('sessionStorage', SESSION_STORAGE_KEY) || readStorage('localStorage', SESSION_STORAGE_KEY);
 
 const clearCurrentSessionId = () => {
-  localStorage.removeItem(SESSION_STORAGE_KEY);
-  sessionStorage.removeItem(SESSION_STORAGE_KEY);
-  localStorage.removeItem(AUTH_STORAGE_KEY);
-  sessionStorage.removeItem(AUTH_STORAGE_KEY);
+  removeStorage('localStorage', SESSION_STORAGE_KEY);
+  removeStorage('sessionStorage', SESSION_STORAGE_KEY);
+  removeStorage('localStorage', AUTH_STORAGE_KEY);
+  removeStorage('sessionStorage', AUTH_STORAGE_KEY);
 };
 
 const getActiveSessions = () => getLocalJson(ACTIVE_SESSIONS_KEY, []);
@@ -298,145 +164,44 @@ const getActiveSessions = () => getLocalJson(ACTIVE_SESSIONS_KEY, []);
 const getUsers = () => getLocalJson(USERS_STORAGE_KEY, USERS);
 
 const saveUsers = (users) => {
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-};
-
-const getResetTokens = () => getLocalJson(RESET_TOKENS_KEY, []);
-
-const saveResetTokens = (tokens) => {
-  localStorage.setItem(RESET_TOKENS_KEY, JSON.stringify(tokens));
+  writeStorage('localStorage', USERS_STORAGE_KEY, JSON.stringify(users));
 };
 
 const getPasswordHistory = () => getLocalJson(PASSWORD_HISTORY_KEY, INITIAL_PASSWORD_HISTORY);
 
-const savePasswordHistory = (history) => {
-  localStorage.setItem(PASSWORD_HISTORY_KEY, JSON.stringify(history));
-};
-
 const getMfaSettingsMap = () => getLocalJson(MFA_SETTINGS_KEY, INITIAL_MFA_SETTINGS);
 
 const saveMfaSettingsMap = (settings) => {
-  localStorage.setItem(MFA_SETTINGS_KEY, JSON.stringify(settings));
-};
-
-const getMfaChallenges = () => getLocalJson(MFA_CHALLENGES_KEY, []);
-
-const saveMfaChallenges = (challenges) => {
-  localStorage.setItem(MFA_CHALLENGES_KEY, JSON.stringify(challenges));
+  writeStorage('localStorage', MFA_SETTINGS_KEY, JSON.stringify(settings));
 };
 
 const getTrustedDevicesStore = () => getLocalJson(TRUSTED_DEVICES_KEY, []);
 
 const saveTrustedDevicesStore = (devices) => {
-  localStorage.setItem(TRUSTED_DEVICES_KEY, JSON.stringify(devices));
+  writeStorage('localStorage', TRUSTED_DEVICES_KEY, JSON.stringify(devices));
 };
 
 const getConsentsMap = () => getLocalJson(CONSENTS_KEY, INITIAL_CONSENTS);
 
 const saveConsentsMap = (consents) => {
-  localStorage.setItem(CONSENTS_KEY, JSON.stringify(consents));
+  writeStorage('localStorage', CONSENTS_KEY, JSON.stringify(consents));
 };
 
 const getAccountDeletionRequestsStore = () => getLocalJson(ACCOUNT_DELETION_REQUESTS_KEY, []);
 
 const saveAccountDeletionRequestsStore = (requests) => {
-  localStorage.setItem(ACCOUNT_DELETION_REQUESTS_KEY, JSON.stringify(requests));
+  writeStorage('localStorage', ACCOUNT_DELETION_REQUESTS_KEY, JSON.stringify(requests));
 };
 
 const getConsentLogsStore = () => getLocalJson(CONSENT_LOGS_KEY, []);
 
 const saveConsentLogsStore = (logs) => {
-  localStorage.setItem(CONSENT_LOGS_KEY, JSON.stringify(logs));
-};
-
-const getLoginRateLimitStore = () => getLocalJson(LOGIN_RATE_LIMIT_KEY, {});
-
-const saveLoginRateLimitStore = (store) => {
-  localStorage.setItem(LOGIN_RATE_LIMIT_KEY, JSON.stringify(store));
-};
-
-const getRateLimitStatus = (email) => {
-  const normalizedEmail = `${email || ''}`.trim().toLowerCase();
-
-  if (!normalizedEmail) {
-    return { blocked: false, remainingAttempts: LOGIN_RATE_LIMIT_MAX_ATTEMPTS };
-  }
-
-  const store = getLoginRateLimitStore();
-  const attempt = store[normalizedEmail] || { failedAttempts: [], blockedUntil: null };
-  const now = Date.now();
-  const windowStart = now - LOGIN_RATE_LIMIT_WINDOW_MINUTES * 60 * 1000;
-  const failedAttempts = (attempt.failedAttempts || []).filter((ts) => ts > windowStart);
-  const blockedUntilMs = attempt.blockedUntil ? new Date(attempt.blockedUntil).getTime() : null;
-
-  if (blockedUntilMs && blockedUntilMs > now) {
-    const remainingSeconds = Math.ceil((blockedUntilMs - now) / 1000);
-    return { blocked: true, remainingSeconds, remainingAttempts: 0 };
-  }
-
-  return {
-    blocked: false,
-    remainingAttempts: Math.max(LOGIN_RATE_LIMIT_MAX_ATTEMPTS - failedAttempts.length, 0),
-  };
-};
-
-const registerFailedLoginAttempt = (email) => {
-  const normalizedEmail = `${email || ''}`.trim().toLowerCase();
-
-  if (!normalizedEmail) {
-    return;
-  }
-
-  const now = Date.now();
-  const windowStart = now - LOGIN_RATE_LIMIT_WINDOW_MINUTES * 60 * 1000;
-  const store = getLoginRateLimitStore();
-  const current = store[normalizedEmail] || { failedAttempts: [], blockedUntil: null };
-  const failedAttempts = (current.failedAttempts || []).filter((ts) => ts > windowStart);
-  failedAttempts.push(now);
-
-  const shouldBlock = failedAttempts.length >= LOGIN_RATE_LIMIT_MAX_ATTEMPTS;
-  store[normalizedEmail] = {
-    failedAttempts,
-    blockedUntil: shouldBlock ? new Date(now + LOGIN_RATE_LIMIT_WINDOW_MINUTES * 60 * 1000).toISOString() : null,
-  };
-
-  saveLoginRateLimitStore(store);
-};
-
-const clearLoginRateLimit = (email) => {
-  const normalizedEmail = `${email || ''}`.trim().toLowerCase();
-
-  if (!normalizedEmail) {
-    return;
-  }
-
-  const store = getLoginRateLimitStore();
-
-  if (store[normalizedEmail]) {
-    delete store[normalizedEmail];
-    saveLoginRateLimitStore(store);
-  }
-};
-
-const appendPasswordHistory = ({ user, method, changedBy }) => {
-  const history = getPasswordHistory();
-  history.push({
-    id: `pwd-history-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    userId: user.id,
-    userEmail: user.email,
-    changedAt: new Date().toISOString(),
-    method,
-    changedBy,
-  });
-  savePasswordHistory(history);
+  writeStorage('localStorage', CONSENT_LOGS_KEY, JSON.stringify(logs));
 };
 
 const saveActiveSessions = (sessions) => {
-  localStorage.setItem(ACTIVE_SESSIONS_KEY, JSON.stringify(sessions));
+  writeStorage('localStorage', ACTIVE_SESSIONS_KEY, JSON.stringify(sessions));
 };
-
-const getUserByCredentials = ({ email, password }) =>
-  getUsers().find((user) => user.email === email && user.password === password);
 
 const getCurrentSession = () => {
   const sessionId = getCurrentSessionId();
@@ -471,105 +236,15 @@ const getCurrentSession = () => {
   return updatedSession;
 };
 
-const getCurrentDeviceId = () => {
-  const existingId = localStorage.getItem(DEVICE_STORAGE_KEY);
-
-  if (existingId) {
-    return existingId;
-  }
-
-  const nextId = `device-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  localStorage.setItem(DEVICE_STORAGE_KEY, nextId);
-  return nextId;
-};
-
-const getDefaultDeviceName = () => {
-  const platform = navigator.platform || 'Plataforma desconhecida';
-  const language = navigator.language || 'N/A';
-  return `${platform} (${language})`;
-};
-
-const isTrustedDeviceForUser = (userId, deviceId) => {
-  const now = Date.now();
-
-  return getTrustedDevicesStore().some(
-    (device) => device.userId === userId && device.deviceId === deviceId && new Date(device.expiresAt).getTime() > now
-  );
-};
-
-const buildTwoFactorChallenge = ({ user, method }) => {
-  const now = Date.now();
-  const expiresAt = new Date(now + MFA_CODE_EXPIRY_MINUTES * 60 * 1000).toISOString();
-  const code = `${Math.floor(100000 + Math.random() * 900000)}`;
-  const challengeId = `mfa-${now}-${Math.random().toString(36).slice(2, 8)}`;
-  const deliveryHint = method === 'email' ? user.email.replace(/(^.).*(@.*$)/, '$1***$2') : 'App autenticador';
-
-  const nextChallenges = getMfaChallenges().filter(
-    (challenge) => challenge.userId !== user.id || challenge.usedAt || new Date(challenge.expiresAt).getTime() > now
-  );
-
-  nextChallenges.push({
-    id: challengeId,
-    userId: user.id,
-    method,
-    code,
-    createdAt: new Date(now).toISOString(),
-    expiresAt,
-    usedAt: null,
-  });
-
-  saveMfaChallenges(nextChallenges);
-
-  return {
-    requiresTwoFactor: true,
-    challengeId,
-    method,
-    deliveryHint,
-    expiresAt,
-    demoCode: code,
-  };
-};
-
-const validateTwoFactorChallenge = ({ challengeId, code, userId }) => {
-  if (!challengeId) {
-    return { valid: false, error: 'Desafio de 2FA não informado.' };
-  }
-
-  const challenge = getMfaChallenges().find((item) => item.id === challengeId);
-
-  if (!challenge || challenge.userId !== userId) {
-    return { valid: false, error: 'Desafio de 2FA inválido para este usuário.' };
-  }
-
-  if (challenge.usedAt) {
-    return { valid: false, error: 'Este código 2FA já foi utilizado.' };
-  }
-
-  if (new Date(challenge.expiresAt).getTime() < Date.now()) {
-    return { valid: false, error: 'Código 2FA expirado. Gere um novo código.' };
-  }
-
-  if (challenge.code !== code) {
-    return { valid: false, error: 'Código 2FA inválido.' };
-  }
-
-  const updatedChallenges = getMfaChallenges().map((item) =>
-    item.id === challengeId ? { ...item, usedAt: new Date().toISOString() } : item
-  );
-  saveMfaChallenges(updatedChallenges);
-
-  return { valid: true, method: challenge.method };
-};
-
 const persistAuthUser = (user, persistent) => {
   if (persistent) {
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    writeStorage('localStorage', AUTH_STORAGE_KEY, JSON.stringify(user));
+    removeStorage('sessionStorage', AUTH_STORAGE_KEY);
     return;
   }
 
-  sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-  localStorage.removeItem(AUTH_STORAGE_KEY);
+  writeStorage('sessionStorage', AUTH_STORAGE_KEY, JSON.stringify(user));
+  removeStorage('localStorage', AUTH_STORAGE_KEY);
 };
 
 export function persistBackendIdentity({ user, session, remember = true }) {
@@ -586,7 +261,7 @@ export function persistBackendIdentity({ user, session, remember = true }) {
     lastActiveAt: now,
     expiresAt: typeof session?.expiresAt === 'string' ? session.expiresAt : null,
     persistent: Boolean(remember),
-    userAgent: navigator.userAgent,
+    userAgent: typeof navigator === 'undefined' ? 'unknown' : navigator.userAgent,
     authMethod: 'backend',
   };
 
@@ -598,148 +273,15 @@ export function persistBackendIdentity({ user, session, remember = true }) {
   return { user: safeUser, session: safeSession };
 }
 
-export const loginWithEmailAndPassword = ({
-  email,
-  password,
-  remember,
-  trustDevice,
-  deviceName,
-  challengeId,
-  twoFactorCode,
-}) => {
-  const rateLimit = getRateLimitStatus(email);
-
-  if (rateLimit.blocked) {
-    return {
-      error: `Muitas tentativas de login. Tente novamente em ${rateLimit.remainingSeconds}s.`,
-      rateLimit,
-    };
-  }
-
-  const user = getUserByCredentials({ email, password });
-
-  if (!user) {
-    registerFailedLoginAttempt(email);
-    const nextRateLimit = getRateLimitStatus(email);
-    return {
-      error: `Credenciais inválidas. Tentativas restantes: ${nextRateLimit.remainingAttempts}.`,
-      rateLimit: nextRateLimit,
-    };
-  }
-
-  if (user.isActive === false) {
-    return { error: 'Conta desativada. Entre em contato com o suporte para reativação.' };
-  }
-
-  const mfaSettings = getMfaSettingsMap()[user.id] || { enabled: false, method: 'email' };
-  const currentDeviceId = getCurrentDeviceId();
-  const trustedDevice = isTrustedDeviceForUser(user.id, currentDeviceId);
-
-  if (mfaSettings.enabled && !trustedDevice) {
-    if (!challengeId || !twoFactorCode) {
-      return buildTwoFactorChallenge({ user, method: mfaSettings.method });
-    }
-
-    const challengeValidation = validateTwoFactorChallenge({
-      challengeId,
-      code: `${twoFactorCode}`,
-      userId: user.id,
-    });
-
-    if (!challengeValidation.valid) {
-      return { error: challengeValidation.error };
-    }
-  }
-
-  const now = new Date().toISOString();
-  const sessionId = `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-  const nextSession = {
-    id: sessionId,
-    userId: user.id,
-    email: user.email,
-    createdAt: now,
-    lastActiveAt: now,
-    persistent: Boolean(remember),
-    userAgent: navigator.userAgent,
-    authMethod: 'password',
-    trustedDeviceId: currentDeviceId,
-    deviceBinding: {
-      deviceId: currentDeviceId,
-      userAgent: navigator.userAgent,
-      status: 'active',
-      revokedAt: null,
-      revokedReason: null,
-      credentialVersion: 1,
-      credentialRotatedAt: now,
-    },
-  };
-
-  const sessions = getActiveSessions().filter((session) => session.userId !== user.id || session.id !== sessionId);
-  sessions.push(nextSession);
-
-  saveActiveSessions(sessions);
-  setCurrentSessionId(sessionId, remember);
-
+export function persistBackendUserProfile(user) {
+  if (!user || typeof user !== 'object') return null;
+  const currentSession = getCurrentSession();
+  if (!currentSession) return null;
   const safeUser = buildSafeUser(user);
-
-  persistAuthUser(safeUser, remember);
-
-  clearLoginRateLimit(email);
-
-  if (trustDevice) {
-    const currentName = deviceName?.trim() || getDefaultDeviceName();
-    const expiresAt = new Date(Date.now() + TRUSTED_DEVICE_EXPIRY_DAYS * 24 * 60 * 60 * 1000).toISOString();
-    const devices = getTrustedDevicesStore().filter(
-      (item) => !(item.userId === user.id && item.deviceId === currentDeviceId)
-    );
-    devices.push({
-      id: `trusted-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      userId: user.id,
-      deviceId: currentDeviceId,
-      deviceName: currentName,
-      trustedAt: now,
-      expiresAt,
-      lastUsedAt: now,
-      userAgent: navigator.userAgent,
-      status: 'active',
-      revokedAt: null,
-      revokedReason: null,
-      credentialVersion: 1,
-      credentialRotatedAt: now,
-    });
-    saveTrustedDevicesStore(devices);
-  }
-
-  return { user: safeUser, session: nextSession };
-};
-
-export const loginWithSocialProvider = ({ provider, remember, trustDevice, deviceName }) => {
-  const providerMap = {
-    google: DEMO_EMAIL,
-    apple: DEMO_EMAIL,
-  };
-
-  const email = providerMap[provider];
-
-  if (!email) {
-    return { error: 'Provedor social não suportado.' };
-  }
-
-  const user = getUsers().find((item) => item.email === email);
-
-  if (!user) {
-    return { error: 'Nenhuma conta vinculada para este provedor social.' };
-  }
-
-  return loginWithEmailAndPassword({
-    email: user.email,
-    password: user.password,
-    remember,
-    trustDevice,
-    deviceName,
-  });
-};
+  saveUsers([...getUsers().filter((item) => item.id !== safeUser.id), safeUser]);
+  persistAuthUser(safeUser, Boolean(currentSession.persistent));
+  return safeUser;
+}
 
 export const getAuthenticatedUser = () => {
   const session = getCurrentSession();
@@ -1017,101 +559,10 @@ export const updateAuthenticatedUserProfile = (payload) => {
   const currentSession = getCurrentSession();
   persistAuthUser(
     safeUser,
-    Boolean(currentSession?.persistent || localStorage.getItem(SESSION_STORAGE_KEY) === currentSessionId)
+    Boolean(currentSession?.persistent || readStorage('localStorage', SESSION_STORAGE_KEY) === currentSessionId)
   );
 
   return { success: true, user: safeUser };
-};
-
-export const requestPasswordReset = (email) => {
-  const user = getUsers().find((item) => item.email.toLowerCase() === email.toLowerCase());
-
-  if (!user) {
-    return {
-      message: 'Se o e-mail existir, você receberá um link para redefinir sua senha.',
-      resetLink: null,
-    };
-  }
-
-  const now = Date.now();
-  const expiresAt = new Date(now + RESET_TOKEN_EXPIRY_MINUTES * 60 * 1000).toISOString();
-  const token = `rst-${now}-${Math.random().toString(36).slice(2, 10)}`;
-
-  const activeTokens = getResetTokens().filter((item) => item.userId !== user.id || item.usedAt);
-  activeTokens.push({
-    token,
-    userId: user.id,
-    createdAt: new Date(now).toISOString(),
-    expiresAt,
-    usedAt: null,
-  });
-  saveResetTokens(activeTokens);
-
-  return {
-    message: 'Link de redefinição gerado com sucesso.',
-    resetLink: `${window.location.origin}/reset-password?token=${token}`,
-    expiresAt,
-  };
-};
-
-export const validatePasswordResetToken = (token) => {
-  if (!token) {
-    return { valid: false, error: 'Token não informado.' };
-  }
-
-  const tokenEntry = getResetTokens().find((item) => item.token === token);
-
-  if (!tokenEntry) {
-    return { valid: false, error: 'Token inválido.' };
-  }
-
-  if (tokenEntry.usedAt) {
-    return { valid: false, error: 'Este token já foi utilizado.' };
-  }
-
-  if (new Date(tokenEntry.expiresAt).getTime() < Date.now()) {
-    return { valid: false, error: 'Token expirado. Solicite um novo link.' };
-  }
-
-  return { valid: true, tokenEntry };
-};
-
-export const resetPasswordWithToken = ({ token, newPassword }) => {
-  const validation = validatePasswordResetToken(token);
-
-  if (!validation.valid) {
-    return { error: validation.error };
-  }
-
-  const { tokenEntry } = validation;
-  const users = getUsers();
-  const user = users.find((item) => item.id === tokenEntry.userId);
-
-  if (!user) {
-    return { error: 'Usuário não encontrado para este token.' };
-  }
-
-  const passwordValidation = evaluatePasswordPolicy(newPassword);
-
-  if (!passwordValidation.valid) {
-    return { error: `Senha fora da política: ${passwordValidation.errors[0]}` };
-  }
-
-  const updatedUsers = users.map((item) => (item.id === user.id ? { ...item, password: newPassword } : item));
-  saveUsers(updatedUsers);
-
-  const updatedTokens = getResetTokens().map((item) =>
-    item.token === token ? { ...item, usedAt: new Date().toISOString() } : item
-  );
-  saveResetTokens(updatedTokens);
-
-  appendPasswordHistory({
-    user,
-    method: 'reset-token',
-    changedBy: user.email,
-  });
-
-  return { success: true };
 };
 
 export const getPasswordChangeHistory = () =>
@@ -1142,20 +593,9 @@ export const rotateTrustedDeviceCredential = (trustedDeviceId) => {
     return { error: 'Usuário não autenticado.' };
   }
 
-  const rotatedAt = new Date().toISOString();
-  const devices = getTrustedDevicesStore().map((device) => {
-    if (device.userId === user.id && device.id === trustedDeviceId) {
-      return {
-        ...device,
-        credentialVersion: Number(device.credentialVersion || 1) + 1,
-        credentialRotatedAt: rotatedAt,
-      };
-    }
-
-    return device;
-  });
-
-  saveTrustedDevicesStore(devices);
+  const result = rotateTrustedDevice(getTrustedDevicesStore(), { trustedDeviceId, userId: user.id });
+  if (!result.found) return { error: 'Dispositivo confiavel nao encontrado.' };
+  saveTrustedDevicesStore(result.devices);
   return { success: true };
 };
 
@@ -1166,21 +606,13 @@ export const revokeCompromisedDevice = (trustedDeviceId, reason = 'Comprometimen
     return { error: 'Usuário não autenticado.' };
   }
 
-  const devices = getTrustedDevicesStore().map((device) => {
-    if (device.userId === user.id && device.id === trustedDeviceId) {
-      return {
-        ...device,
-        status: 'compromised',
-        revokedAt: new Date().toISOString(),
-        revokedReason: reason,
-        expiresAt: new Date().toISOString(),
-      };
-    }
-
-    return device;
+  const result = compromiseTrustedDevice(getTrustedDevicesStore(), {
+    trustedDeviceId,
+    userId: user.id,
+    reason,
   });
-
-  saveTrustedDevicesStore(devices);
+  if (!result.found) return { error: 'Dispositivo confiavel nao encontrado.' };
+  saveTrustedDevicesStore(result.devices);
   return { success: true };
 };
 
@@ -1305,24 +737,22 @@ export const logoutOtherSessions = () => {
 
 export function cleanupLegacyIdentityStorage({ preserveDemoData = false } = {}) {
   if (typeof window === 'undefined' || preserveDemoData) return;
-
   const cleanupKey = 'hortelan-identity-cleanup-v2';
-  if (localStorage.getItem(cleanupKey) === 'complete') return;
-
-  [RESET_TOKENS_KEY, PASSWORD_HISTORY_KEY, MFA_CHALLENGES_KEY, LOGIN_RATE_LIMIT_KEY].forEach((key) => {
-    localStorage.removeItem(key);
-    sessionStorage.removeItem(key);
-  });
-
+  if (readStorage('localStorage', cleanupKey) === 'complete') return;
+  ['hortelan-reset-tokens', PASSWORD_HISTORY_KEY, 'hortelan-mfa-challenges', 'hortelan-login-rate-limit'].forEach(
+    (key) => {
+      removeStorage('localStorage', key);
+      removeStorage('sessionStorage', key);
+    }
+  );
   try {
-    const storedUsers = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || '[]');
+    const storedUsers = JSON.parse(readStorage('localStorage', USERS_STORAGE_KEY) || '[]');
     if (Array.isArray(storedUsers)) {
       const sanitizedUsers = storedUsers.map(({ password: _password, ...user }) => user);
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(sanitizedUsers));
+      writeStorage('localStorage', USERS_STORAGE_KEY, JSON.stringify(sanitizedUsers));
     }
   } catch {
-    localStorage.removeItem(USERS_STORAGE_KEY);
+    removeStorage('localStorage', USERS_STORAGE_KEY);
   }
-
-  localStorage.setItem(cleanupKey, 'complete');
+  writeStorage('localStorage', cleanupKey, 'complete');
 }
