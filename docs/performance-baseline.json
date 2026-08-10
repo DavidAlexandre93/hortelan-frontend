@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-10T05:16:01.118Z",
-  "runtime": "v20.20.2",
+  "generatedAt": "2026-08-10T05:42:52.282Z",
+  "runtime": "v24.14.0",
   "targetSLO": {
     "frontendRouteP95Ms": 1500,
     "frontendRouteP99Ms": 2500,
@@ -10,13 +10,13 @@
   "checks": {
     "build": {
       "exitCode": 0,
-      "durationMs": 24121,
-      "durationSeconds": 24.12
+      "durationMs": 16272,
+      "durationSeconds": 16.27
     },
     "frontendAudit": {
       "exitCode": 0,
-      "durationMs": 2019,
-      "durationSeconds": 2.02
+      "durationMs": 972,
+      "durationSeconds": 0.97
     }
   },
   "distSummary": {

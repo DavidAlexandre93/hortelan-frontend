@@ -3,7 +3,7 @@ schema: spec-driven
 context: |
   Product: Hortelan smart garden frontend.
   Stack: React 19, Vite 7, Material UI 7, React Router 7, Node-based selective SSR.
-  Runtime: project targets Node 20.x; OpenSpec requires Node >=20.19.0.
+  Runtime: project targets Node 24.x; OpenSpec requires Node >=20.19.0.
   Delivery: CI/CD runs lint, format checks, node:test coverage, production build, frontend audit, and OpenSpec validation.
   Domains: dashboard monitoring, species catalog, account/profile, auth/session, integrations, reports, alerts, platform reliability, subscriptions, community, and support.
   Architecture constraints:

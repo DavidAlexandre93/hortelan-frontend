@@ -91,8 +91,9 @@
 
 ## 10. Final Verification and Handoff
 
-- [x] 10.1 Run the complete quality gate under the supported Node 20.x runtime and resolve every failing OpenSpec, lint, format, test, build, security, bundle, audit, browser, or accessibility check.
+- [x] 10.1 Run the complete quality gate under the supported Node 24.x runtime and resolve every failing OpenSpec, lint, format, test, build, security, bundle, audit, browser, or accessibility check.
 - [x] 10.2 Inspect the final production HTML, manifest, source maps, headers, browser storage, network requests, console, and telemetry consent behavior for prohibited data or unexpected third-party traffic.
 - [ ] 10.3 Perform final desktop and mobile visual review of every route for hierarchy, copy, loading/error/empty states, focus, overlap, overflow, and brand consistency.
 - [x] 10.4 Update README and architecture, security, testing, demo-mode, performance, environment, and deployment documentation to match the implemented system.
 - [ ] 10.5 Re-run `openspec validate --all`, record final before-and-after metrics in the change notes, and leave all implementation tasks checked for archive review.
+- [x] 10.6 Align package, CI, Vercel, documentation, and test tooling on Node 24.x; remove deprecated install chains and verify a clean Vercel-compatible install and complete quality gate.

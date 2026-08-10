@@ -5,7 +5,7 @@ O frontend usa React, Material UI e Vite, com renderização SSR seletiva nas ro
 
 ## Requisitos
 
-- Node.js `20.x`
+- Node.js `24.x`
 - npm compatível com o lockfile
 - Backend de identidade acessível por `VITE_API_BASE_URL`
 
@@ -97,7 +97,7 @@ toque, axe e overflow em desktop e 320 px.
 
 ## Deploy
 
-A CI usa Node 20, `npm ci`, OpenSpec, lint/format, cobertura, build, scanners, orçamento de bundle, auditoria do grafo e
+A CI usa Node 24, `npm ci`, OpenSpec, lint/format, cobertura, build, scanners, orçamento de bundle, auditoria do grafo e
 Playwright. A configuração da Vercel replica os cabeçalhos do servidor SSR; um teste de contrato impede divergência.
 
 Para produção SSR:

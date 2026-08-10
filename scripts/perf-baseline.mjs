@@ -6,14 +6,17 @@ import { gzipSync } from 'node:zlib';
 const root = process.cwd();
 const distDir = path.join(root, 'build');
 const reportPath = path.join(root, 'docs', 'performance-baseline.json');
-const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const npmExecPath = process.env.npm_execpath;
+
+if (!npmExecPath) {
+  throw new Error('Execute o baseline com `npm run perf:baseline`.');
+}
 
 function run(cmd, args) {
   const startedAt = Date.now();
   const output = spawnSync(cmd, args, {
     cwd: root,
     encoding: 'utf8',
-    shell: process.platform === 'win32',
   });
   const durationMs = Date.now() - startedAt;
   return { ...output, durationMs };
@@ -72,8 +75,8 @@ function summarizeDist() {
   };
 }
 
-const build = run(npmCommand, ['run', 'build']);
-const audit = run(npmCommand, ['run', 'audit:frontend']);
+const build = run(process.execPath, [npmExecPath, 'run', 'build']);
+const audit = run(process.execPath, [npmExecPath, 'run', 'audit:frontend']);
 
 const report = {
   generatedAt: new Date().toISOString(),

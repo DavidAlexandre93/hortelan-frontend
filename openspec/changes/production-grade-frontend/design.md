@@ -152,7 +152,7 @@ This separates vulnerability remediation from framework migration. Blind `npm au
 5. Extract auth/session and API contracts behind compatibility facades; explicitly gate demo mode and migrate or discard unsafe local data.
 6. Decompose monitoring, profile, and platform-status routes while applying honest data labels and complete operational states.
 7. Remove production Faker reachability, tune lazy/vendor boundaries, commit budgets, and update the performance baseline.
-8. Enable component, accessibility, browser, source-graph, dependency, and bundle gates in CI; run the complete quality gate in Node 20.
+8. Enable component, accessibility, browser, source-graph, dependency, and bundle gates in CI; run the complete quality gate in Node 24.
 9. Deploy to staging with demo mode disabled, exercise CSP/telemetry/API/auth journeys, then promote through existing approval rules.
 
 Rollback uses the previous immutable build artifact and environment configuration. The browser-storage migration is one-way only for prohibited demo secrets: rollback may require users of the old demo mode to reinitialize local demo data, but production backend sessions remain governed by the backend and public route URLs do not change.

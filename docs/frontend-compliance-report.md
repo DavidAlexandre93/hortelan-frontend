@@ -12,7 +12,7 @@ Data de revisão: 10 de agosto de 2026
 
 ## Resultado
 
-O frontend possui agora um gate reproduzível em Node 20 com OpenSpec, ESLint sem warnings, Prettier, testes Node,
+O frontend possui agora um gate reproduzível em Node 24 com OpenSpec, ESLint sem warnings, Prettier, testes Node,
 Vitest com cobertura, build cliente/SSR, scanner de assets, orçamento de bundle, auditoria de alcançabilidade,
 `npm audit` e Playwright desktop/mobile.
 
@@ -45,7 +45,7 @@ Vitest com cobertura, build cliente/SSR, scanner de assets, orçamento de bundle
 
 ## Métricas
 
-Baseline anterior: 6 de março de 2026. Baseline final: `docs/performance-baseline.json`, Node `v20.20.2`.
+Baseline anterior: 6 de março de 2026. Baseline final: `docs/performance-baseline.json`, Node `v24.14.0`.
 
 | Métrica               |          Antes |                 Depois |       Variação |
 | --------------------- | -------------: | ---------------------: | -------------: |
@@ -53,7 +53,7 @@ Baseline anterior: 6 de março de 2026. Baseline final: `docs/performance-baseli
 | Entrada principal     |    2.992,25 kB |              483,75 kB |         -83,8% |
 | Vendor de gráficos    |      528,70 kB |              414,48 kB |         -21,6% |
 | Rota de monitoramento |      159,36 kB |               84,59 kB |         -46,9% |
-| Tempo de build        |        26,71 s |                24,12 s |          -9,7% |
+| Tempo de build        |        26,71 s |                16,27 s |         -39,1% |
 | HTML                  | não registrado | 1,72 kB / 0,69 kB gzip | baseline atual |
 | JS/CSS gzip total     | não registrado |              482,60 kB | baseline atual |
 

@@ -9,6 +9,20 @@ The project MUST provide a single quality gate that validates OpenSpec, strict l
 - **WHEN** `npm run quality:gate` is executed
 - **THEN** every required validation runs with deterministic exit behavior and any failed gate prevents successful completion
 
+### Requirement: Consistent supported delivery runtime
+
+The project MUST declare one supported Node.js major version consistently across package metadata, continuous integration, deployment configuration, and contributor documentation. The selected runtime SHALL be supported by the hosting provider and every direct development dependency.
+
+#### Scenario: Hosting platform installs the project
+
+- **WHEN** the deployment platform resolves the Node.js version from `package.json`
+- **THEN** it selects Node.js 24.x without a deprecated-runtime override or incompatible-engine warning
+
+#### Scenario: Continuous integration verifies the release
+
+- **WHEN** CI installs dependencies and executes the unified quality gate
+- **THEN** it uses the same Node.js 24.x major declared for production deployment
+
 ### Requirement: Bundle boundary preservation
 
 The frontend SHALL maintain intentional route and vendor boundaries, MUST exclude development-only data generators from the production entry graph, and SHALL fail delivery when approved size budgets regress.
