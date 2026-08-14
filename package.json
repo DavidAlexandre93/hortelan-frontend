@@ -75,7 +75,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@alwaysmeticulous/recorder-loader": "^2.323.0",
+    "@alwaysmeticulous/recorder-loader": "^2.324.0",
     "@axe-core/playwright": "^4.12.1",
     "@fission-ai/openspec": "1.8.0",
     "@playwright/test": "^1.62.1",
