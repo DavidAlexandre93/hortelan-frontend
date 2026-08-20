@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { DeleteOutlineOutlined } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -32,7 +33,6 @@ import {
   Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Page from '../../components/Page';
 
 const steps = ['Perfil', 'Primeira horta', 'Ambiente', 'IoT e ativação'];
@@ -516,7 +516,7 @@ export default function Onboarding() {
                                 setStructures((prev) => prev.filter((_, itemIndex) => itemIndex !== index))
                               }
                             >
-                              <DeleteOutlineIcon fontSize="small" />
+                              <DeleteOutlineOutlined fontSize="small" />
                             </IconButton>
                           </Stack>
                           <FormControl fullWidth>
