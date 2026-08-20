@@ -78,9 +78,9 @@ export function ErrorState({
         <Stack alignItems="center" spacing={1}>
           {incidentId ? <Chip size="small" variant="outlined" label={`Referencia ${incidentId}`} /> : null}
           {onRetry ? (
-          <Button startIcon={<RefreshRoundedIcon />} variant="outlined" onClick={onRetry}>
-            Tentar novamente
-          </Button>
+            <Button startIcon={<RefreshRoundedIcon />} variant="outlined" onClick={onRetry}>
+              Tentar novamente
+            </Button>
           ) : null}
         </Stack>
       }
