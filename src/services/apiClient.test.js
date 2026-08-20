@@ -59,4 +59,32 @@ describe('apiClient', () => {
     await expect(apiRequest('/mutation', { method: 'POST', retryAttempts: 3 })).rejects.toMatchObject({ status: 503 });
     expect(handler).toHaveBeenCalledTimes(1);
   });
+
+  it('preserva somente metadados seguros do envelope de erro do backend', async () => {
+    server.use(
+      http.get(apiUrl('/incident'), () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: 'INFRASTRUCTURE_FAILURE',
+              message: 'mensagem publica',
+              diagnostics: { incident_id: 'incident-safe-1', request_id: 'request-safe-1' },
+              internal: { stack: 'nao deve atravessar' },
+            },
+          },
+          { status: 503 }
+        )
+      )
+    );
+
+    await expect(apiRequest('/incident', { retryAttempts: 0 })).rejects.toMatchObject({
+      status: 503,
+      incidentId: 'incident-safe-1',
+      payload: {
+        code: 'INFRASTRUCTURE_FAILURE',
+        incidentId: 'incident-safe-1',
+        requestId: 'request-safe-1',
+      },
+    });
+  });
 });
