@@ -12,7 +12,7 @@ import { DEFAULT_AUTH_REDIRECT } from '../../utils/authRedirect';
 
 export default function AuthSocial() {
   const navigate = useNavigate();
-  const { loginWithSocial } = useAuth();
+  const { demoMode, loginWithSocial } = useAuth();
   const [socialError, setSocialError] = useState('');
 
   const handleSocialLogin = async (provider) => {
@@ -46,10 +46,11 @@ export default function AuthSocial() {
           size="large"
           color="inherit"
           variant="outlined"
+          disabled={!demoMode}
           onClick={() => handleSocialLogin('google')}
           startIcon={<GoogleIcon sx={{ color: '#C53929' }} />}
         >
-          Google
+          {demoMode ? 'Google (demo)' : 'Google'}
         </Button>
 
         <Button
@@ -57,12 +58,19 @@ export default function AuthSocial() {
           size="large"
           color="inherit"
           variant="outlined"
+          disabled={!demoMode}
           onClick={() => handleSocialLogin('apple')}
           startIcon={<AppleIcon />}
         >
-          Apple
+          {demoMode ? 'Apple (demo)' : 'Apple'}
         </Button>
       </Stack>
+
+      {!demoMode && (
+        <Typography variant="caption" component="p" sx={{ mt: 1.25, color: 'text.secondary', textAlign: 'center' }}>
+          Login social aguardando configuracao segura dos provedores.
+        </Typography>
+      )}
 
       <Divider sx={{ my: 3 }}>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>

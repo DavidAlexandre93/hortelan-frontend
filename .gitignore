@@ -135,3 +135,5 @@ test-results/
 
 # Sentry Config File
 .sentryclirc
+
+.vercel

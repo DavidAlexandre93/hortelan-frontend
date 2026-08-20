@@ -37,9 +37,19 @@ export function createIdentityFacade({
     return execute('login', payload, demoAdapter);
   }
 
+  async function socialLogin(payload) {
+    const demoAdapter = await resolveDemoAdapter();
+
+    if (demoAdapter) {
+      return withIdentitySource(await demoAdapter.socialLogin(payload), 'demo');
+    }
+
+    return execute('socialLogin', payload, null);
+  }
+
   return {
     login,
-    socialLogin: (payload) => execute('socialLogin', payload),
+    socialLogin,
     updateTwoFactor: (payload) => execute('updateTwoFactor', payload),
     updateConsents: (payload) => execute('updateConsents', payload),
     requestDeletion: (payload) => execute('requestDeletion', payload),

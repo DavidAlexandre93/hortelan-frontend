@@ -82,6 +82,22 @@ test('login temporario local autentica pela credencial fixa de desenvolvimento',
   await expect(page).toHaveURL(/\/dashboard\/app$/);
 });
 
+test('login social do ambiente demo permanece isolado e nao chama um OAuth inexistente', async ({ page }) => {
+  let backendSocialRequests = 0;
+  await page.route('http://localhost:3001/auth/social-login', (route) => {
+    backendSocialRequests += 1;
+    return route.abort('failed');
+  });
+
+  await page.goto('/login');
+  await expect(page.getByRole('button', { name: 'Google (demo)' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Apple (demo)' })).toBeVisible();
+  await page.getByRole('button', { name: 'Google (demo)' }).click();
+
+  await expect(page).toHaveURL(/\/dashboard\/app$/);
+  expect(backendSocialRequests).toBe(0);
+});
+
 test('retorno externo malicioso e descartado apos o login', async ({ page }) => {
   await page.route('http://localhost:3001/auth/login', (route) =>
     route.fulfill({

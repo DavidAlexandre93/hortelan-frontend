@@ -30,3 +30,26 @@ Demo authentication MUST be limited to explicitly configured demo deployments or
 - **WHEN** a production-format client build is generated for the explicitly enabled demo deployment
 - **THEN** the fixed email and password are absent in plaintext from generated HTML, JavaScript, source maps, and static assets
 - **AND** only one-way credential verifiers and nonprivileged demo behavior are available to the client
+
+## ADDED Requirements
+
+### Requirement: Truthful social authentication availability
+
+Google and Apple controls SHALL distinguish isolated demo access from real provider authentication. The frontend MUST NOT present a provider control as functional real OAuth until its public client configuration, registered origins and redirects, content security policy, and backend authorization-code validation are available.
+
+#### Scenario: Social control is used in explicit demo mode
+
+- **WHEN** the user selects Google or Apple in an explicitly enabled demo deployment
+- **THEN** the application establishes an isolated demo session without contacting the provider or unavailable backend
+- **AND** the control and resulting experience remain visibly identified as demo behavior
+
+#### Scenario: Real social authentication is not configured
+
+- **WHEN** demo mode is disabled and a provider integration lacks any required client or backend configuration
+- **THEN** the provider control is visibly unavailable and cannot submit a misleading authentication request
+
+#### Scenario: Real social authentication is configured
+
+- **WHEN** all provider and backend requirements are configured and a user authorizes with Google or Apple
+- **THEN** the frontend sends only the short-lived provider credential or authorization code to the backend
+- **AND** establishes a session only after the backend validates the provider response and confirms the identity

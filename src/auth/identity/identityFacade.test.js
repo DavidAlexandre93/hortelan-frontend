@@ -70,4 +70,34 @@ describe('identity facade', () => {
     expect(backendLogin).toHaveBeenCalledOnce();
     expect(demoLogin).not.toHaveBeenCalled();
   });
+
+  it('uses a visibly configured demo social session without contacting the backend', async () => {
+    const backendSocialLogin = vi.fn();
+    const demoSocialLogin = vi.fn().mockResolvedValue({ user: { id: 'social-demo-user' } });
+    const facade = createIdentityFacade({
+      backendAdapter: { socialLogin: backendSocialLogin },
+      resolveDemoAdapter: vi.fn().mockResolvedValue({ socialLogin: demoSocialLogin }),
+    });
+
+    await expect(facade.socialLogin({ provider: 'google', remember: true })).resolves.toMatchObject({
+      identitySource: 'demo',
+      user: { id: 'social-demo-user' },
+    });
+    expect(demoSocialLogin).toHaveBeenCalledWith({ provider: 'google', remember: true });
+    expect(backendSocialLogin).not.toHaveBeenCalled();
+  });
+
+  it('uses backend social authentication only when demo mode is unavailable', async () => {
+    const backendSocialLogin = vi.fn().mockResolvedValue({ user: { id: 'social-backend-user' } });
+    const facade = createIdentityFacade({
+      backendAdapter: { socialLogin: backendSocialLogin },
+      resolveDemoAdapter: vi.fn().mockResolvedValue(null),
+    });
+
+    await expect(facade.socialLogin({ provider: 'apple' })).resolves.toMatchObject({
+      identitySource: 'backend',
+      user: { id: 'social-backend-user' },
+    });
+    expect(backendSocialLogin).toHaveBeenCalledOnce();
+  });
 });

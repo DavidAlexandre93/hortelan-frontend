@@ -79,6 +79,8 @@ The requested fixed demo login is enabled only for a deliberately configured dem
 
 This is not production identity or authorization: the resulting session has demo provenance and cannot create privileged backend access. The standard production configuration remains backend-only. Rollback consists of disabling `VITE_ENABLE_DEMO_AUTH` and removing the verifier configuration after backend authentication is available.
 
+Google and Apple controls follow the same provenance rule. In an explicitly enabled demo deployment they create a clearly labeled isolated demo session without contacting a provider or the unavailable auth backend. Outside demo mode, provider controls remain unavailable until the public client identifiers, registered origins and redirect URIs, CSP allowlists, and backend authorization-code exchange and token validation are all configured. The UI must never imply that a provider authenticated the user when only demo identity was used.
+
 ## Risks / Trade-offs
 
 - **Browser OpenTelemetry support and bundle cost:** Conditional lazy loading, manual initial spans, and chunk budgets limit impact; tracing remains optional.
