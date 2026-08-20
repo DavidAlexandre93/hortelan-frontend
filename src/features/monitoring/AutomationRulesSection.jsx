@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { DeleteOutlineOutlined } from '@mui/icons-material';
 import {
   Button,
   Card,
@@ -154,7 +154,7 @@ export default function AutomationRulesSection({ controller }) {
                         onClick={() => removerCondicaoAutomacao(index)}
                         disabled={automationDraft.condicoes.length === 1}
                       >
-                        <DeleteOutlineIcon fontSize="small" />
+                        <DeleteOutlineOutlined fontSize="small" />
                       </IconButton>
                     </Stack>
                   ))}
@@ -216,7 +216,7 @@ export default function AutomationRulesSection({ controller }) {
                         onClick={() => removerDependenciaAutomacao(index)}
                         disabled={automationDraft.dependencias.length === 1}
                       >
-                        <DeleteOutlineIcon fontSize="small" />
+                        <DeleteOutlineOutlined fontSize="small" />
                       </IconButton>
                     </Stack>
                   ))}

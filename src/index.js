@@ -1,9 +1,6 @@
 // scroll bar
 import 'simplebar/dist/simplebar.css';
-import '@fontsource/public-sans/latin-400.css';
-import '@fontsource/public-sans/latin-500.css';
-import '@fontsource/public-sans/latin-600.css';
-import '@fontsource/public-sans/latin-700.css';
+import '@fontsource-variable/manrope/wght.css';
 
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
