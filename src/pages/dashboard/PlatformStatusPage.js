@@ -212,7 +212,11 @@ export default function StatusPage() {
     return (
       <Page title="Status operacional">
         <Container maxWidth="xl">
-          <ErrorState description={operational.error?.message} onRetry={() => operational.retry()} />
+          <ErrorState
+            description={operational.error?.message}
+            incidentId={operational.error?.incidentId}
+            onRetry={() => operational.retry()}
+          />
         </Container>
       </Page>
     );

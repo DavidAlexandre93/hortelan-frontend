@@ -65,6 +65,7 @@ EmptyState.propTypes = { action: PropTypes.node, description: PropTypes.string, 
 
 export function ErrorState({
   onRetry,
+  incidentId,
   title = 'Nao foi possivel carregar',
   description = 'Tente novamente. Se o problema continuar, procure o suporte.',
 }) {
@@ -74,17 +75,25 @@ export function ErrorState({
       title={title}
       description={description}
       action={
-        onRetry ? (
-          <Button startIcon={<RefreshRoundedIcon />} variant="outlined" onClick={onRetry}>
-            Tentar novamente
-          </Button>
-        ) : null
+        <Stack alignItems="center" spacing={1}>
+          {incidentId ? <Chip size="small" variant="outlined" label={`Referencia ${incidentId}`} /> : null}
+          {onRetry ? (
+            <Button startIcon={<RefreshRoundedIcon />} variant="outlined" onClick={onRetry}>
+              Tentar novamente
+            </Button>
+          ) : null}
+        </Stack>
       }
     />
   );
 }
 
-ErrorState.propTypes = { description: PropTypes.string, onRetry: PropTypes.func, title: PropTypes.string };
+ErrorState.propTypes = {
+  description: PropTypes.string,
+  incidentId: PropTypes.string,
+  onRetry: PropTypes.func,
+  title: PropTypes.string,
+};
 
 export function PermissionState() {
   return (

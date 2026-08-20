@@ -40,6 +40,7 @@ class ApiError extends Error {
     this.retryable = Boolean(options.retryable);
     this.retryAfterMs = options.retryAfterMs || 0;
     this.payload = options.payload || null;
+    this.incidentId = options.payload?.incidentId || null;
     this.cause = options.cause;
   }
 }
@@ -68,6 +69,17 @@ function statusKind(status) {
   if (status === 403) return API_ERROR_KINDS.AUTHORIZATION;
   if (status === 429) return API_ERROR_KINDS.RATE_LIMIT;
   return API_ERROR_KINDS.HTTP;
+}
+
+function safeErrorMetadata(payload) {
+  const error = payload?.error && typeof payload.error === 'object' ? payload.error : payload;
+  if (!error || typeof error !== 'object') return null;
+  const diagnostics = error.diagnostics && typeof error.diagnostics === 'object' ? error.diagnostics : {};
+  return {
+    code: typeof error.code === 'string' ? error.code : null,
+    incidentId: typeof diagnostics.incident_id === 'string' ? diagnostics.incident_id : null,
+    requestId: typeof diagnostics.request_id === 'string' ? diagnostics.request_id : null,
+  };
 }
 
 function retryAfterMs(response) {
@@ -161,7 +173,7 @@ async function performRequest(path, options, timeoutMs, schema) {
         status: response.status,
         retryable: RETRYABLE_STATUS_CODES.has(response.status),
         retryAfterMs: retryAfterMs(response),
-        payload: payload && typeof payload === 'object' ? { code: payload.code || null } : null,
+        payload: safeErrorMetadata(payload),
       });
     }
 

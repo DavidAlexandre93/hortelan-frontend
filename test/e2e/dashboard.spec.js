@@ -35,7 +35,7 @@ test('@a11y dashboard operacional permanece legível e responsivo', async ({ pag
   await expect(
     page.getByRole('heading', { name: /Visão geral do cultivo|Visao geral do cultivo/i }).first()
   ).toBeVisible();
-  await expect(page.getByText(/Centro de operação|Centro de operacao/i)).toBeVisible();
+  await expect(page.getByText(/Centro de opera(?:ção|cao)/i).first()).toBeVisible();
 
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth
