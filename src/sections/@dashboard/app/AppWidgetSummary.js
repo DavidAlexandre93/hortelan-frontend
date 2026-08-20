@@ -59,9 +59,7 @@ export default function AppWidgetSummary({ title, total, icon1, icon2, color = '
 
       <Typography variant="h3">{fShortenNumber(total)}</Typography>
 
-      <Typography variant="subtitle2" sx={{ opacity: 0.72 }}>
-        {title}
-      </Typography>
+      <Typography variant="subtitle2">{title}</Typography>
     </Card>
   );
 }
