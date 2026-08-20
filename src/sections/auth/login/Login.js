@@ -264,7 +264,7 @@ function LoginFields() {
     <>
       {demoMode && (
         <Alert severity="info" sx={{ mb: 3 }}>
-          Modo de demonstracao ativo. O acesso local temporario esta disponivel apenas neste ambiente.
+          Ambiente de demonstracao ativo. Os dados e sessoes sao isolados e nao representam uma conta de producao.
         </Alert>
       )}
       <AuthSocial />

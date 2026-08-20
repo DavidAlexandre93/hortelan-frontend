@@ -32,4 +32,42 @@ describe('identity facade', () => {
     await expect(facade.requestDeletion({ reason: 'teste' })).resolves.toMatchObject({ identitySource: 'demo' });
     expect(demoOperation).toHaveBeenCalledWith({ reason: 'teste' });
   });
+
+  it('handles a matching explicit demo login before contacting an unavailable backend', async () => {
+    const backendLogin = vi.fn();
+    const demoLogin = vi.fn().mockResolvedValue({ user: { id: 'demo-user' } });
+    const facade = createIdentityFacade({
+      backendAdapter: { login: backendLogin },
+      resolveDemoAdapter: vi.fn().mockResolvedValue({
+        canHandleLogin: vi.fn().mockResolvedValue(true),
+        login: demoLogin,
+      }),
+    });
+
+    await expect(facade.login({ email: 'demo@example.com', password: 'demo-password' })).resolves.toMatchObject({
+      identitySource: 'demo',
+      user: { id: 'demo-user' },
+    });
+    expect(backendLogin).not.toHaveBeenCalled();
+    expect(demoLogin).toHaveBeenCalledOnce();
+  });
+
+  it('keeps backend login authoritative for credentials not handled by demo mode', async () => {
+    const backendLogin = vi.fn().mockResolvedValue({ user: { id: 'backend-user' } });
+    const demoLogin = vi.fn();
+    const facade = createIdentityFacade({
+      backendAdapter: { login: backendLogin },
+      resolveDemoAdapter: vi.fn().mockResolvedValue({
+        canHandleLogin: vi.fn().mockResolvedValue(false),
+        login: demoLogin,
+      }),
+    });
+
+    await expect(facade.login({ email: 'user@example.com', password: 'backend-password' })).resolves.toMatchObject({
+      identitySource: 'backend',
+      user: { id: 'backend-user' },
+    });
+    expect(backendLogin).toHaveBeenCalledOnce();
+    expect(demoLogin).not.toHaveBeenCalled();
+  });
 });

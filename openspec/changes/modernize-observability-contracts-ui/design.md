@@ -73,6 +73,12 @@ Add deterministic checks for formatting, lint, scoped JavaScript type analysis, 
 
 Major dependency upgrades require a dedicated compatibility change when they alter build semantics. Vite 8 is intentionally deferred because the current JavaScript-with-JSX source path requires an explicit Oxc migration. Dependency additions in this change are limited to telemetry, contract generation, and quality enforcement packages named by implementation tasks.
 
+### 9. Allow temporary demo access without plaintext production credentials
+
+The requested fixed demo login is enabled only for a deliberately configured demo deployment. The client stores one-way SHA-256 verifiers for the normalized email and password rather than their plaintext values. A matching demo credential is handled by the isolated demo adapter before contacting an unavailable backend, while all nonmatching credentials continue through backend-first authentication. The login page visibly identifies the environment as a demonstration.
+
+This is not production identity or authorization: the resulting session has demo provenance and cannot create privileged backend access. The standard production configuration remains backend-only. Rollback consists of disabling `VITE_ENABLE_DEMO_AUTH` and removing the verifier configuration after backend authentication is available.
+
 ## Risks / Trade-offs
 
 - **Browser OpenTelemetry support and bundle cost:** Conditional lazy loading, manual initial spans, and chunk budgets limit impact; tracing remains optional.
@@ -81,6 +87,7 @@ Major dependency upgrades require a dedicated compatibility change when they alt
 - **A broader coverage denominator lowers reported percentages:** Publish the new honest baseline, enforce 100 percent on critical modules immediately, and ratchet the rest through explicit milestones.
 - **Health checks can add traffic or false confidence:** Use short caching, bounded timeouts, stale states, and treat health as guidance rather than a guarantee.
 - **Idempotency cannot be guaranteed by frontend keys alone:** Gate automatic mutation retry on declared backend support and document the service ownership clearly.
+- **Client-side demo verification is discoverable and is not real security:** Limit it to nonprivileged demo data, label it visibly, keep plaintext values out of assets, and disable it as soon as backend authentication is ready.
 
 ## Migration Plan
 

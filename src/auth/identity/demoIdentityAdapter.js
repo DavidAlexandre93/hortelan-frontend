@@ -13,16 +13,52 @@ import {
 } from '../session';
 import { buildDemoUser } from './demoFixtures';
 
+async function sha256(value) {
+  if (!globalThis.crypto?.subtle || typeof globalThis.TextEncoder === 'undefined') {
+    throw new Error('SHA-256 indisponivel neste navegador.');
+  }
+
+  const encoded = new globalThis.TextEncoder().encode(value);
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', encoded);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
 export function createDemoIdentityAdapter({
   email = import.meta.env.VITE_DEMO_EMAIL ||
     (import.meta.env.DEV ? 'davidfernandes@hortelanagtech.com' : 'demo@hortelan.local'),
   password = import.meta.env.VITE_DEMO_PASSWORD || (import.meta.env.DEV ? 'admin' : ''),
+  emailHash = import.meta.env.VITE_DEMO_EMAIL_SHA256 || '',
+  passwordHash = import.meta.env.VITE_DEMO_PASSWORD_SHA256 || '',
   persist = persistBackendIdentity,
   now = () => Date.now(),
+  digest = sha256,
 } = {}) {
-  function establishDemoSession({ remember = false } = {}) {
+  const hasPlaintextConfiguration = Boolean(email && password);
+  const hasHashConfiguration = Boolean(emailHash && passwordHash);
+
+  async function credentialsMatch({ email: submittedEmail = '', password: submittedPassword = '' }) {
+    const normalizedEmail = submittedEmail.trim().toLowerCase();
+
+    if (hasPlaintextConfiguration) {
+      return normalizedEmail === email.toLowerCase() && submittedPassword === password;
+    }
+
+    if (!hasHashConfiguration) return false;
+
+    try {
+      const [submittedEmailHash, submittedPasswordHash] = await Promise.all([
+        digest(normalizedEmail),
+        digest(submittedPassword),
+      ]);
+      return submittedEmailHash === emailHash && submittedPasswordHash === passwordHash;
+    } catch {
+      return false;
+    }
+  }
+
+  function establishDemoSession({ authenticatedEmail, remember = false } = {}) {
     return persist({
-      user: buildDemoUser(email),
+      user: buildDemoUser(authenticatedEmail),
       session: {
         id: createId('demo-session'),
         expiresAt: new Date(now() + 8 * 60 * 60 * 1000).toISOString(),
@@ -33,23 +69,24 @@ export function createDemoIdentityAdapter({
 
   return {
     name: 'demo',
+    canHandleLogin: (payload) => credentialsMatch(payload),
     login: async ({ email: submittedEmail, password: submittedPassword, remember }) => {
-      if (!password) {
+      if (!hasPlaintextConfiguration && !hasHashConfiguration) {
         return { error: 'Credenciais de demonstracao nao foram configuradas.' };
       }
 
-      if (submittedEmail.trim().toLowerCase() !== email.toLowerCase() || submittedPassword !== password) {
+      if (!(await credentialsMatch({ email: submittedEmail, password: submittedPassword }))) {
         return { error: 'Credenciais de demonstracao invalidas.' };
       }
 
-      return establishDemoSession({ remember });
+      return establishDemoSession({ authenticatedEmail: submittedEmail.trim().toLowerCase(), remember });
     },
     socialLogin: async ({ provider, remember }) => {
       if (!['google', 'apple'].includes(provider)) {
         return { error: 'Provedor social nao suportado.' };
       }
 
-      return establishDemoSession({ remember });
+      return establishDemoSession({ authenticatedEmail: email, remember });
     },
     updateTwoFactor: async (payload) => updateTwoFactorSettings(payload),
     updateConsents: async (payload) => updateUserConsents(payload),

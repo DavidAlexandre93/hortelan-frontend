@@ -28,6 +28,7 @@ The frontend passes its current gates, but observability, API contracts, error d
 - `architecture/sdd-governance`: Require traceability from OpenSpec requirements to contract, observability, visual, and coverage verification.
 - `delivery/frontend-quality`: Expand static analysis, type checks, coverage scope, conventional commits, and quality-gate evidence.
 - `experience/accessible-responsive-ui`: Strengthen operational visual hierarchy, contrast, state design, responsive density, and reduced-motion criteria.
+- `identity/auth-session`: Permit the requested temporary fixed demo access in an explicitly enabled deployment without shipping the email or password as plaintext client assets.
 - `platform/api-reliability`: Add request correlation, idempotency metadata, health-aware recovery, DTO validation in both directions, and sanitized diagnostics.
 
 ## Impact

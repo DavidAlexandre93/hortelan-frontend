@@ -12,20 +12,33 @@ export function createIdentityFacade({
   backendAdapter = backendIdentityAdapter,
   resolveDemoAdapter = resolveConfiguredDemoAdapter,
 } = {}) {
-  async function execute(method, payload) {
+  const withIdentitySource = (result, identitySource) =>
+    result && typeof result === 'object' ? { ...result, identitySource } : result;
+
+  async function execute(method, payload, configuredDemoAdapter) {
     try {
       const result = await backendAdapter[method](payload);
-      return result && typeof result === 'object' ? { ...result, identitySource: 'backend' } : result;
+      return withIdentitySource(result, 'backend');
     } catch (backendError) {
-      const demoAdapter = await resolveDemoAdapter();
+      const demoAdapter = configuredDemoAdapter === undefined ? await resolveDemoAdapter() : configuredDemoAdapter;
       if (!demoAdapter) throw backendError;
       const result = await demoAdapter[method](payload);
-      return result && typeof result === 'object' ? { ...result, identitySource: 'demo' } : result;
+      return withIdentitySource(result, 'demo');
     }
   }
 
+  async function login(payload) {
+    const demoAdapter = await resolveDemoAdapter();
+
+    if (demoAdapter?.canHandleLogin && (await demoAdapter.canHandleLogin(payload))) {
+      return withIdentitySource(await demoAdapter.login(payload), 'demo');
+    }
+
+    return execute('login', payload, demoAdapter);
+  }
+
   return {
-    login: (payload) => execute('login', payload),
+    login,
     socialLogin: (payload) => execute('socialLogin', payload),
     updateTwoFactor: (payload) => execute('updateTwoFactor', payload),
     updateConsents: (payload) => execute('updateConsents', payload),

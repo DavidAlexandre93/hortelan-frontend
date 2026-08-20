@@ -63,7 +63,7 @@
 
 ## 7. Service Migration And Clean-Code Sweep
 
-- [ ] 7.1 Migrate authentication and account services to the operation registry and bidirectional DTO validation while preserving production identity and explicit demo-mode rules.
+- [ ] 7.1 Migrate authentication and account services to the operation registry and bidirectional DTO validation while preserving backend identity and explicit demo-mode rules, including hash-verified temporary access for the configured demo deployment.
 - [ ] 7.2 Migrate dashboard, monitoring, alerts, irrigation, tasks, reports, subscription, integration, community, support, and security services to centralized operation contracts.
 - [ ] 7.3 Remove duplicated local schemas, error mapping, retry logic, unsafe diagnostic persistence, and obsolete compatibility paths after each migration is covered.
 - [ ] 7.4 Run source reachability, unused export, unused dependency, duplicate dependency, and dead asset analysis; remove only verified unreachable code and assets.
