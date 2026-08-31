@@ -22,3 +22,12 @@ The shell MUST derive assistant context from a versioned allowlist of route meta
 
 - **WHEN** an authenticated user opens the assistant from a supported resource page
 - **THEN** the request includes only the declared route, resource identifiers, locale, and user-approved context required for that assistance
+
+### Requirement: Unified AI command and discovery surface
+
+The authenticated shell SHALL expose one keyboard-accessible entry for natural-language search, navigation, and supported workflow planning, and MUST lazy-load AI behavior without replacing deterministic navigation or blocking route rendering.
+
+#### Scenario: User opens the command surface
+
+- **WHEN** the user invokes the visible control or documented keyboard command from an authenticated route
+- **THEN** the surface preserves current route context, supports direct deterministic destinations, and clearly separates search results from generated workflow drafts

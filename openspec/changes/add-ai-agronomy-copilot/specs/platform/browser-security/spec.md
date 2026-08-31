@@ -31,3 +31,12 @@ The browser MUST persist only non-sensitive conversation preferences and opaque 
 
 - **WHEN** local storage, session storage, caches, and service-worker storage are reviewed
 - **THEN** conversation content, attachments, privileged instructions, and provider secrets are absent unless a separately specified encrypted offline mode exists
+
+### Requirement: Personalization and behavior-signal controls
+
+The browser MUST disclose optional personalization categories and SHALL transmit only the allowlisted opaque features approved for the active user and request, never raw browsing history, hidden DOM content, or unrelated interaction events.
+
+#### Scenario: User disables behavior-based personalization
+
+- **WHEN** the user revokes the optional behavior-signal category
+- **THEN** subsequent AI requests omit those features and local preference state records only the revocation choice

@@ -34,6 +34,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import Page from '../../components/Page';
+import AiFieldDiffReview from '../../features/ai/components/AiFieldDiffReview';
 
 const steps = ['Perfil', 'Primeira horta', 'Ambiente', 'IoT e ativação'];
 const structureTypes = ['Vaso', 'Canteiro', 'Módulo', 'Torre', 'Reservatório'];
@@ -288,6 +289,14 @@ export default function Onboarding() {
     setAutomationName('');
   };
 
+  const applyAiFieldSuggestion = (field, value) => {
+    if (field === 'gardenName' && typeof value === 'string') setGardenName(value.slice(0, 120));
+    if (field === 'initialPlants' && typeof value === 'string') setInitialPlants(value.slice(0, 300));
+    if (field === 'location' && typeof value === 'string') setLocation(value.slice(0, 240));
+    if (field === 'environment' && ['interno', 'externo'].includes(value)) setEnvironment(value);
+    if (field === 'sunlight' && ['baixa', 'media', 'alta'].includes(value)) setSunlight(value);
+  };
+
   return (
     <Page title="Onboarding">
       <Container maxWidth="md">
@@ -443,6 +452,30 @@ export default function Onboarding() {
               {activeStep === 1 && (
                 <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }}>
                   <Stack spacing={2}>
+                    <AiFieldDiffReview
+                      formId="onboarding-garden-v1"
+                      fields={[
+                        { key: 'gardenName', label: 'Nome da horta', type: 'text', value: gardenName },
+                        { key: 'initialPlants', label: 'Plantas iniciais', type: 'text', value: initialPlants },
+                        { key: 'location', label: 'Localizacao', type: 'text', value: location },
+                        {
+                          key: 'environment',
+                          label: 'Ambiente',
+                          type: 'select',
+                          value: environment,
+                          options: ['interno', 'externo'],
+                        },
+                        {
+                          key: 'sunlight',
+                          label: 'Incidencia solar',
+                          type: 'select',
+                          value: sunlight,
+                          options: ['baixa', 'media', 'alta'],
+                        },
+                      ]}
+                      onAccept={applyAiFieldSuggestion}
+                    />
+                    <Divider />
                     <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
                       <FormControl fullWidth>
                         <InputLabel>Tipo de cultivo</InputLabel>

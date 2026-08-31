@@ -31,7 +31,7 @@ const USER_MESSAGES = {
   [API_ERROR_KINDS.HTTP]: 'O servico nao conseguiu concluir a solicitacao.',
 };
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(kind, options = {}) {
     super(options.userMessage || USER_MESSAGES[kind] || USER_MESSAGES[API_ERROR_KINDS.HTTP]);
     this.name = 'ApiError';
@@ -53,7 +53,12 @@ function resolveDefaultApiBaseUrl() {
 
 const configuredBaseUrl =
   import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_BACKEND_URL || resolveDefaultApiBaseUrl();
-const API_BASE_URL = configuredBaseUrl.replace(/\/$/, '');
+export const API_BASE_URL = configuredBaseUrl.replace(/\/$/, '');
+
+export function createApiUrl(path) {
+  const normalizedPath = String(path || '');
+  return `${API_BASE_URL}${normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`}`;
+}
 
 function sanitizePath(path) {
   return String(path || '').split('?')[0] || 'unknown';
@@ -159,7 +164,7 @@ async function performRequest(path, options, timeoutMs, schema) {
   }, timeoutMs);
 
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(createApiUrl(path), {
       ...options,
       credentials: options.credentials || 'include',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(options.headers || {}) },

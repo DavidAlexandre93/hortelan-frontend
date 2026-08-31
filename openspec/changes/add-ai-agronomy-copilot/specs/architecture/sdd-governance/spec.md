@@ -17,3 +17,12 @@ Every AI requirement SHALL map to implementation tasks and objective test or eva
 
 - **WHEN** reviewers inspect a completed AI change
 - **THEN** they can trace each assistant, orchestration, privacy, safety, accessibility, and quality requirement to passing deterministic tests or recorded evaluation results
+
+### Requirement: Governed AI experience catalog
+
+Every AI-assisted search, form, recommendation, insight, and natural-language workflow MUST have a named owner, purpose, authorized context, risk class, provider profile, output contract, user control, evaluation set, and rollout state recorded in the change artifacts.
+
+#### Scenario: A new AI entry point is proposed
+
+- **WHEN** a product page requests a new generated or personalized behavior
+- **THEN** implementation remains blocked until the experience catalog defines its value, boundaries, evidence, failure states, and verification

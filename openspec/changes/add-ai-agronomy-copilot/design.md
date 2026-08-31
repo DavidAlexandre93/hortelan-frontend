@@ -11,6 +11,7 @@ The design follows the official guidance available on 2026-08-27: OpenAI recomme
 **Goals:**
 
 - Deliver one coherent agronomy copilot across the authenticated product, with route-aware entry points and a dedicated Hortelan 360 conversation workspace.
+- Provide semantic discovery, natural-language workflow planning, intelligent form drafts, explainable personalization, and bounded proactive insights through the same governed AI platform.
 - Make answers useful and inspectable through approved retrieval, citations, freshness, uncertainty, and draft next actions.
 - Keep provider selection, credentials, prompts, policies, tools, retention, and budgets on the server behind replaceable adapters.
 - Support text, operational context, and crop images while treating high-consequence advice conservatively.
@@ -22,7 +23,7 @@ The design follows the official guidance available on 2026-08-27: OpenAI recomme
 - Training or fine-tuning a provider model on customer conversations in the first release.
 - Giving a model direct database access, unrestricted web access, arbitrary code execution, or actuator control.
 - Building an autonomous agronomist, guaranteeing diagnoses, or replacing product labels, local regulation, or qualified professional review.
-- Adding voice, proactive background agents, multi-agent orchestration, community-content ingestion, or encrypted offline chat in the first release. Their contracts can be proposed later if measured demand justifies them.
+- Adding voice, autonomous background agents that execute actions, multi-agent orchestration, community-content ingestion, or encrypted offline chat in the first release. Bounded read-only insight refresh is included; autonomous execution is not.
 
 ## Decisions
 
@@ -143,6 +144,50 @@ Candidate prompts, policies, retrieval changes, and model routes are compared wi
 
 **Alternatives considered:** Snapshotting generated prose is brittle. Model-only grading can share the same blind spots as generation. Live provider calls in every CI run are nondeterministic, slow, costly, and leak credentials into a wider execution surface.
 
+### 10. Unify semantic search and natural-language workflow planning
+
+**Satisfies:** `experience/agronomy-copilot`, `platform/ai-orchestration`, `architecture/frontend-app-shell`.
+
+One lazy command surface accepts deterministic navigation queries, semantic discovery, and supported workflow requests. The gateway first performs low-cost intent classification, then routes to direct navigation, hybrid retrieval, or structured workflow planning. Hybrid retrieval combines lexical, vector, authority, tenant, metadata, and freshness signals; generated summaries cannot replace the result list or its sources.
+
+Plans are limited to versioned intents such as navigation, filtering, report configuration, form suggestion, task draft, and note draft. The frontend always shows the interpreted intent and parameters before a consequential step.
+
+**Alternatives considered:** Replacing all navigation with a chatbot harms predictability and accessibility. Vector-only search weakens exact identifiers and uncommon agricultural terms. Free-form agents cannot provide reliable permission and action boundaries.
+
+### 11. Treat form assistance as a schema-validated diff
+
+**Satisfies:** `experience/agronomy-copilot`, `experience/operational-workflows`, `experience/accessible-responsive-ui`.
+
+Eligible forms publish a minimized assistance descriptor containing field purpose, type, allowed values, validation rules, current non-secret values, and accepted context categories. The gateway returns a field-keyed suggestion diff with reason and evidence. The frontend validates the diff with the same form schema, lets users accept fields independently, and never submits automatically.
+
+Passwords, MFA, payment credentials, private integration secrets, destructive confirmations, and hidden anti-abuse fields are never eligible for AI completion.
+
+**Alternatives considered:** Generating an entire form payload can overwrite user work and hide errors. DOM inspection leaks unrelated state. Field-by-field diffs preserve user control and fit existing React Hook Form boundaries.
+
+### 12. Personalize with minimized, explainable features
+
+**Satisfies:** `experience/agronomy-copilot`, `platform/ai-orchestration`, `platform/browser-security`.
+
+Personalization uses a small server-governed feature set such as role, selected garden, crop species and stage, region, explicit preferences, active risk state, and recent authorized events. Every feature has purpose, sensitivity, freshness, consent category, and neutral fallback. Raw clickstreams and full browsing history are excluded. Recommendations carry explanation reason codes that the frontend translates into concise pt-BR copy and links to settings.
+
+**Alternatives considered:** Opaque behavioral profiling is difficult to govern and explain. Client-only personalization fragments ranking logic. No personalization misses obvious value from crop stage and selected garden.
+
+### 13. Generate proactive insights from bounded triggers
+
+**Satisfies:** `experience/agronomy-copilot`, `experience/operational-workflows`, `platform/ai-orchestration`.
+
+Approved trigger evaluators identify a material event before generation: anomaly, repeated alert, crop-stage transition, report trend, or knowledge update relevant to the active operation. The gateway deduplicates by evidence and recommendation, applies freshness, quota, urgency, quiet hours, and user mute preferences, then generates a concise evidence-backed insight. Insights never replace authoritative alerts and expire when evidence changes.
+
+**Alternatives considered:** Continuous agent polling creates unbounded cost and noisy suggestions. Generating every dashboard card on demand weakens consistency. Trigger-first generation keeps volume and purpose measurable.
+
+### 14. Keep visual transformation in a dependent change
+
+**Satisfies:** `architecture/sdd-governance`, `delivery/frontend-quality`.
+
+The companion `redesign-ai-native-product-experience` change owns the shared visual system and complete page redesign. This AI change owns behavior, contracts, and AI-specific surfaces. The redesign depends on the stable AI state model and reuses it; neither change duplicates assistant, semantic search, insight, or form-assistance logic.
+
+**Alternatives considered:** Combining the full visual rewrite and AI platform into one task graph makes rollback, review, and requirement ownership ambiguous. Independent visual work without AI states would create a bolted-on chatbot experience.
+
 ## Risks / Trade-offs
 
 - **Agronomic hallucination or overconfidence** -> Require approved evidence, citation validation, uncertainty labels, conservative high-risk policy, critical evals, and professional escalation.
@@ -164,8 +209,10 @@ Candidate prompts, policies, retrieval changes, and model routes are compared wi
 4. Build and review the first curated knowledge corpus with source owners, revision metadata, jurisdiction, and expiry rules.
 5. Ship frontend capability discovery, consent, conversation service, stream parser, lazy shell surface, and Hortelan 360 workspace behind `VITE_ENABLE_AI_COPILOT=false` by default.
 6. Add contextual entry points one workflow at a time: help and species, then reports, monitoring and alerts, and finally image assistance. Keep action output as drafts.
-7. Run the full quality gate, privacy and threat review, agronomy evaluation, browser matrix, load test, provider-failure drills, and cost forecast.
-8. Enable internal users, then a small tenant allowlist with quotas and dashboards; expand only when safety, quality, latency, error, and budget thresholds hold.
+7. Add semantic discovery and deterministic navigation, then structured workflow plans, field-level form assistance, explainable personalization, and trigger-based insights in that order.
+8. Apply the dependent visual redesign after the shared AI state, context, and result contracts are stable, and verify that it does not fork behavior.
+9. Run the full quality gate, privacy and threat review, agronomy evaluation, browser matrix, load test, provider-failure drills, and cost forecast.
+10. Enable internal users, then a small tenant allowlist with quotas and dashboards; expand only when safety, quality, latency, error, and budget thresholds hold.
 
 Rollback uses the frontend and server feature flags to remove launch points and reject new AI generation while preserving normal product workflows. Conversation export and deletion remain available during rollback. Provider credentials can be revoked independently, and the prior prompt, policy, model route, and knowledge index versions remain addressable for operational rollback.
 

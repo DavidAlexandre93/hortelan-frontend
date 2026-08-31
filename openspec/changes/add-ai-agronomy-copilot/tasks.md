@@ -8,6 +8,7 @@
 - [ ] 1.6 Version the initial prompt profiles, agricultural safety policy, route-context allowlist, tool schemas, retrieval policy, retention policy, and evaluation thresholds without embedding provider secrets.
 - [ ] 1.7 Reconcile AI DTO, diagnostics, trace propagation, and error ownership with `modernize-observability-contracts-ui` and remove any duplicated contract or logging plan.
 - [ ] 1.8 Add a requirement-to-task-to-evidence matrix covering every scenario in both new capabilities and all six modified capabilities.
+- [ ] 1.9 Add semantic search, form assistance, personalization, proactive insights, and natural-language plans to the governed AI experience catalog with owners, risk classes, context, controls, and evaluation evidence.
 
 ## 2. Frontend AI Contracts and Transport
 
@@ -19,6 +20,8 @@
 - [ ] 2.6 Add an abortable request lifecycle that stops network consumption, ignores late events, preserves completed content, and prevents actions from incomplete messages.
 - [ ] 2.7 Add AI capability and retention discovery to application startup as a non-blocking, cached, freshness-bounded query with an honest unavailable fallback.
 - [ ] 2.8 Add deterministic MSW fixtures for successful text, grounded answer, vision hypothesis, action draft, cancellation, refusal, quota, malformed stream, interrupted stream, and unavailable gateway responses.
+- [ ] 2.9 Add strict contracts for semantic queries and ranked results, intent plans, form descriptors and diffs, personalization reason codes, proactive insights, mute preferences, and neutral fallbacks.
+- [ ] 2.10 Add provider-neutral service operations for semantic discovery, intent planning, eligible-form assistance, insight list and feedback, dismiss, mute, and refresh without exposing provider identifiers.
 
 ## 3. Context, Consent, and Conversation State
 
@@ -30,6 +33,8 @@
 - [ ] 3.6 Implement conversation state for new, loading, ready, streaming, stopping, incomplete, refused, failed, deleting, and deleted states with reducer-level invariants.
 - [ ] 3.7 Implement authorized conversation list, load, rename, export, and confirmed deletion flows while keeping raw content out of browser persistence.
 - [ ] 3.8 Persist only approved non-sensitive UI preferences and opaque identifiers, then extend the asset and browser-storage security scans to detect AI content and credentials.
+- [ ] 3.9 Add personalization settings for each optional feature category with disclosed purpose, current state, revocation, neutral fallback, and no raw behavior history in browser storage.
+- [ ] 3.10 Add proactive insight state with freshness, deduplication identity, urgency, uncertainty, mute, dismiss, revisit, and withdrawn or stale transitions.
 
 ## 4. Shared Assistant Experience
 
@@ -43,6 +48,8 @@
 - [ ] 4.8 Build editable action-draft presentation with evidence, target, fields, consequence, expiry, incomplete-response lockout, and a separate standard workflow confirmation command.
 - [ ] 4.9 Evolve Hortelan 360 from the static blueprint into the full conversation and intelligence workspace while retaining only product-planning content that remains useful and honest.
 - [ ] 4.10 Verify the assistant at 320, 768, and 1440 pixel widths with virtual-keyboard, safe-area, long-word, long-citation, empty-history, reduced-motion, high-zoom, light, and dark theme states.
+- [ ] 4.11 Build one lazy command and discovery surface that preserves deterministic navigation, separates direct and semantic results, previews structured plans, and returns focus correctly.
+- [ ] 4.12 Build accessible result reasons, personalization explanations, insight evidence, and field-level form diffs with independent accept and reject controls.
 
 ## 5. Contextual Product Assistance
 
@@ -54,6 +61,10 @@
 - [ ] 5.6 Add shared contextual-assistance entry controls only where a complete allowlisted context exists, and render honest disabled reasons otherwise.
 - [ ] 5.7 Detect conflicts between generated summaries and displayed authoritative values, preserve the source values, disable draft actions, and offer reanalysis or incident reporting.
 - [ ] 5.8 Remove or rewrite static recommendation copy that would conflict with the live AI provenance model, retaining deterministic local rules where they are clearer and safer.
+- [ ] 5.9 Add hybrid semantic discovery for approved product help, routes, species, reports, alerts, and agronomy sources with reliable no-result and refinement states.
+- [ ] 5.10 Add schema-driven form assistance to eligible onboarding, crop, report, alert, integration, and support forms while excluding credentials and destructive fields.
+- [ ] 5.11 Add explainable personalized recommendation ordering with neutral views and controls for role, selected garden, crop stage, explicit preferences, and recent authorized events.
+- [ ] 5.12 Add a proactive insight queue for approved anomaly, recurring-alert, crop-stage, report-trend, and knowledge-update triggers without replacing authoritative alerts.
 
 ## 6. Vision and Human-Controlled Actions
 
@@ -74,6 +85,7 @@
 - [ ] 7.6 Establish and enforce budgets for assistant lazy chunks, initial-route isolation, stream buffer, time to first meaningful event, total task latency, context size, tokens, images, concurrency, and estimated spend.
 - [ ] 7.7 Add cancellation, timeout, retry, pre-output fallback, and circuit-state telemetry that distinguishes safe recovery from incomplete or potentially side-effecting operations.
 - [ ] 7.8 Update source reachability and dependency audits to reject orphaned AI modules and any server-only OpenAI or Google provider package in the client production graph.
+- [ ] 7.9 Add bounded telemetry for semantic relevance, no-result rate, intent plan acceptance, form-diff acceptance, personalization fallback, insight deduplication, mute, dismiss, and provider cost without raw query or field content.
 
 ## 8. Deterministic Tests and AI Evaluations
 
@@ -87,6 +99,8 @@
 - [ ] 8.8 Add deterministic critical-case assertions and configurable quality graders for groundedness, citation validity, agronomic correctness, harmful advice, refusal precision, Portuguese clarity, latency, tokens, and estimated cost.
 - [ ] 8.9 Establish an approved baseline and regression thresholds for each task profile and prove that any cross-tenant disclosure, fabricated dosage, unsafe autonomous action, or injected instruction fails the rollout gate.
 - [ ] 8.10 Run controlled provider canaries with synthetic or explicitly approved data for the evaluated OpenAI and Gemini routes and record comparable quality, safety, latency, token, and cost evidence.
+- [ ] 8.11 Add deterministic and browser tests for semantic discovery, exact identifier search, no-result precision, intent ambiguity, invalid form diffs, independent field acceptance, neutral personalization, stale insights, mute, and deduplication.
+- [ ] 8.12 Extend the versioned evaluation set with ranking relevance, explanation faithfulness, form-schema validity, intent-plan safety, personalization control, insight usefulness, noise, and cost thresholds.
 
 ## 9. Documentation and Rollout
 
@@ -96,6 +110,7 @@
 - [ ] 9.4 Publish user-facing pt-BR disclosure for AI limitations, source interpretation, image hypotheses, feedback, retention, deletion, and qualified agronomic escalation.
 - [ ] 9.5 Complete internal, tenant-allowlist, and gradual production rollout stages with explicit safety, quality, reliability, latency, and budget promotion criteria.
 - [ ] 9.6 Verify rollback by disabling launch points and new generation while preserving non-AI workflows and authorized conversation export and deletion.
+- [ ] 9.7 Document user-facing semantic search, workflow planning, form suggestions, personalization reasons, optional signal controls, insight mute behavior, and neutral fallback in pt-BR.
 
 ## 10. Final Verification
 
@@ -105,3 +120,4 @@
 - [ ] 10.4 Review production assets, network connections, browser storage, logs, traces, screenshots, and source maps for provider credentials, hidden instructions, raw AI content, PII, or misleading demo behavior.
 - [ ] 10.5 Record final requirement traceability, OpenAPI version, evaluation baseline, measured budgets, rollout decision, rollback evidence, residual risks, and approval from security, product, and qualified agronomy owners before enabling production AI.
 - [ ] 10.6 Run `npm run quality:gate` and mark this change complete only after every task has objective evidence and the companion backend gateway is production-ready.
+- [ ] 10.7 Verify dependency compatibility with `redesign-ai-native-product-experience` and prove that the redesign reuses the same AI contracts, state machines, services, and safety controls.

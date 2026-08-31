@@ -134,3 +134,73 @@ Users SHALL be able to inspect, start, rename, export, and delete their permitte
 
 - **WHEN** the user submits positive or negative feedback
 - **THEN** the interface records the rating and optional sanitized comment without changing the operational source data or silently opting the content into model training
+
+### Requirement: Natural-language discovery
+
+The product SHALL let authenticated users search approved Hortelan and agronomy knowledge in natural language and MUST return grounded results that distinguish direct matches, semantic matches, suggested destinations, and unavailable evidence.
+
+#### Scenario: User searches by operational intent
+
+- **WHEN** a user describes a goal, symptom, resource, or workflow without knowing its exact product label
+- **THEN** the experience returns relevant authorized pages, records, help content, and agronomy sources with reasons for each match
+
+#### Scenario: Semantic search has weak evidence
+
+- **WHEN** no result meets the approved relevance threshold
+- **THEN** the experience reports that no reliable match was found and offers bounded query refinement instead of presenting low-confidence content as fact
+
+### Requirement: Reviewable intelligent form assistance
+
+Supported forms SHALL let users request field explanations and context-based value suggestions, and the assistant MUST present every proposed change as an editable diff without overwriting input or submitting the form automatically.
+
+#### Scenario: User requests help completing a form
+
+- **WHEN** the current form and authorized operational context support a suggestion
+- **THEN** the assistant identifies proposed field values, reasons, evidence, unchanged fields, and validation constraints before the user accepts any value
+
+#### Scenario: Suggested value conflicts with validation
+
+- **WHEN** a generated suggestion violates the form schema, business rules, permissions, or freshness requirements
+- **THEN** the suggestion is rejected and no form field or mutation is changed
+
+### Requirement: Explainable personalization
+
+Personalized recommendations SHALL use only disclosed and user-controlled profile, role, garden, crop, preference, and behavior signals, and MUST explain the material factors that caused a recommendation to appear.
+
+#### Scenario: Personalized recommendation is displayed
+
+- **WHEN** the system adapts a recommendation or result to the current user
+- **THEN** the interface identifies the relevant garden, crop stage, preference, or recent event and provides a path to adjust or disable that signal
+
+#### Scenario: Personalization is disabled
+
+- **WHEN** the user opts out of optional AI personalization
+- **THEN** the product stops using optional behavior signals and continues with non-personalized grounded assistance
+
+### Requirement: User-controlled proactive insights
+
+The product SHALL surface bounded, explainable insights for material authorized changes such as sensor anomalies, crop-stage transitions, recurring alerts, and report trends, and MUST let users dismiss, mute, revisit, and give feedback on them.
+
+#### Scenario: A material insight is available
+
+- **WHEN** current evidence meets the configured relevance, freshness, and safety thresholds
+- **THEN** the user receives a concise insight with evidence, reason, urgency, uncertainty, and a safe next step
+
+#### Scenario: Insight evidence becomes stale
+
+- **WHEN** the source data expires or changes materially before the user acts
+- **THEN** the insight is marked stale or withdrawn and cannot produce a confirmed action without fresh analysis
+
+### Requirement: Natural-language workflow planning
+
+The assistant SHALL translate supported natural-language requests into inspectable navigation, filter, query, form, report, note, or task drafts and MUST require the normal product review and authorization flow before any mutation.
+
+#### Scenario: User describes a supported workflow goal
+
+- **WHEN** the request can be represented by an approved structured plan
+- **THEN** the interface shows the interpreted intent, target resources, proposed parameters, evidence, and next confirmation step
+
+#### Scenario: Request is ambiguous or unsupported
+
+- **WHEN** multiple consequential interpretations exist or no approved plan matches
+- **THEN** the assistant asks a focused clarification or states the unsupported boundary without executing an action

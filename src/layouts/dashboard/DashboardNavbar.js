@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { alpha, styled } from '@mui/material/styles';
 import { AppBar, Box, IconButton, Stack, Toolbar, Tooltip, Typography } from '@mui/material';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import WifiRoundedIcon from '@mui/icons-material/WifiRounded';
 import Searchbar from './Searchbar';
 import AccountPopover from './AccountPopover';
@@ -22,7 +23,7 @@ const Root = styled(AppBar)(({ theme }) => ({
   [theme.breakpoints.up('lg')]: { width: `calc(100% - ${DRAWER_WIDTH}px)` },
 }));
 
-export default function DashboardNavbar({ onOpenSidebar }) {
+export default function DashboardNavbar({ onOpenAssistant, onOpenSidebar }) {
   return (
     <Root>
       <Toolbar sx={{ minHeight: `${APP_BAR_HEIGHT}px !important`, px: { xs: 1.25, sm: 2.5, lg: 4 } }}>
@@ -31,7 +32,7 @@ export default function DashboardNavbar({ onOpenSidebar }) {
             <MenuRoundedIcon />
           </IconButton>
         </Tooltip>
-        <Searchbar />
+        <Searchbar onOpenAssistant={onOpenAssistant} />
         <Box sx={{ flexGrow: 1 }} />
         <Stack direction="row" alignItems="center" spacing={{ xs: 0.25, sm: 0.75 }}>
           <Stack
@@ -45,6 +46,11 @@ export default function DashboardNavbar({ onOpenSidebar }) {
               Operacao online
             </Typography>
           </Stack>
+          <Tooltip title="Abrir inteligencia Hortelan">
+            <IconButton onClick={() => onOpenAssistant('')} aria-label="Abrir inteligencia Hortelan" color="primary">
+              <AutoAwesomeRoundedIcon />
+            </IconButton>
+          </Tooltip>
           <ModeTheme />
           <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
             <NotificationsPopover />
@@ -56,4 +62,7 @@ export default function DashboardNavbar({ onOpenSidebar }) {
   );
 }
 
-DashboardNavbar.propTypes = { onOpenSidebar: PropTypes.func.isRequired };
+DashboardNavbar.propTypes = {
+  onOpenAssistant: PropTypes.func.isRequired,
+  onOpenSidebar: PropTypes.func.isRequired,
+};

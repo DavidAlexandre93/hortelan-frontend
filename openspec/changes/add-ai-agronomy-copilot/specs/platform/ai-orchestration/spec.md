@@ -156,3 +156,44 @@ AI features MUST remain disabled until gateway health, at least one approved pro
 
 - **WHEN** no production-ready provider route or policy is configured
 - **THEN** capability discovery reports AI as unavailable and the frontend renders an honest disabled state instead of sample answers
+
+### Requirement: Hybrid semantic retrieval
+
+The gateway MUST combine approved lexical, semantic, metadata, authorization, and freshness signals for discovery and grounding, and SHALL return stable relevance evidence without exposing embeddings or cross-tenant corpus content.
+
+#### Scenario: Semantic and lexical signals disagree
+
+- **WHEN** candidate results have conflicting text, vector, authority, freshness, or tenant signals
+- **THEN** the gateway applies the versioned ranking policy and excludes results below the approved relevance or authorization threshold
+
+### Requirement: Structured intent planning
+
+Natural-language workflow requests MUST be classified against a versioned allowlist of supported intents and SHALL produce a schema-validated plan before any navigation, query, form suggestion, or action draft is returned.
+
+#### Scenario: Request maps to an approved intent
+
+- **WHEN** the request and authorized context satisfy one supported intent schema
+- **THEN** the gateway returns the normalized intent, parameters, confidence boundary, evidence, and required review level
+
+#### Scenario: Request attempts an undeclared intent
+
+- **WHEN** a model proposes a command or parameter outside the allowlist
+- **THEN** the gateway rejects the plan and executes no tool or mutation
+
+### Requirement: Governed personalization features
+
+Personalization MUST use a versioned allowlist of minimized features with purpose, provenance, freshness, sensitivity, and consent metadata, and SHALL support non-personalized execution when optional features are unavailable or disabled.
+
+#### Scenario: Optional behavior feature is disabled
+
+- **WHEN** the user revokes personalization consent or an optional feature expires
+- **THEN** the feature is removed from subsequent ranking and generation context without disabling core grounded assistance
+
+### Requirement: Bounded proactive insight generation
+
+Proactive insight jobs MUST evaluate only approved triggers and authorized fresh data, SHALL deduplicate equivalent insights, and MUST apply per-user frequency, urgency, quota, and quiet-hour policies before delivery.
+
+#### Scenario: Equivalent insight already exists
+
+- **WHEN** the same evidence and recommended next step have already produced an active insight within the deduplication window
+- **THEN** the gateway updates or suppresses the existing insight instead of generating another notification or provider charge

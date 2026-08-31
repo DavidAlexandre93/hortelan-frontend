@@ -40,3 +40,30 @@ Operational pages MUST label whether AI context came from live, stale, simulated
 
 - **WHEN** AI assistance is used while a workflow displays simulated measurements
 - **THEN** the request and answer are visibly marked as demonstration analysis and cannot be mistaken for a live equipment diagnosis
+
+### Requirement: AI-assisted form workflows
+
+Selected onboarding, crop, report, alert, integration, and support forms SHALL support field explanations and reviewable suggestions only when their schemas, permissions, and authoritative context are available.
+
+#### Scenario: User applies selected form suggestions
+
+- **WHEN** the user independently accepts one or more valid suggested fields
+- **THEN** the normal form validation and submission lifecycle receives those values and all unaccepted input remains unchanged
+
+### Requirement: Personalized operational recommendations
+
+Operational views SHALL rank or tailor AI recommendations using only disclosed authorized signals and MUST preserve direct access to unpersonalized source data and deterministic controls.
+
+#### Scenario: Recommendation order is personalized
+
+- **WHEN** role, garden, crop stage, preference, or recent event changes the ranking
+- **THEN** the view explains the material factor and permits the user to view a neutral ordering
+
+### Requirement: Proactive insight workflow
+
+The dashboard SHALL present deduplicated proactive insights in a scannable queue with evidence, freshness, urgency, uncertainty, feedback, mute, dismiss, and revisit controls.
+
+#### Scenario: User dismisses or mutes an insight
+
+- **WHEN** the user dismisses one insight or mutes its approved trigger category
+- **THEN** the preference is applied without hiding authoritative alerts or safety-critical product states

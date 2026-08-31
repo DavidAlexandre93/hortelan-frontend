@@ -27,3 +27,12 @@ The assistant SHALL use a bounded side panel on suitable desktop viewports and a
 
 - **WHEN** reduced motion is enabled
 - **THEN** assistant transitions and streaming indicators avoid nonessential movement while preserving understandable state changes
+
+### Requirement: Accessible AI discovery and form review
+
+Semantic results, personalized reasons, proactive insights, and field-level AI diffs MUST expose their source, confidence boundary, changed values, validation state, and available actions in a keyboard-operable reading order that does not rely on color or motion alone.
+
+#### Scenario: User reviews an AI form diff with assistive technology
+
+- **WHEN** suggested and existing values differ
+- **THEN** each changed field is announced with its previous value, proposed value, reason, validation state, and independent accept or reject control

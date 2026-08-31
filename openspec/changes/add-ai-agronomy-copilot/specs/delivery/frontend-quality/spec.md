@@ -40,3 +40,12 @@ The delivery flow SHALL enforce approved budgets for assistant lazy-chunk transf
 
 - **WHEN** assistant UI, provider contracts, or evaluation dependencies change
 - **THEN** bundle analysis verifies that server-only provider SDKs are absent from client assets and that the assistant remains outside the initial dashboard entry budget
+
+### Requirement: Semantic and personalization evaluation gate
+
+The release process MUST evaluate semantic relevance, no-result precision, intent classification, form-diff validity, personalization explanations, neutral fallback, proactive-insight deduplication, and user-control behavior using deterministic fixtures and controlled provider canaries.
+
+#### Scenario: Search, intent, or personalization behavior changes
+
+- **WHEN** ranking, embeddings, intent schemas, personalization features, or proactive triggers change
+- **THEN** the candidate is compared with the approved baseline and any critical authorization, misleading-explanation, invalid-form, or unsafe-action regression blocks rollout
