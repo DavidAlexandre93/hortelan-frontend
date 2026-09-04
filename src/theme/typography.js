@@ -4,20 +4,6 @@ function pxToRem(value) {
   return `${value / 16}rem`;
 }
 
-function responsiveFontSizes({ sm, md, lg }) {
-  return {
-    '@media (min-width:600px)': {
-      fontSize: pxToRem(sm),
-    },
-    '@media (min-width:900px)': {
-      fontSize: pxToRem(md),
-    },
-    '@media (min-width:1200px)': {
-      fontSize: pxToRem(lg),
-    },
-  };
-}
-
 const FONT_PRIMARY = '"Manrope", Arial, sans-serif';
 
 const typography = {
@@ -27,61 +13,66 @@ const typography = {
   fontWeightBold: 700,
   h1: {
     fontWeight: 700,
-    lineHeight: 80 / 64,
-    fontSize: pxToRem(40),
-    ...responsiveFontSizes({ sm: 52, md: 58, lg: 64 }),
+    lineHeight: 1.15,
+    fontSize: pxToRem(48),
+    letterSpacing: 0,
   },
   h2: {
     fontWeight: 700,
-    lineHeight: 64 / 48,
-    fontSize: pxToRem(32),
-    ...responsiveFontSizes({ sm: 40, md: 44, lg: 48 }),
+    lineHeight: 1.2,
+    fontSize: pxToRem(36),
+    letterSpacing: 0,
   },
   h3: {
     fontWeight: 700,
-    lineHeight: 1.5,
-    fontSize: pxToRem(24),
-    ...responsiveFontSizes({ sm: 26, md: 30, lg: 32 }),
+    lineHeight: 1.25,
+    fontSize: pxToRem(30),
+    letterSpacing: 0,
   },
   h4: {
     fontWeight: 700,
-    lineHeight: 1.5,
-    fontSize: pxToRem(20),
-    ...responsiveFontSizes({ sm: 20, md: 24, lg: 24 }),
+    lineHeight: 1.3,
+    fontSize: pxToRem(24),
+    letterSpacing: 0,
   },
   h5: {
     fontWeight: 700,
-    lineHeight: 1.5,
+    lineHeight: 1.35,
     fontSize: pxToRem(18),
-    ...responsiveFontSizes({ sm: 19, md: 20, lg: 20 }),
+    letterSpacing: 0,
   },
   h6: {
     fontWeight: 700,
     lineHeight: 28 / 18,
     fontSize: pxToRem(17),
-    ...responsiveFontSizes({ sm: 18, md: 18, lg: 18 }),
+    letterSpacing: 0,
   },
   subtitle1: {
     fontWeight: 600,
     lineHeight: 1.5,
     fontSize: pxToRem(16),
+    letterSpacing: 0,
   },
   subtitle2: {
     fontWeight: 600,
     lineHeight: 22 / 14,
     fontSize: pxToRem(14),
+    letterSpacing: 0,
   },
   body1: {
     lineHeight: 1.5,
     fontSize: pxToRem(16),
+    letterSpacing: 0,
   },
   body2: {
     lineHeight: 22 / 14,
     fontSize: pxToRem(14),
+    letterSpacing: 0,
   },
   caption: {
     lineHeight: 1.5,
     fontSize: pxToRem(12),
+    letterSpacing: 0,
   },
   overline: {
     fontWeight: 700,

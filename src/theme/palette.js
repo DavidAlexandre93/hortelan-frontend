@@ -1,11 +1,5 @@
 import { alpha } from '@mui/material/styles';
 
-// ----------------------------------------------------------------------
-
-function createGradient(color1, color2) {
-  return `linear-gradient(to bottom, ${color1}, ${color2})`;
-}
-
 // SETUP COLORS
 const GREY = {
   0: '#FFFFFF',
@@ -82,16 +76,8 @@ const ERROR = {
   contrastText: '#fff',
 };
 
-const GRADIENTS = {
-  primary: createGradient(PRIMARY.light, PRIMARY.main),
-  info: createGradient(INFO.light, INFO.main),
-  success: createGradient(SUCCESS.light, SUCCESS.main),
-  warning: createGradient(WARNING.light, WARNING.main),
-  error: createGradient(ERROR.light, ERROR.main),
-};
-
 const CHART_COLORS = {
-  violet: ['#826AF9', '#9E86FF', '#D0AEFF', '#F7D2FF'],
+  violet: ['#6B5CC5', '#8D80D8', '#B8AFE9', '#E2DFF5'],
   blue: ['#2D99FF', '#83CFFF', '#A5F3FF', '#CCFAFF'],
   green: ['#2CD9C5', '#60F1C8', '#A4F7CC', '#C0F2DC'],
   yellow: ['#FFE700', '#FFEF5A', '#FFF7AE', '#FFF3D6'],
@@ -111,21 +97,31 @@ function getPalette(mode = 'light') {
     warning: { ...WARNING },
     error: { ...ERROR },
     grey: GREY,
-    gradients: GRADIENTS,
     chart: CHART_COLORS,
-    divider: GREY[500_24],
-    text: {
-      primary: isLight ? GREY[800] : '#fff',
-      secondary: isLight ? GREY[600] : GREY[500],
-      disabled: GREY[500],
+    surface: {
+      canvas: isLight ? '#F5F7F5' : '#101915',
+      base: isLight ? '#FFFFFF' : '#17231D',
+      subtle: isLight ? '#EEF3EF' : '#1D2B24',
+      raised: isLight ? '#FFFFFF' : '#22332A',
     },
-    background: {
-      paper: isLight ? '#fff' : GREY[800],
-      default: isLight ? '#F5F7F5' : GREY[900],
-      neutral: isLight ? GREY[200] : alpha(GREY[500], 0.12),
+    border: {
+      subtle: isLight ? '#E2E9E3' : '#304238',
+      strong: isLight ? '#C8D6CB' : '#496052',
+    },
+    focus: { ring: isLight ? '#0B603C' : '#68C89A' },
+    status: {
+      info: INFO.main,
+      success: SUCCESS.dark,
+      warning: WARNING.dark,
+      critical: ERROR.dark,
+      neutral: GREY[600],
     },
     action: {
-      active: isLight ? GREY[600] : GREY[500],
+      primary: PRIMARY.main,
+      primaryHover: PRIMARY.dark,
+      secondary: SECONDARY.main,
+      secondaryHover: SECONDARY.dark,
+      active: isLight ? GREY[600] : GREY[400],
       hover: GREY[500_8],
       selected: GREY[500_16],
       disabled: GREY[500_80],
@@ -133,6 +129,24 @@ function getPalette(mode = 'light') {
       focus: GREY[500_24],
       hoverOpacity: 0.08,
       disabledOpacity: 0.48,
+    },
+    chartTokens: {
+      grid: isLight ? '#D9E4DC' : '#385044',
+      axis: isLight ? GREY[600] : GREY[400],
+      threshold: WARNING.dark,
+      focus: isLight ? PRIMARY.dark : PRIMARY.light,
+      series: CHART_COLORS,
+    },
+    divider: GREY[500_24],
+    text: {
+      primary: isLight ? GREY[800] : '#fff',
+      secondary: isLight ? GREY[600] : GREY[500],
+      disabled: GREY[500],
+    },
+    background: {
+      paper: isLight ? '#fff' : '#17231D',
+      default: isLight ? '#F5F7F5' : '#101915',
+      neutral: isLight ? GREY[200] : alpha(GREY[500], 0.12),
     },
   };
 }

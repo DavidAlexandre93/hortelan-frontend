@@ -9,8 +9,8 @@ import AccountPopover from './AccountPopover';
 import NotificationsPopover from './NotificationsPopover';
 import ModeTheme from './ModeTheme';
 
-const DRAWER_WIDTH = 264;
-const APP_BAR_HEIGHT = 68;
+const DRAWER_WIDTH = 248;
+const APP_BAR_HEIGHT = 64;
 
 const Root = styled(AppBar)(({ theme }) => ({
   height: APP_BAR_HEIGHT,

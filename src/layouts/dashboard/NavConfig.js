@@ -1,19 +1,32 @@
 import Iconify from '../../components/Iconify';
+import { dashboardNavigation, dashboardRoutes } from '../../routing/routeManifest';
 
 const icon = (name) => <Iconify icon={name} width={21} height={21} />;
 
-const navConfig = [
-  { title: 'Monitoramento', path: '/dashboard/app', icon: icon('eva:activity-fill') },
-  { title: 'Alertas', path: '/dashboard/alertas', icon: icon('eva:bell-fill') },
-  { title: 'Relatorios', path: '/dashboard/relatorios', icon: icon('eva:bar-chart-2-fill') },
-  { title: 'Especies', path: '/dashboard/products', icon: icon('eva:book-open-fill') },
-  { title: 'Hortelan 360', path: '/dashboard/hortelan-360', icon: icon('eva:layers-fill') },
-  { title: 'Integracoes', path: '/dashboard/integracoes', icon: icon('eva:link-2-fill') },
-  { title: 'Comunidade', path: '/dashboard/blog', icon: icon('eva:message-square-fill') },
-  { title: 'Administracao', path: '/dashboard/admin', icon: icon('eva:people-fill') },
-  { title: 'Status', path: '/dashboard/status', icon: icon('eva:activity-outline') },
-  { title: 'Seguranca', path: '/dashboard/security', icon: icon('eva:shield-fill') },
-  { title: 'Perfil', path: '/dashboard/profile', icon: icon('eva:person-fill') },
-];
+const ICONS = {
+  '/dashboard/app': 'eva:activity-fill',
+  '/dashboard/alertas': 'eva:bell-fill',
+  '/dashboard/relatorios': 'eva:bar-chart-2-fill',
+  '/dashboard/products': 'eva:book-open-fill',
+  '/dashboard/hortelan-360': 'eva:layers-fill',
+  '/dashboard/blog': 'eva:message-square-fill',
+  '/dashboard/admin': 'eva:people-fill',
+  '/dashboard/integracoes': 'eva:link-2-fill',
+  '/dashboard/status': 'eva:activity-outline',
+  '/dashboard/security': 'eva:shield-fill',
+  '/dashboard/profile': 'eva:person-fill',
+};
 
+const navConfig = dashboardNavigation.map(({ title, paths }) => ({
+  title,
+  group: true,
+  children: paths
+    .map((path) => dashboardRoutes.find((route) => route.canonicalPath === path))
+    .filter((route) => route && ICONS[route.canonicalPath])
+    .map((route) => ({
+      title: route.title,
+      path: route.canonicalPath,
+      icon: icon(ICONS[route.canonicalPath]),
+    })),
+}));
 export default navConfig;

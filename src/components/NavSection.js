@@ -36,13 +36,30 @@ NavItem.propTypes = {
   active: PropTypes.func,
 };
 
+function GroupNavItem({ item, active }) {
+  return (
+    <Box sx={{ pt: 1.5, '&:first-of-type': { pt: 0 } }}>
+      <Typography
+        component="h2"
+        variant="overline"
+        color="text.disabled"
+        sx={{ px: 1.5, fontSize: '0.65rem', letterSpacing: '0.08em' }}
+      >
+        {item.title}
+      </Typography>
+      <List disablePadding>
+        {item.children.map((child) => <NavItem key={child.path} item={child} active={active} />)}
+      </List>
+    </Box>
+  );
+}
+
 function NavItem({ item, active }) {
   const theme = useTheme();
 
   const isActiveRoot = active(item.path);
 
   const { title, path, icon, info, children } = item;
-
   const [open, setOpen] = useState(isActiveRoot);
 
   const handleOpen = () => {
@@ -153,7 +170,7 @@ export default function NavSection({ navConfig, ...other }) {
     <Box {...other}>
       <List disablePadding sx={{ p: 1 }}>
         {navConfig.map((item) => (
-          <NavItem key={item.title} item={item} active={match} />
+          item.group ? <GroupNavItem key={item.title} item={item} active={match} /> : <NavItem key={item.title} item={item} active={match} />
         ))}
       </List>
     </Box>

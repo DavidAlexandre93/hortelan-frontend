@@ -1,13 +1,13 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { Box, Button, CircularProgress, Stack, Typography } from '@mui/material';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import { Box, CircularProgress } from '@mui/material';
 import DashboardNavbar from './DashboardNavbar';
 import DashboardSidebar from './DashboardSidebar';
+import PageContext from '../../components/layout/PageContext';
 import { findDashboardContext } from '../../routing/routeManifest';
-import { OfflineBanner, StatusBadge } from '../../components/states/OperationalState';
+import { OfflineBanner } from '../../components/states/OperationalState';
 
-const APP_BAR_HEIGHT = 68;
+const APP_BAR_HEIGHT = 64;
 const AssistantExperience = lazy(() => import('../../features/ai/components/AssistantExperience'));
 
 export default function DashboardLayout() {
@@ -26,7 +26,7 @@ export default function DashboardLayout() {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100dvh', bgcolor: 'background.default' }}>
-      <Box sx={{ position: 'fixed', top: 68, left: { xs: 0, lg: 264 }, right: 0, zIndex: 1190 }}>
+      <Box sx={{ position: 'fixed', top: APP_BAR_HEIGHT, left: { xs: 0, lg: 248 }, right: 0, zIndex: 1190 }}>
         <OfflineBanner />
       </Box>
       <DashboardNavbar
@@ -51,45 +51,16 @@ export default function DashboardLayout() {
         }}
       >
         <Box sx={{ width: 1, maxWidth: 1480, mx: 'auto' }}>
-          <Stack
-            spacing={0.75}
-            sx={{
-              pt: { xs: 3, md: 4 },
-              pb: { xs: 2.5, md: 3 },
-              mb: 3,
-              borderBottom: '1px solid',
-              borderColor: 'divider',
+          <PageContext
+            badge={context.badge}
+            heading={context.heading}
+            subheading={context.subheading}
+            hasAiContext={Boolean(context.aiContext)}
+            onOpenAssistant={(prompt = '') => {
+              setAssistantPrompt(prompt);
+              setAssistantOpen(true);
             }}
-          >
-            <Typography variant="overline" color="primary.dark" sx={{ fontWeight: 800 }}>
-              {context.badge}
-            </Typography>
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              alignItems={{ xs: 'flex-start', sm: 'center' }}
-              gap={1.25}
-            >
-              <Stack direction="row" alignItems="center" gap={1.25} sx={{ minWidth: 0, flex: 1, flexWrap: 'wrap' }}>
-                <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '1.85rem' } }}>
-                  {context.heading}
-                </Typography>
-                <StatusBadge label="Dados ilustrativos" severity="neutral" />
-              </Stack>
-              {context.aiContext ? (
-                <Button
-                  variant="outlined"
-                  startIcon={<AutoAwesomeRoundedIcon />}
-                  onClick={() => setAssistantOpen(true)}
-                  sx={{ flexShrink: 0 }}
-                >
-                  Perguntar a IA
-                </Button>
-              ) : null}
-            </Stack>
-            <Typography color="text.secondary" sx={{ maxWidth: 760, lineHeight: 1.65 }}>
-              {context.subheading}
-            </Typography>
-          </Stack>
+          />
           <Outlet />
         </Box>
       </Box>

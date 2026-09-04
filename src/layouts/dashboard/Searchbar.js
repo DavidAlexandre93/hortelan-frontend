@@ -158,7 +158,7 @@ export default function Searchbar({ onOpenAssistant }) {
                 <Box
                   sx={{
                     position: 'absolute',
-                    top: 68,
+                    top: 64,
                     left: 0,
                     right: 0,
                     maxHeight: 'min(70dvh, 620px)',

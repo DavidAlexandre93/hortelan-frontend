@@ -10,20 +10,20 @@
 
 ## 2. Semantic Theme and Design Foundations
 
-- [ ] 2.1 Replace feature-local foundation values with documented semantic tokens for canvas, surfaces, text, borders, actions, focus, status, and chart series in light and dark themes.
-- [ ] 2.2 Implement the balanced green, neutral, information, warning, success, and critical palette without gradients, decorative color, or color-only meaning, then verify contrast for every state.
+- [x] 2.1 Replace feature-local foundation values with documented semantic tokens for canvas, surfaces, text, borders, actions, focus, status, and chart series in light and dark themes.
+- [x] 2.2 Implement the balanced green, neutral, information, warning, success, and critical palette without gradients, decorative color, or color-only meaning, then verify contrast for every state.
 - [ ] 2.3 Compare Manrope-only and Manrope plus Public Sans fixtures for headings, body copy, forms, tables, navigation, and metrics, and retain the smallest option that materially improves legibility.
-- [ ] 2.4 Tokenize typography roles, line heights, line lengths, tabular metrics, wrapping, truncation, and zero letter spacing without viewport-scaled font sizes.
-- [ ] 2.5 Tokenize the 4-pixel spacing foundation, responsive gutters, content widths, section rhythm, grid tracks, dense and comfortable modes, and stable control dimensions.
-- [ ] 2.6 Tokenize restrained radii, borders, elevations, overlays, named z-index layers, focus rings, icon sizes, and touch targets with theme parity.
-- [ ] 2.7 Add instant, fast, standard, and deliberate motion tokens with approved easing and reduced-motion mappings for navigation, disclosure, refresh, streaming, and feedback.
+- [x] 2.4 Tokenize typography roles, line heights, line lengths, tabular metrics, wrapping, truncation, and zero letter spacing without viewport-scaled font sizes.
+- [x] 2.5 Tokenize the 4-pixel spacing foundation, responsive gutters, content widths, section rhythm, grid tracks, dense and comfortable modes, and stable control dimensions.
+- [x] 2.6 Tokenize restrained radii, borders, elevations, overlays, named z-index layers, focus rings, icon sizes, and touch targets with theme parity.
+- [x] 2.7 Add instant, fast, standard, and deliberate motion tokens with approved easing and reduced-motion mappings for navigation, disclosure, refresh, streaming, and feedback.
 - [ ] 2.8 Define chart tokens for categorical series, thresholds, grids, axes, tooltips, focus, selection, sparse data, stale data, and dark-theme contrast without relying on color alone.
 - [ ] 2.9 Make light, dark, and system preference initialization SSR-safe, persistent, hydration-stable, and covered for charts, dialogs, status components, forms, and AI surfaces.
 - [ ] 2.10 Add a static design-token governance check that rejects prohibited raw production values while allowing reviewed data-derived visualization and external-brand exceptions.
 
 ## 3. Shared Composition and State Primitives
 
-- [ ] 3.1 Build a compact page-context primitive for title, concise purpose, provenance, freshness or health, route actions, breadcrumbs where needed, and responsive overflow.
+- [x] 3.1 Build a compact page-context primitive for title, concise purpose, provenance, freshness or health, route actions, breadcrumbs where needed, and responsive overflow.
 - [ ] 3.2 Build section-header, metric-strip, status-summary, evidence-row, freshness-label, and source-list primitives with stable dimensions and accessible semantics.
 - [ ] 3.3 Build a consistent data toolbar with search, filter group, sorting, segmented view, result count, refresh, export, selection, bulk action, reset, and compact responsive behavior.
 - [ ] 3.4 Build dense-list, table-frame, pagination, selection, row-action, detail-drawer, and compact-card fallback patterns without nested cards or unstable toolbars.
@@ -36,10 +36,10 @@
 
 ## 4. Responsive Application Shell
 
-- [ ] 4.1 Extend the route manifest with ordered Operacao, Conhecimento, Gestao, and Conta groups while preserving canonical paths, labels, access rules, lazy modules, and selective SSR metadata.
-- [ ] 4.2 Redesign desktop navigation as a stable 248-pixel grouped sidebar with current-location semantics and an optional persistent icon rail whose labels remain discoverable.
+- [x] 4.1 Extend the route manifest with ordered Operacao, Conhecimento, Gestao, and Conta groups while preserving canonical paths, labels, access rules, lazy modules, and selective SSR metadata.
+- [x] 4.2 Redesign desktop navigation as a stable 248-pixel grouped sidebar with current-location semantics and an optional persistent icon rail whose labels remain discoverable.
 - [ ] 4.3 Redesign mobile navigation as an accessible temporary drawer with focus containment, current route, context preservation, dismissal, and predictable return focus.
-- [ ] 4.4 Recompose the 64-pixel top bar around navigation, deterministic search and AI command entry, operational notifications, theme, help, and account with stable utility priority.
+- [x] 4.4 Recompose the 64-pixel top bar around navigation, deterministic search and AI command entry, operational notifications, theme, help, and account with stable utility priority.
 - [ ] 4.5 Integrate direct destinations, semantic results, generated answers, and reviewable action plans in one lazy command surface with distinct semantics and a deterministic fallback.
 - [ ] 4.6 Add a stable shell band for offline, degraded service, active incident, and recovery communication without covering navigation or page commands.
 - [ ] 4.7 Replace route-level spinners with context-preserving pending frames and route-scoped lazy-load recovery that avoid blank pages and layout jumps.

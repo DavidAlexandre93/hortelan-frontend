@@ -198,3 +198,7 @@ Bundle analysis tracks client entry, shell, each redesigned route, fonts, images
 10. Remove old visual paths, duplicate styles, obsolete overrides, unreachable modules, unused assets, and the migration flag only after final reachability and rollback review.
 
 Rollback keeps the last promoted route composition active through the temporary route-level flag. Tokens and primitives are additive until a route passes promotion. No data migration is involved; service and domain contracts remain unchanged. If the AI change is unavailable, deterministic search, navigation, forms, alerts, and source data remain fully usable.
+
+## Current Implementation Slice
+
+The first implementation slice establishes the semantic visual foundation and shell measurements before route composition changes. It replaces legacy gradient and raw color roles with explicit light/dark surface, text, border, action, focus, status, chart, spacing, radius, elevation, and motion tokens, while preserving the existing MUI composition root. The authenticated shell then adopts the approved 248-pixel desktop navigation and 64-pixel top bar dimensions, and its grouped navigation is declared beside the route manifest rather than in a second route configuration. A reusable `PageContext` primitive now owns route title, purpose, provenance, and contextual AI entry, with focused tests for both AI-enabled and deterministic routes. This slice does not change canonical routes, authorization, domain calculations, or the backend-owned AI contract.

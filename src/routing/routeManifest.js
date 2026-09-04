@@ -180,6 +180,13 @@ export const dashboardRoutes = [
   },
 ];
 
+export const dashboardNavigation = Object.freeze([
+  { title: 'Operacao', paths: ['/dashboard/app', '/dashboard/alertas', '/dashboard/relatorios'] },
+  { title: 'Conhecimento', paths: ['/dashboard/products', '/dashboard/hortelan-360', '/dashboard/blog'] },
+  { title: 'Gestao', paths: ['/dashboard/admin', '/dashboard/integracoes', '/dashboard/status'] },
+  { title: 'Conta', paths: ['/dashboard/security', '/dashboard/profile'] },
+]);
+
 export const publicRoutes = [
   {
     path: '/login',

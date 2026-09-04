@@ -10,7 +10,7 @@ import NavSection from '../../components/NavSection';
 import navConfig from './NavConfig';
 import useAuth from '../../auth/useAuth';
 
-const DRAWER_WIDTH = 264;
+const DRAWER_WIDTH = 248;
 
 export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
   const isDesktop = useResponsive('up', 'lg');
