@@ -94,7 +94,7 @@
     "msw": "^2.15.0",
     "prettier": "^3.9.6",
     "terser": "^5.50.0",
-    "typescript": "5.9.3",
+    "typescript": "7.0.2",
     "vite": "^7.3.6",
     "vitest": "^4.1.10"
   },
